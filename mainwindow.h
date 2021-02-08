@@ -25,7 +25,15 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "astrofile.h"
+#include "filerepository.h"
+#include "fileviewmodel.h"
+#include "fitsprocessor.h"
+#include "foldercrawler.h"
+
+#include <QFileInfo>
 #include <QMainWindow>
+#include <QThread>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -39,7 +47,42 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+public slots:
+    void NewFileFound(const QFileInfo fileInfo);
+    void GetAstroFileFinished(const AstroFile astroFile);
+    void GetThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
+    void ProcessFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY );
+signals:
+    void Crawl(QString rootFolder);
+    void GetAstroFile(QString fullPath);
+    void GetAllAstroFiles();
+    void GetAllAstroFileTags();
+    void InsertAstroFile(AstroFile astroFile);
+    void DbAddTags(const AstroFile& astroFile);
+    void DbAddThumbnail(const AstroFile& astroFile, const QImage& image);
+    void DbGetThumbnails();
+    void InitializeFileRepository();
+    void ProcessFitsFile(const AstroFile& astroFile);
+private slots:
+    void on_pushButton_clicked();
+    void on_imageSizeSlider_valueChanged(int value);
+    void GetAllAstroFilesFinished(const QList<AstroFile>&);
+    void GetAllAstroFileTagsFinished(const QMap<QString, QSet<QString>>&);
+
 private:
     Ui::MainWindow *ui;
+
+    QThread* folderCrawlerThread;
+    FolderCrawler* folderCrawlerWorker;
+
+    QThread* fileRepositoryThread;
+    FileRepository* fileRepositoryWorker;
+
+    QThread* fitsProcessorThread;
+    FitsProcessor* fitsProcessorWorker;
+
+    FileViewModel* fileViewModel;
+
+    QImage MakeThumbnail(const QImage& image);
 };
 #endif // MAINWINDOW_H
