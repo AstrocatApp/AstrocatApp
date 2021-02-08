@@ -28,3 +28,10 @@ TRANSLATIONS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/external/cfitsio/release/ -lcfitsio.9.3.49
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/external/cfitsio/debug/ -lcfitsio.9.3.49
+else:unix: LIBS += -L$$PWD/external/cfitsio/ -lcfitsio.9.3.49
+
+INCLUDEPATH += $$PWD/external/cfitsio
+DEPENDPATH += $$PWD/external/cfitsio
