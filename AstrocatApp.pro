@@ -10,6 +10,7 @@ CONFIG += c++11
 
 SOURCES += \
     filerepository.cpp \
+    fileviewmodel.cpp \
     fitsprocessor.cpp \
     foldercrawler.cpp \
     main.cpp \
@@ -18,6 +19,7 @@ SOURCES += \
 HEADERS += \
     astrofile.h \
     filerepository.h \
+    fileviewmodel.h \
     fitsprocessor.h \
     foldercrawler.h \
     mainwindow.h
