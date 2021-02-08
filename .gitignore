@@ -70,4 +70,9 @@ Thumbs.db
 # --------
 *.dll
 *.exe
+*.dylib
 
+# cfitsio build generated files
+cfitsio.pc
+config.log
+config.status
