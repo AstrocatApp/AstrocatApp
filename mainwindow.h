@@ -30,7 +30,9 @@
 #include "fileviewmodel.h"
 #include "fitsprocessor.h"
 #include "foldercrawler.h"
+#include "searchfolderdialog.h"
 
+#include <QAbstractItemModelTester>
 #include <QFileInfo>
 #include <QMainWindow>
 #include <QThread>
@@ -52,12 +54,14 @@ public slots:
     void GetAstroFileFinished(const AstroFile astroFile);
     void GetThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
     void ProcessFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY );
+    void SearchFolderRemoved(const QString folder);
 signals:
     void Crawl(QString rootFolder);
     void GetAstroFile(QString fullPath);
     void GetAllAstroFiles();
     void GetAllAstroFileTags();
     void InsertAstroFile(AstroFile astroFile);
+    void DeleteAstrofilesInFolder(const QString fullPath);
     void DbAddTags(const AstroFile& astroFile);
     void DbAddThumbnail(const AstroFile& astroFile, const QImage& image);
     void DbGetThumbnails();
@@ -82,6 +86,8 @@ private:
     FitsProcessor* fitsProcessorWorker;
 
     FileViewModel* fileViewModel;
+
+    SearchFolderDialog searchFolderDialog;
 
     QImage MakeThumbnail(const QImage& image);
 };

@@ -14,7 +14,8 @@ SOURCES += \
     fitsprocessor.cpp \
     foldercrawler.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    searchfolderdialog.cpp
 
 HEADERS += \
     astrofile.h \
@@ -22,10 +23,12 @@ HEADERS += \
     fileviewmodel.h \
     fitsprocessor.h \
     foldercrawler.h \
-    mainwindow.h
+    mainwindow.h \
+    searchfolderdialog.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    searchfolderdialog.ui
 
 TRANSLATIONS += \
     AstrocatApp_en_US.ts
@@ -41,3 +44,6 @@ else:unix: LIBS += -L$$PWD/external/cfitsio/ -lcfitsio.9.3.49
 
 INCLUDEPATH += $$PWD/external/cfitsio
 DEPENDPATH += $$PWD/external/cfitsio
+
+RESOURCES += \
+    Resources.qrc

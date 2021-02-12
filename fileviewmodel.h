@@ -43,6 +43,7 @@ public:
 public:
     QModelIndex index(int row, int column, const QModelIndex &parent) const  override;
     bool insertRows(int row, int count, const QModelIndex &parent)  override;
+    bool removeRows(int row, int count, const QModelIndex &parent) override;
     bool insertColumns(int column, int count, const QModelIndex &parent)  override;
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;
@@ -54,6 +55,7 @@ public:
 public slots:
     void setCellSize(const int newSize);
     void GetThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
+    void RemoveAstroFile(AstroFile astroFile);
 
 signals:
     void GetThumbnail(const QString fullPath) const;
@@ -66,10 +68,11 @@ private:
         }
         AstroFile astroFile;
         QImage image;
-        QModelIndex index;
     };
     QList<AstroFileImage*> fileList;
     QMap<QString, AstroFileImage*> fileMap;
+    int getRowForAstroFile(const AstroFile& astroFile);
+    QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
 
     int rc;
     int cc;

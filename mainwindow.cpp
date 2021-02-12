@@ -23,7 +23,10 @@
 */
 
 #include "mainwindow.h"
+#include "searchfolderdialog.h"
 #include "ui_mainwindow.h"
+
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -53,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::DbGetThumbnails, fileRepositoryWorker, &FileRepository::GetThumbnails);
     connect(this, &MainWindow::InitializeFileRepository, fileRepositoryWorker, &FileRepository::Initialize);
     connect(this, &MainWindow::GetAllAstroFileTags, fileRepositoryWorker, &FileRepository::GetTags);
+    connect(this, &MainWindow::DeleteAstrofilesInFolder, fileRepositoryWorker, &FileRepository::deleteAstrofilesInFolder);
     connect(fileRepositoryWorker, &FileRepository::getAstroFileFinished, this, &MainWindow::GetAstroFileFinished);
     connect(fileRepositoryWorker, &FileRepository::getAllAstroFilesFinished, this, &MainWindow::GetAllAstroFilesFinished);
     connect(fileRepositoryWorker, &FileRepository::getThumbnailFinished, this, &MainWindow::GetThumbnailFinished);
@@ -71,13 +75,21 @@ MainWindow::MainWindow(QWidget *parent)
     fitsProcessorThread->start();
     // End - Set up Fits Processor Worker
 
+    // Set up Fileview Model
     fileViewModel = new FileViewModel(ui->astroListView);
     connect(fileViewModel, &FileViewModel::GetThumbnail, fileRepositoryWorker, &FileRepository::GetThumbnail);
     connect(fileRepositoryWorker, &FileRepository::getThumbnailFinished, fileViewModel, &FileViewModel::GetThumbnailFinished);
+    connect(fileRepositoryWorker, &FileRepository::astroFileDeleted, fileViewModel, &FileViewModel::RemoveAstroFile);
     ui->astroListView->setViewMode(QListView::IconMode);
     ui->astroListView->setIconSize(QSize(100,100));
     ui->astroListView->setResizeMode(QListView::Adjust);
     ui->astroListView->setModel(fileViewModel);
+    // End - Set up Fileview Model
+
+    // Set up SearchFolderDialog
+    connect(&searchFolderDialog, &SearchFolderDialog::SearchFolderAdded, folderCrawlerWorker, &FolderCrawler::Crawl);
+    connect(&searchFolderDialog, &SearchFolderDialog::SearchFolderRemoved, this, &MainWindow::SearchFolderRemoved);
+    // End - Set up SearchFolderDialog
 
     emit InitializeFileRepository();
 
@@ -149,9 +161,15 @@ void MainWindow::ProcessFitsFileFinished(const AstroFile astroFile, const QImage
     fileViewModel->AddAstroFile(astroFile, img.scaled( 400, 400, Qt::KeepAspectRatio));
 }
 
+void MainWindow::SearchFolderRemoved(const QString folder)
+{
+    // The source folder was removed by the user. We will need to remove all images in this source folder fromthe db.
+    emit DeleteAstrofilesInFolder(folder);
+}
+
 void MainWindow::on_pushButton_clicked()
 {
-    emit GetAllAstroFileTags();
+    searchFolderDialog.exec();
 }
 
 void MainWindow::on_imageSizeSlider_valueChanged(int value)

@@ -22,19 +22,41 @@
     SOFTWARE.
 */
 
-#include "mainwindow.h"
+#ifndef SEARCHFOLDERDIALOG_H
+#define SEARCHFOLDERDIALOG_H
 
-#include <QApplication>
+#include <QDialog>
 #include <QSettings>
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    QSettings::setDefaultFormat(QSettings::IniFormat);
-    QCoreApplication::setApplicationName("Astrocat");
-    QCoreApplication::setOrganizationName("Astrocat");
-    QCoreApplication::setOrganizationDomain("astrocat.app");
-    MainWindow w;
-    w.show();
-    return a.exec();
+namespace Ui {
+class SearchFolderDialog;
 }
+
+class SearchFolderDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit SearchFolderDialog(QWidget *parent = nullptr);
+    ~SearchFolderDialog();
+
+signals:
+    void SearchFolderAdded(QString folder);
+    void SearchFolderRemoved(QString folder);
+
+private:
+    Ui::SearchFolderDialog *ui;
+    void addNewClicked();
+    void removeClicked();
+    void selectionChanged();
+    QList<QString> searchFolders;
+    QSettings settings;
+
+
+    // QDialog interface
+public slots:
+    void accept();
+    void reject();
+};
+
+#endif // SEARCHFOLDERDIALOG_H
