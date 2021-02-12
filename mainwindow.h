@@ -90,5 +90,6 @@ private:
     SearchFolderDialog searchFolderDialog;
 
     QImage MakeThumbnail(const QImage& image);
+    QAbstractItemModelTester* tester;
 };
 #endif // MAINWINDOW_H

@@ -91,6 +91,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&searchFolderDialog, &SearchFolderDialog::SearchFolderRemoved, this, &MainWindow::SearchFolderRemoved);
     // End - Set up SearchFolderDialog
 
+    // Enable the tester during development and debugging. Disble before committing
+    //tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
+
     emit InitializeFileRepository();
 
     emit GetAllAstroFiles();
