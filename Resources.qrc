@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/Icons">
+        <file>resources/loading.png</file>
+        <file>resources/nopreview.png</file>
+    </qresource>
+</RCC>
