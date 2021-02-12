@@ -172,7 +172,7 @@ void MainWindow::SearchFolderRemoved(const QString folder)
 
 void MainWindow::on_pushButton_clicked()
 {
-    searchFolderDialog.exec();
+
 }
 
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
@@ -211,4 +211,9 @@ QImage MainWindow::MakeThumbnail(const QImage &image)
 {
     QImage small =image.scaled( QSize(200, 200), Qt::KeepAspectRatio);
     return small;
+}
+
+void MainWindow::on_actionFolders_triggered()
+{
+    searchFolderDialog.exec();
 }

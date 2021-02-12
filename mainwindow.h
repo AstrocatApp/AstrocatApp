@@ -73,6 +73,8 @@ private slots:
     void GetAllAstroFilesFinished(const QList<AstroFile>&);
     void GetAllAstroFileTagsFinished(const QMap<QString, QSet<QString>>&);
 
+    void on_actionFolders_triggered();
+
 private:
     Ui::MainWindow *ui;
 
