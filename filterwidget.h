@@ -22,44 +22,52 @@
     SOFTWARE.
 */
 
-#ifndef SORTFILTERPROXYMODEL_H
-#define SORTFILTERPROXYMODEL_H
+#ifndef FILTERWIDGET_H
+#define FILTERWIDGET_H
 
 #include "astrofile.h"
 
-#include <QDate>
-#include <QObject>
-#include <QSortFilterProxyModel>
+#include <QDateEdit>
+#include <QGroupBox>
+#include <QWidget>
 
-class SortFilterProxyModel : public  QSortFilterProxyModel
+class FilterWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit SortFilterProxyModel(QObject *parent = nullptr);
-    QDate filterMinimumDate() const { return minDate; }
-    void setFilterMinimumDate(QDate date);
-
-    QDate filterMaximumDate() const { return maxDate; }
-    void setFilterMaximumDate(QDate date);
+    explicit FilterWidget(QWidget *parent = nullptr);
 
 signals:
-    void FilterMinimumDateChanged(QDate date) const;
-    void FilterMaximumDateChanged(QDate date) const;
-    void astroFileAccepted(const AstroFile& astroFile) const;
-    void filterReset() const;
+    void minimumDateChanged(QDate date);
+    void maximumDateChanged(QDate date);
 
-    // QSortFilterProxyModel interface
-protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
-    bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
+public slots:
+    void setFilterMinimumDate(QDate date);
+    void setFilterMaximumDate(QDate date);
+    void addAstroFileTags(const AstroFile& astroFile);
+    void searchFilterReset();
+    void setAllTags(const QMap<QString, QSet<QString>>& tags);
 
 private:
-    bool dateInRange(QDate date) const;
+    QGroupBox* objectsGroup;
+    QGroupBox* instrumentsGroup;
+    QGroupBox* filtersGroup;
+    QGroupBox* datesGroup;
 
-    QDate minDate;
-    QDate maxDate;
-    static QDate dateRangeMin;
-    static QDate dateRangeMax;
+    QDateEdit* minDateEdit;
+    QDateEdit* maxDateEdit;
+
+    QWidget* CreateDateBox();
+    QWidget* CreateObjectsBox();
+    QWidget* CreateInstrumentsBox();
+    QWidget* CreateFiltersBox();
+    void addObjects();
+    void addDates();
+    void addInstruments();
+    void addFilters();
+    void ClearLayout(QLayout* layout);
+    void ResetGroups();
+    QMap<QString, QSet<QString>> fileTags;
 };
 
-#endif // SORTFILTERPROXYMODEL_H
+#endif // FILTERWIDGET_H

@@ -28,6 +28,7 @@
 #include "astrofile.h"
 #include "filerepository.h"
 #include "fileviewmodel.h"
+#include "filterwidget.h"
 #include "fitsprocessor.h"
 #include "foldercrawler.h"
 #include "searchfolderdialog.h"
@@ -95,5 +96,7 @@ private:
 
     QImage MakeThumbnail(const QImage& image);
     QAbstractItemModelTester* tester;
+
+    FilterWidget* filterWidget;
 };
 #endif // MAINWINDOW_H

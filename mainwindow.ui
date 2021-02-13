@@ -164,49 +164,20 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Instrument</string>
+           <string>Filter</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
             <widget class="QCheckBox" name="checkBox25">
              <property name="text">
-              <string>CheckBox</string>
+              <string>Luminosity</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QCheckBox" name="checkBox_26">
              <property name="text">
-              <string>CheckBox</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_2">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Object</string>
-          </property>
-          <layout class="QFormLayout" name="formLayout">
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBox_3">
-             <property name="text">
-              <string>CheckBox</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkBox_4">
-             <property name="text">
-              <string>CheckBox</string>
+              <string>Red</string>
              </property>
             </widget>
            </item>

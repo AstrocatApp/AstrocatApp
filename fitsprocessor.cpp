@@ -69,7 +69,7 @@ QMap<QString, QString> GetTags(fitsfile* fptr)
            char comment[FLEN_COMMENT];
 
            fits_read_keyn(fptr,i, keyname, keyvalue, comment, &status);
-           tagsMap.insert(QString(keyname), QString(keyvalue));
+           tagsMap.insert(QString(keyname).remove("'").trimmed(), QString(keyvalue).remove("'").trimmed());
         }
 
         fits_movrel_hdu(fptr, 1, NULL, &status);

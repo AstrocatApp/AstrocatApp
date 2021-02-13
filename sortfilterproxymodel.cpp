@@ -27,6 +27,9 @@
 
 #include <QDate>
 
+QDate SortFilterProxyModel::dateRangeMin;
+QDate SortFilterProxyModel::dateRangeMax;
+
 SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyModel(parent)
 {
 }
@@ -34,12 +37,34 @@ SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyMo
 bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
     QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
-    auto data = sourceModel()->data(index, AstroFileRoles::DateRole).toString();
-    data.remove("'");
+    AstroFile* astroFile = static_cast<AstroFile*>(index.internalPointer());
+    QString dateString = astroFile->Tags["DATE-OBS"].remove("'");
+    QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-    auto d = QDate::fromString(data, Qt::ISODate);
+//    auto data = sourceModel()->data(index, AstroFileRoles::DateRole).toString();
+//    data.remove("'");
 
-    return dateInRange(d);
+//    auto d = QDate::fromString(data, Qt::ISODate);
+
+    bool shouldAccept = dateInRange(d);
+
+    if (shouldAccept)
+    {
+        emit astroFileAccepted(*astroFile);
+//        if (!dateRangeMin.isValid() ||  d < dateRangeMin)
+//        {
+//            dateRangeMin = d;
+//            emit FilterMinimumDateChanged(d);
+
+//        }
+//        if (!dateRangeMax.isValid() ||  d > dateRangeMax)
+//        {
+//            dateRangeMax = d;
+//            emit FilterMaximumDateChanged(d);
+//        }
+    }
+
+    return shouldAccept;
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
@@ -49,18 +74,22 @@ bool SortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModel
 
 bool SortFilterProxyModel::dateInRange(QDate date) const
 {
-    return (!minDate.isValid() || date > minDate)
-            && (!maxDate.isValid() || date < maxDate);
+    return (!minDate.isValid() || date >= minDate)
+            && (!maxDate.isValid() || date <= maxDate);
 }
 
 void SortFilterProxyModel::setFilterMinimumDate(QDate date)
 {
+    qDebug() << "SortFilterProxyModel::setFilterMinimumDate";
     minDate = date;
+    emit filterReset();
     invalidateFilter();
 }
 
 void SortFilterProxyModel::setFilterMaximumDate(QDate date)
 {
+    qDebug() << "SortFilterProxyModel::setFilterMaximumDate";
     maxDate = date;
+    emit filterReset();
     invalidateFilter();
 }

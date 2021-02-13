@@ -95,12 +95,24 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&searchFolderDialog, &SearchFolderDialog::SearchFolderRemoved, this, &MainWindow::SearchFolderRemoved);
     // End - Set up SearchFolderDialog
 
+    filterWidget = new FilterWidget(ui->scrollAreaWidgetContents_2);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::FilterMinimumDateChanged, filterWidget, &FilterWidget::setFilterMinimumDate);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::FilterMaximumDateChanged, filterWidget, &FilterWidget::setFilterMaximumDate);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::filterReset, filterWidget, &FilterWidget::searchFilterReset);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::astroFileAccepted, filterWidget, &FilterWidget::addAstroFileTags);
+
+    connect(filterWidget, &FilterWidget::minimumDateChanged, sortFilterProxyModel, &SortFilterProxyModel::setFilterMinimumDate);
+    connect(filterWidget, &FilterWidget::maximumDateChanged, sortFilterProxyModel, &SortFilterProxyModel::setFilterMaximumDate);
+    connect(fileRepositoryWorker, &FileRepository::getTagsFinished, filterWidget, &FilterWidget::setAllTags);
     // Enable the tester during development and debugging. Disble before committing
     //tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
 
     emit InitializeFileRepository();
 
+    emit GetAllAstroFileTags();
+
     emit GetAllAstroFiles();
+
 }
 
 void CleanUpWorker(QThread* thread)
@@ -176,7 +188,10 @@ void MainWindow::SearchFolderRemoved(const QString folder)
 
 void MainWindow::on_pushButton_clicked()
 {
-
+//    emit GetAllAstroFileTags();
+//    QDate date(2020, 11, 04);
+//    sortFilterProxyModel->setFilterMinimumDate(date);
+//    sortFilterProxyModel->invalidate();
 }
 
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
@@ -192,6 +207,7 @@ void MainWindow::GetAllAstroFilesFinished(const QList<AstroFile> & files)
 void MainWindow::GetAllAstroFileTagsFinished(const QMap<QString, QSet<QString>> & tags)
 {
     qDebug()<< "Got Tags";
+
     QMapIterator<QString, QSet<QString>> iter(tags);
 
     while(iter.hasNext())
