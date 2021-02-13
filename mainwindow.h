@@ -31,6 +31,7 @@
 #include "fitsprocessor.h"
 #include "foldercrawler.h"
 #include "searchfolderdialog.h"
+#include "sortfilterproxymodel.h"
 
 #include <QAbstractItemModelTester>
 #include <QFileInfo>
@@ -88,6 +89,7 @@ private:
     FitsProcessor* fitsProcessorWorker;
 
     FileViewModel* fileViewModel;
+    SortFilterProxyModel* sortFilterProxyModel;
 
     SearchFolderDialog searchFolderDialog;
 

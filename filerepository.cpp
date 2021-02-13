@@ -66,14 +66,17 @@ void FileRepository::createDatabase()
 void FileRepository::createTables()
 {
     QSqlQuery fitsquery("CREATE TABLE fits (id INTEGER PRIMARY KEY AUTOINCREMENT, FileName TEXT, FullPath TEXT, DirectoryPath TEXT, FileType TEXT, CreatedTime DATE, LastModifiedTime DATE)");
+    fitsquery.exec("PRAGMA foreign_keys = ON");
     if(!fitsquery.isActive())
         qWarning() << "ERROR: " << fitsquery.lastError().text();
 
     QSqlQuery tagsquery("CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, tagKey TEXT, tagValue TEXT, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+    tagsquery.exec("PRAGMA foreign_keys = ON");
     if(!tagsquery.isActive())
         qWarning() << "ERROR: " << tagsquery.lastError().text();
 
     QSqlQuery thumbnailsquery("CREATE TABLE thumbnails (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, thumbnail BLOB, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+    thumbnailsquery.exec("PRAGMA foreign_keys = ON");
     if(!thumbnailsquery.isActive())
         qWarning() << "ERROR: " << thumbnailsquery.lastError().text();
 }
@@ -316,11 +319,14 @@ void FileRepository::AddTags(const AstroFile& astroFile)
     int id = GetAstroFileId(astroFile.FullPath);
     for (auto iter = astroFile.Tags.constBegin(); iter != astroFile.Tags.constEnd(); ++iter)
     {
+        auto& key = iter.key();
+        auto& value = iter.value();
+
         QSqlQuery tagAddQuery;
         tagAddQuery.prepare("INSERT INTO tags (fits_id,tagKey,tagValue) VALUES (:fits_id,:tagKey,:tagValue)");
-        tagAddQuery.bindValue("fits_id", id);
-        tagAddQuery.bindValue("tagKey", iter.key());
-        tagAddQuery.bindValue("tagValue", iter.value());
+        tagAddQuery.bindValue(":fits_id", id);
+        tagAddQuery.bindValue(":tagKey", key);
+        tagAddQuery.bindValue(":tagValue", value);
         if (!tagAddQuery.exec())
             qDebug() << "FAILED to execute INSERT TAG query";
     }
@@ -339,8 +345,8 @@ void FileRepository::AddThumbnail(const AstroFile &astroFile, const QImage& thum
 
     QSqlQuery insertThumbnailQuery;
     insertThumbnailQuery.prepare("INSERT INTO thumbnails (fits_id, thumbnail) VALUES (:fits_id, :bytedata)");
-    insertThumbnailQuery.bindValue(0, id);
-    insertThumbnailQuery.bindValue(1, inByteArray);
+    insertThumbnailQuery.bindValue(":fits_id", id);
+    insertThumbnailQuery.bindValue(":bytedata", inByteArray);
     if (!insertThumbnailQuery.exec())
         qDebug() << "DB: Failed in insert Thubmanailfor " << astroFile.FullPath << insertThumbnailQuery.lastError();
 }

@@ -215,6 +215,26 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         {
             return cellSize;
         }
+        case AstroFileRoles::ObjectRole:
+        {
+            auto a = fileList.at(index.row());
+            return a->astroFile.Tags["OBJECT"];
+        }
+        case AstroFileRoles::InstrumentRole:
+        {
+            auto a = fileList.at(index.row());
+            return a->astroFile.Tags["INSTRUME"];
+        }
+        case AstroFileRoles::FilterRole:
+        {
+            auto a = fileList.at(index.row());
+            return a->astroFile.Tags["FILTER"];
+        }
+        case AstroFileRoles::DateRole:
+        {
+            auto a = fileList.at(index.row());
+            return a->astroFile.Tags["DATE-OBS"];
+        }
     }
 
     return QVariant();

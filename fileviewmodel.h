@@ -30,6 +30,14 @@
 #include <QAbstractItemModel>
 #include <QImage>
 
+enum AstroFileRoles
+{
+    InstrumentRole = Qt::UserRole,
+    ObjectRole,
+    FilterRole,
+    DateRole
+};
+
 class FileViewModel : public QAbstractItemModel
 {
     Q_OBJECT

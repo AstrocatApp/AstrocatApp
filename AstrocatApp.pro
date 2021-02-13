@@ -15,7 +15,8 @@ SOURCES += \
     foldercrawler.cpp \
     main.cpp \
     mainwindow.cpp \
-    searchfolderdialog.cpp
+    searchfolderdialog.cpp \
+    sortfilterproxymodel.cpp
 
 HEADERS += \
     astrofile.h \
@@ -24,7 +25,8 @@ HEADERS += \
     fitsprocessor.h \
     foldercrawler.h \
     mainwindow.h \
-    searchfolderdialog.h
+    searchfolderdialog.h \
+    sortfilterproxymodel.h
 
 FORMS += \
     mainwindow.ui \

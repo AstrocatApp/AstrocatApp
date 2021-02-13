@@ -77,13 +77,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Set up Fileview Model
     fileViewModel = new FileViewModel(ui->astroListView);
+    sortFilterProxyModel = new SortFilterProxyModel(ui->astroListView);
+    sortFilterProxyModel->setSourceModel(fileViewModel);
+
     connect(fileViewModel, &FileViewModel::GetThumbnail, fileRepositoryWorker, &FileRepository::GetThumbnail);
     connect(fileRepositoryWorker, &FileRepository::getThumbnailFinished, fileViewModel, &FileViewModel::GetThumbnailFinished);
     connect(fileRepositoryWorker, &FileRepository::astroFileDeleted, fileViewModel, &FileViewModel::RemoveAstroFile);
     ui->astroListView->setViewMode(QListView::IconMode);
     ui->astroListView->setIconSize(QSize(100,100));
     ui->astroListView->setResizeMode(QListView::Adjust);
-    ui->astroListView->setModel(fileViewModel);
+//    ui->astroListView->setModel(fileViewModel);
+    ui->astroListView->setModel(sortFilterProxyModel);
     // End - Set up Fileview Model
 
     // Set up SearchFolderDialog
