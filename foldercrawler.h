@@ -39,7 +39,6 @@ public slots:
 
 signals:
     void fileFound(QFileInfo filePath);
-
 };
 
 #endif // FOLDERCRAWLER_H

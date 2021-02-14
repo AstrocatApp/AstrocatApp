@@ -51,28 +51,31 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
 bool SortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
 {
     // TODO: Sorting logic should be implemented here.
+    Q_UNUSED(source_left);
+    Q_UNUSED(source_right);
+
     return true;
 }
 
 bool SortFilterProxyModel::dateInRange(QDate date) const
 {
-    return (!minDate.isValid() || date >= minDate)
-            && (!maxDate.isValid() || date <= maxDate);
+    return (!minDate.isValid() || date >= minDate) &&
+           (!maxDate.isValid() || date <= maxDate);
 }
 
 bool SortFilterProxyModel::instrumentAccepted(QString instrument) const
 {
-    return acceptedInstruments.empty() || acceptedInstruments.contains(instrument);
+    return acceptedInstruments.empty() || acceptedInstruments.contains(instrument) || (acceptedInstruments.contains("None") && instrument.isEmpty());
 }
 
 bool SortFilterProxyModel::objectAccepted(QString object) const
 {
-    return acceptedObjects.empty() || acceptedObjects.contains(object);
+    return acceptedObjects.empty() || acceptedObjects.contains(object) || (acceptedObjects.contains("None") && object.isEmpty());
 }
 
 bool SortFilterProxyModel::filterAccepted(QString filter) const
 {
-    return acceptedFilters.empty() || acceptedFilters.contains(filter);
+    return acceptedFilters.empty() || acceptedFilters.contains(filter) || (acceptedFilters.contains("None") && filter.isEmpty());
 }
 
 void SortFilterProxyModel::setFilterMinimumDate(QDate date)

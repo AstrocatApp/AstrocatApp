@@ -362,8 +362,6 @@ void FileRepository::getThumbnails()
     while (query.next())
     {
         AstroFile astro;
-        AstroFile astro2 {.CreatedTime = QDateTime(),
-                         .DirectoryPath = ""};
 
         auto x = query.record();
         int idId = query.record().indexOf("Id");
