@@ -130,6 +130,7 @@ void MainWindow::initialize()
     emit initializeFileRepository();
     emit getAllAstroFileTags();
     emit getAllAstroFiles();
+    emit dbGetThumbnails();
     isInitialized = true;
 }
 
