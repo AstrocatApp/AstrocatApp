@@ -46,9 +46,9 @@ public:
     ~FileViewModel();
     void setInitialAstrofiles(const QList<AstroFile>& files);
     void addAstroFile(AstroFile astroFile, const QImage& image);
+    bool astroFileExists(const QString fullPath);
 
     // QAbstractItemModel interface
-public:
     QModelIndex index(int row, int column, const QModelIndex &parent) const  override;
     bool insertRows(int row, int count, const QModelIndex &parent)  override;
     bool removeRows(int row, int count, const QModelIndex &parent) override;
@@ -58,7 +58,6 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex parent(const QModelIndex &child) const override;
     bool hasChildren(const QModelIndex &parent) const override;
-    bool astroFileExists(const QString fullPath);
 
 public slots:
     void setCellSize(const int newSize);
@@ -77,16 +76,14 @@ private:
         AstroFile astroFile;
         QImage image;
     };
+    int rc;
+    int cc;
+    QObject* myparent;
     QList<AstroFileImage*> fileList;
     QMap<QString, AstroFileImage*> fileMap;
     int getRowForAstroFile(const AstroFile& astroFile);
     QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
-
-    int rc;
-    int cc;
-    QObject* myparent;
     QSize cellSize = QSize(200, 200);
-
 };
 
 #endif // FILEVIEWMODEL_H

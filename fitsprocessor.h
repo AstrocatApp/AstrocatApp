@@ -44,9 +44,9 @@ signals:
     void processFitsFileFinished( const AstroFile astroFile, const QImage& img, long nX, long nY );
 
 private:
+    volatile bool cancelSignaled = false;
     void getPixels(const AstroFile& astroFile);
     QImage makeThumbnail(const QImage& image);
-    volatile bool cancelSignaled = false;
 };
 
 #endif // FITSPROCESSOR_H
