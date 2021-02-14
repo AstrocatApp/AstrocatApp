@@ -22,24 +22,41 @@
     SOFTWARE.
 */
 
-#include "foldercrawler.h"
+#ifndef SEARCHFOLDERDIALOG_H
+#define SEARCHFOLDERDIALOG_H
 
-#include <QDirIterator>
+#include <QDialog>
+#include <QSettings>
 
-FolderCrawler::FolderCrawler(QObject *parent) : QObject(parent)
-{
-
+namespace Ui {
+class SearchFolderDialog;
 }
 
-void FolderCrawler::crawl(QString rootFolder)
+class SearchFolderDialog : public QDialog
 {
-    QStringList extensions = {"*.fits"};
+    Q_OBJECT
 
-    QDirIterator it(rootFolder, extensions, QDir::Files, QDirIterator::Subdirectories);
-    while (it.hasNext())
-    {
-        it.next();
-        emit fileFound(it.fileInfo());
-    }
-    qDebug() << "Done crawling...";
-}
+public:
+    explicit SearchFolderDialog(QWidget *parent = nullptr);
+    ~SearchFolderDialog();
+
+signals:
+    void searchFolderAdded(QString folder);
+    void searchFolderRemoved(QString folder);
+
+private:
+    Ui::SearchFolderDialog *ui;
+    void addNewClicked();
+    void removeClicked();
+    void selectionChanged();
+    QList<QString> searchFolders;
+    QSettings settings;
+
+
+    // QDialog interface
+public slots:
+    void accept();
+    void reject();
+};
+
+#endif // SEARCHFOLDERDIALOG_H

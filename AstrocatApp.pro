@@ -1,4 +1,4 @@
-QT       += core gui sql
+QT       += core gui sql testlib
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -11,21 +11,28 @@ CONFIG += c++11
 SOURCES += \
     filerepository.cpp \
     fileviewmodel.cpp \
+    filterwidget.cpp \
     fitsprocessor.cpp \
     foldercrawler.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    searchfolderdialog.cpp \
+    sortfilterproxymodel.cpp
 
 HEADERS += \
     astrofile.h \
     filerepository.h \
     fileviewmodel.h \
+    filterwidget.h \
     fitsprocessor.h \
     foldercrawler.h \
-    mainwindow.h
+    mainwindow.h \
+    searchfolderdialog.h \
+    sortfilterproxymodel.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    searchfolderdialog.ui
 
 TRANSLATIONS += \
     AstrocatApp_en_US.ts
@@ -41,3 +48,6 @@ else:unix: LIBS += -L$$PWD/external/cfitsio/ -lcfitsio.9.3.49
 
 INCLUDEPATH += $$PWD/external/cfitsio
 DEPENDPATH += $$PWD/external/cfitsio
+
+RESOURCES += \
+    Resources.qrc

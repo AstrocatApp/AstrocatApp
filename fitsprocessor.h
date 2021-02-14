@@ -35,17 +35,17 @@ class FitsProcessor : public QObject
     Q_OBJECT
 public:
     explicit FitsProcessor(QObject *parent = nullptr);
-    void Cancel();
+    void cancel();
 
 public slots:
-    void ProcessFitsFile(const AstroFile& astroFile);
+    void processFitsFile(const AstroFile& astroFile);
 
 signals:
-    void ProcessFitsFileFinished( const AstroFile astroFile, const QImage& img, long nX, long nY );
+    void processFitsFileFinished( const AstroFile astroFile, const QImage& img, long nX, long nY );
 
 private:
-    void GetPixels(const AstroFile& astroFile);
-    QImage MakeThumbnail(const QImage& image);
+    void getPixels(const AstroFile& astroFile);
+    QImage makeThumbnail(const QImage& image);
     volatile bool cancelSignaled = false;
 };
 

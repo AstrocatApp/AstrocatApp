@@ -40,22 +40,26 @@ public slots:
     void getAstrofile(const QString fullPath);
     void getAllAstrofiles();
     void insertAstrofile(const AstroFile& astroFile);
-    void Initialize();
-    void AddTags(const AstroFile& astroFile);
-    void AddThumbnail(const AstroFile& astroFile, const QImage& thumbnail);
-    void GetThumbnails();
-    void GetThumbnail(const QString fullPath);
-    void GetTags();
+    void deleteAstrofilesInFolder(const QString fullPath);
+    void deleteAstrofile(const AstroFile& astroFile);
+    void initialize();
+    void addTags(const AstroFile& astroFile);
+    void addThumbnail(const AstroFile& astroFile, const QImage& thumbnail);
+    void getThumbnails();
+    void getThumbnail(const QString fullPath);
+    void getTags();
 private:
     QSqlDatabase db;
     void createTables();
     void createDatabase();
     void initializeTables();
+    QList<AstroFile> getAstrofilesInFolder(const QString fullPath, bool includeTags);
 signals:
     void getAstroFileFinished(const AstroFile& astroFile );
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
     void getThumbnailFinished(const AstroFile& astroFile, const QPixmap& thumbnail );
     void getTagsFinished(const QMap<QString, QSet<QString>>& tags);
+    void astroFileDeleted(const AstroFile& astroFile);
 };
 
 #endif // FILEREPOSITORY_H

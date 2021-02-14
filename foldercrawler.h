@@ -35,10 +35,10 @@ public:
     explicit FolderCrawler(QObject *parent = nullptr);
 
 public slots:
-    void Crawl(QString rootFolder);
+    void crawl(QString rootFolder);
 
 signals:
-    void FileFound(QFileInfo filePath);
+    void fileFound(QFileInfo filePath);
 
 };
 

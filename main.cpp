@@ -25,10 +25,15 @@
 #include "mainwindow.h"
 
 #include <QApplication>
+#include <QSettings>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+    QCoreApplication::setApplicationName("Astrocat");
+    QCoreApplication::setOrganizationName("Astrocat");
+    QCoreApplication::setOrganizationDomain("astrocat.app");
     MainWindow w;
     w.show();
     return a.exec();

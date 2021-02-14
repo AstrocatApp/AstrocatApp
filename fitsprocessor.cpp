@@ -30,19 +30,19 @@ FitsProcessor::FitsProcessor(QObject *parent) : QObject(parent)
 
 }
 
-void FitsProcessor::Cancel()
+void FitsProcessor::cancel()
 {
     cancelSignaled = true;
 }
 
-void FitsProcessor::ProcessFitsFile(const AstroFile& astroFile)
+void FitsProcessor::processFitsFile(const AstroFile& astroFile)
 {
     if (cancelSignaled)
     {
         qDebug() << "Cancel signaled. Draining Queue.";
         return;
     }
-    GetPixels(astroFile);
+    getPixels(astroFile);
 }
 
 QMap<QString, QString> GetTags(fitsfile* fptr)
@@ -69,7 +69,7 @@ QMap<QString, QString> GetTags(fitsfile* fptr)
            char comment[FLEN_COMMENT];
 
            fits_read_keyn(fptr,i, keyname, keyvalue, comment, &status);
-           tagsMap.insert(QString(keyname), QString(keyvalue));
+           tagsMap.insert(QString(keyname).remove("'").trimmed(), QString(keyvalue).remove("'").trimmed());
         }
 
         fits_movrel_hdu(fptr, 1, NULL, &status);
@@ -77,7 +77,7 @@ QMap<QString, QString> GetTags(fitsfile* fptr)
     return tagsMap;
 }
 
-void FitsProcessor::GetPixels(const AstroFile& astroFile)
+void FitsProcessor::getPixels(const AstroFile& astroFile)
 {
     fitsfile *fptr;
     int status = 0;
@@ -159,7 +159,7 @@ void FitsProcessor::GetPixels(const AstroFile& astroFile)
             AstroFile f(astroFile);
             auto tags = GetTags(fptr);
             f.Tags.insert(tags);
-            emit ProcessFitsFileFinished(f, *img, naxes[0], naxes[1]);
+            emit processFitsFileFinished(f, *img, naxes[0], naxes[1]);
             delete img;
           }
         }

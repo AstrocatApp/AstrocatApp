@@ -37,7 +37,7 @@ FileRepository::FileRepository(QObject *parent) : QObject(parent)
 
 }
 
-void FileRepository::Initialize()
+void FileRepository::initialize()
 {
     qDebug() << "Initializing File Repository";
     createDatabase();
@@ -66,14 +66,17 @@ void FileRepository::createDatabase()
 void FileRepository::createTables()
 {
     QSqlQuery fitsquery("CREATE TABLE fits (id INTEGER PRIMARY KEY AUTOINCREMENT, FileName TEXT, FullPath TEXT, DirectoryPath TEXT, FileType TEXT, CreatedTime DATE, LastModifiedTime DATE)");
+    fitsquery.exec("PRAGMA foreign_keys = ON");
     if(!fitsquery.isActive())
         qWarning() << "ERROR: " << fitsquery.lastError().text();
 
     QSqlQuery tagsquery("CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, tagKey TEXT, tagValue TEXT, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+    tagsquery.exec("PRAGMA foreign_keys = ON");
     if(!tagsquery.isActive())
         qWarning() << "ERROR: " << tagsquery.lastError().text();
 
-    QSqlQuery thumbnailsquery("CREATE TABLE thumbnails (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, thumbnail BLOB)");
+    QSqlQuery thumbnailsquery("CREATE TABLE thumbnails (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, thumbnail BLOB, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+    thumbnailsquery.exec("PRAGMA foreign_keys = ON");
     if(!thumbnailsquery.isActive())
         qWarning() << "ERROR: " << thumbnailsquery.lastError().text();
 }
@@ -115,8 +118,7 @@ QMap<QString, QString> GetAstrofileTags(int astroFileId)
 //QMap<QString, QString> GetAllAstrofileTags()
 QMap<QString, QSet<QString>> GetAllAstrofileTags()
 {
-    QMap<QString, QString> map;
-    QMap<QString, QSet<QString>> map2;
+    QMap<QString, QSet<QString>> map;
     QSqlQuery query("SELECT tags.tagKey, tags.tagValue FROM tags");
 //    QSqlQuery query("SELECT tags.tagKey, COUNT(DISTINCT tags.tagValue) FROM tags GROUP BY tags.tagKey");
     int err = query.exec();
@@ -125,14 +127,64 @@ QMap<QString, QSet<QString>> GetAllAstrofileTags()
         auto a1 = query.value(0).toString();
         auto a2 = query.value(1).toString();
 //        map.insert(a1, a2);
-        if (map2.contains(a1))
+        if (map.contains(a1))
         {
-            map2[a1].insert(a2);
+            map[a1].insert(a2);
         }
         else
-            map2.insert(a1, QSet<QString>({a2}));
+            map.insert(a1, QSet<QString>({a2}));
     }
-    return map2;
+    return map;
+}
+
+QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, bool includeTags)
+{
+    QList<AstroFile> files;
+    QSqlQuery query;
+    QString paddedFullPath;
+    // If the full path does not end with a '/', append it, otherwise the `LIKE` statement
+    // may match other folders that start with the same name.
+    if (fullPath.endsWith('/'))
+        paddedFullPath = fullPath;
+    else
+        paddedFullPath = fullPath + '/';
+    query.prepare("SELECT * FROM fits WHERE FullPath LIKE :fullPathString");
+    query.bindValue(":fullPathString", QString("%%1%").arg(paddedFullPath));
+
+    bool ret = query.exec();
+    if (!ret)
+    {
+        qDebug() << "could not query: " << query.lastError();
+        return files;
+    }
+
+    while (query.next())
+    {
+        int idId = query.record().indexOf("Id");
+        int idFileName = query.record().indexOf("FileName");
+        int idFullPath = query.record().indexOf("FullPath");
+        int idDirectoryPath = query.record().indexOf("DirectoryPath");
+        int idFileType = query.record().indexOf("FileType");
+        int idCreatedTime = query.record().indexOf("CreatedTime");
+        int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
+        AstroFile astro;
+        astro.FileName = query.value(idFileName).toString();
+        astro.FullPath = query.value(idFullPath).toString();
+        astro.DirectoryPath = query.value(idDirectoryPath).toString();
+        astro.FileType = query.value(idFileType).toString();
+        astro.CreatedTime = query.value(idCreatedTime).toDateTime();
+        astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
+
+        int astroFileId = query.value(idId).toInt();
+        if (includeTags)
+        {
+            auto map = GetAstrofileTags(astroFileId);
+            astro.Tags.insert(map);
+        }
+        files.append(astro);
+    }
+
+    return files;
 }
 
 void FileRepository::getAstrofile(const QString fullPath)
@@ -225,27 +277,63 @@ void FileRepository::insertAstrofile(const AstroFile& astroFile)
     return;
 }
 
-void FileRepository::AddTags(const AstroFile& astroFile)
+void FileRepository::deleteAstrofile(const AstroFile& astroFile)
 {
-    int id = GetAstroFileId(astroFile.FullPath);
-    for (auto iter = astroFile.Tags.constBegin(); iter != astroFile.Tags.constEnd(); ++iter)
+    QSqlQuery query;
+    query.prepare("DELETE FROM fits WHERE fullPath = :astrofilePath");
+    query.bindValue(":astrofileId", astroFile.FullPath);
+    bool ret = query.exec();
+    if (!ret)
+        qDebug() << "could not delete: " << query.lastError();
+
+    return;
+}
+
+void FileRepository::deleteAstrofilesInFolder(const QString fullPath)
+{
+    auto files = getAstrofilesInFolder(fullPath, false);
+    QSqlQuery query;
+    QString paddedFullPath;
+    // If the full path does not end with a '/', append it, otherwise the `LIKE` statement
+    // may match other folders that start with the same name.
+    if (fullPath.endsWith('/'))
+        paddedFullPath = fullPath;
+    else
+        paddedFullPath = fullPath + '/';
+
+    query.prepare("DELETE FROM fits WHERE FullPath LIKE :fullPathString");
+    query.bindValue(":fullPathString", QString("%%1%").arg(paddedFullPath));
+    bool ret = query.exec();
+    if (!ret)
+        qDebug() << "could not delete: " << query.lastError();
+
+    for(auto& file : files)
     {
-        QSqlQuery tagAddQuery;
-//        tagAddQuery.prepare("INSERT INTO tags (fits_id,tagKey,tagValue) VALUES (:fits_id,:tagKey,:tagValue)");
-//        tagAddQuery.bindValue("fits_id", id);
-//        tagAddQuery.bindValue("tagKey", iter.key());
-//        tagAddQuery.bindValue("tagValue", iter.value());
-        tagAddQuery.prepare("INSERT INTO tags (fits_id,tagKey,tagValue) VALUES (?,?,?)");
-        tagAddQuery.bindValue(0, id);
-        tagAddQuery.bindValue(1, iter.key());
-        tagAddQuery.bindValue(2, iter.value());
-        if (!tagAddQuery.exec())
-            qDebug() << "WTF";
+        emit astroFileDeleted(file);
     }
     return;
 }
 
-void FileRepository::AddThumbnail(const AstroFile &astroFile, const QImage& thumbnail)
+void FileRepository::addTags(const AstroFile& astroFile)
+{
+    int id = GetAstroFileId(astroFile.FullPath);
+    for (auto iter = astroFile.Tags.constBegin(); iter != astroFile.Tags.constEnd(); ++iter)
+    {
+        auto& key = iter.key();
+        auto& value = iter.value();
+
+        QSqlQuery tagAddQuery;
+        tagAddQuery.prepare("INSERT INTO tags (fits_id,tagKey,tagValue) VALUES (:fits_id,:tagKey,:tagValue)");
+        tagAddQuery.bindValue(":fits_id", id);
+        tagAddQuery.bindValue(":tagKey", key);
+        tagAddQuery.bindValue(":tagValue", value);
+        if (!tagAddQuery.exec())
+            qDebug() << "FAILED to execute INSERT TAG query";
+    }
+    return;
+}
+
+void FileRepository::addThumbnail(const AstroFile &astroFile, const QImage& thumbnail)
 {
     int id = GetAstroFileId(astroFile.FullPath);
 
@@ -257,13 +345,13 @@ void FileRepository::AddThumbnail(const AstroFile &astroFile, const QImage& thum
 
     QSqlQuery insertThumbnailQuery;
     insertThumbnailQuery.prepare("INSERT INTO thumbnails (fits_id, thumbnail) VALUES (:fits_id, :bytedata)");
-    insertThumbnailQuery.bindValue(0, id);
-    insertThumbnailQuery.bindValue(1, inByteArray);
+    insertThumbnailQuery.bindValue(":fits_id", id);
+    insertThumbnailQuery.bindValue(":bytedata", inByteArray);
     if (!insertThumbnailQuery.exec())
         qDebug() << "DB: Failed in insert Thubmanailfor " << astroFile.FullPath << insertThumbnailQuery.lastError();
 }
 
-void FileRepository::GetThumbnails()
+void FileRepository::getThumbnails()
 {
     QSqlQuery query("SELECT fits.*, thumbnails.thumbnail FROM fits LEFT JOIN thumbnails ON thumbnails.fits_id=fits.id");
     if (!query.exec())
@@ -303,7 +391,7 @@ void FileRepository::GetThumbnails()
     return;
 }
 
-void FileRepository::GetThumbnail(const QString fullPath)
+void FileRepository::getThumbnail(const QString fullPath)
 {
     QSqlQuery query("SELECT fits.*, thumbnails.thumbnail FROM fits LEFT JOIN thumbnails ON thumbnails.fits_id=fits.id WHERE fits.FullPath = ?");
     query.bindValue(0, fullPath);
@@ -348,7 +436,7 @@ void FileRepository::GetThumbnail(const QString fullPath)
     return;
 }
 
-void FileRepository::GetTags()
+void FileRepository::getTags()
 {
     auto map = GetAllAstrofileTags();
     emit getTagsFinished(map);

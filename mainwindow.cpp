@@ -23,7 +23,10 @@
 */
 
 #include "mainwindow.h"
+#include "searchfolderdialog.h"
 #include "ui_mainwindow.h"
+
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,8 +38,8 @@ MainWindow::MainWindow(QWidget *parent)
     folderCrawlerThread = new QThread(this);
     folderCrawlerWorker = new FolderCrawler;
     folderCrawlerWorker->moveToThread(folderCrawlerThread);
-    connect(this, &MainWindow::Crawl, folderCrawlerWorker, &FolderCrawler::Crawl);
-    connect(folderCrawlerWorker, &FolderCrawler::FileFound, this, &MainWindow::NewFileFound);
+    connect(this, &MainWindow::crawl, folderCrawlerWorker, &FolderCrawler::crawl);
+    connect(folderCrawlerWorker, &FolderCrawler::fileFound, this, &MainWindow::newFileFound);
     connect(folderCrawlerThread, &QThread::finished, folderCrawlerWorker, &QObject::deleteLater);
     folderCrawlerThread->start();
     // End - Set up Folder Crawler Worker
@@ -45,18 +48,19 @@ MainWindow::MainWindow(QWidget *parent)
     fileRepositoryThread = new QThread(this);
     fileRepositoryWorker = new FileRepository;
     fileRepositoryWorker->moveToThread(fileRepositoryThread);
-    connect(this, &MainWindow::GetAstroFile, fileRepositoryWorker, &FileRepository::getAstrofile);
-    connect(this, &MainWindow::GetAllAstroFiles, fileRepositoryWorker, &FileRepository::getAllAstrofiles);
-    connect(this, &MainWindow::InsertAstroFile, fileRepositoryWorker, &FileRepository::insertAstrofile);
-    connect(this, &MainWindow::DbAddTags, fileRepositoryWorker, &FileRepository::AddTags);
-    connect(this, &MainWindow::DbAddThumbnail, fileRepositoryWorker, &FileRepository::AddThumbnail);
-    connect(this, &MainWindow::DbGetThumbnails, fileRepositoryWorker, &FileRepository::GetThumbnails);
-    connect(this, &MainWindow::InitializeFileRepository, fileRepositoryWorker, &FileRepository::Initialize);
-    connect(this, &MainWindow::GetAllAstroFileTags, fileRepositoryWorker, &FileRepository::GetTags);
-    connect(fileRepositoryWorker, &FileRepository::getAstroFileFinished, this, &MainWindow::GetAstroFileFinished);
-    connect(fileRepositoryWorker, &FileRepository::getAllAstroFilesFinished, this, &MainWindow::GetAllAstroFilesFinished);
-    connect(fileRepositoryWorker, &FileRepository::getThumbnailFinished, this, &MainWindow::GetThumbnailFinished);
-    connect(fileRepositoryWorker, &FileRepository::getTagsFinished, this, &MainWindow::GetAllAstroFileTagsFinished);
+    connect(this, &MainWindow::getAstroFile, fileRepositoryWorker, &FileRepository::getAstrofile);
+    connect(this, &MainWindow::getAllAstroFiles, fileRepositoryWorker, &FileRepository::getAllAstrofiles);
+    connect(this, &MainWindow::insertAstroFile, fileRepositoryWorker, &FileRepository::insertAstrofile);
+    connect(this, &MainWindow::dbAddTags, fileRepositoryWorker, &FileRepository::addTags);
+    connect(this, &MainWindow::dbAddThumbnail, fileRepositoryWorker, &FileRepository::addThumbnail);
+    connect(this, &MainWindow::dbGetThumbnails, fileRepositoryWorker, &FileRepository::getThumbnails);
+    connect(this, &MainWindow::initializeFileRepository, fileRepositoryWorker, &FileRepository::initialize);
+    connect(this, &MainWindow::getAllAstroFileTags, fileRepositoryWorker, &FileRepository::getTags);
+    connect(this, &MainWindow::deleteAstrofilesInFolder, fileRepositoryWorker, &FileRepository::deleteAstrofilesInFolder);
+    connect(fileRepositoryWorker, &FileRepository::getAstroFileFinished, this, &MainWindow::getAstroFileFinished);
+    connect(fileRepositoryWorker, &FileRepository::getAllAstroFilesFinished, this, &MainWindow::getAllAstroFilesFinished);
+    connect(fileRepositoryWorker, &FileRepository::getThumbnailFinished, this, &MainWindow::getThumbnailFinished);
+    connect(fileRepositoryWorker, &FileRepository::getTagsFinished, this, &MainWindow::getAllAstroFileTagsFinished);
     connect(fileRepositoryThread, &QThread::finished, fileRepositoryWorker, &QObject::deleteLater);
     fileRepositoryThread->start();
     // End - Set up File Repository Worker
@@ -65,23 +69,57 @@ MainWindow::MainWindow(QWidget *parent)
     fitsProcessorThread = new QThread(this);
     fitsProcessorWorker = new FitsProcessor;
     fitsProcessorWorker->moveToThread(fitsProcessorThread);
-    connect(this, &MainWindow::ProcessFitsFile, fitsProcessorWorker, &FitsProcessor::ProcessFitsFile);
-    connect(fitsProcessorWorker, &FitsProcessor::ProcessFitsFileFinished, this, &MainWindow::ProcessFitsFileFinished);
+    connect(this, &MainWindow::processFitsFile, fitsProcessorWorker, &FitsProcessor::processFitsFile);
+    connect(fitsProcessorWorker, &FitsProcessor::processFitsFileFinished, this, &MainWindow::processFitsFileFinished);
     connect(fitsProcessorThread, &QThread::finished, fitsProcessorWorker, &QObject::deleteLater);
     fitsProcessorThread->start();
     // End - Set up Fits Processor Worker
 
+    // Set up Fileview Model
     fileViewModel = new FileViewModel(ui->astroListView);
-    connect(fileViewModel, &FileViewModel::GetThumbnail, fileRepositoryWorker, &FileRepository::GetThumbnail);
-    connect(fileRepositoryWorker, &FileRepository::getThumbnailFinished, fileViewModel, &FileViewModel::GetThumbnailFinished);
+    sortFilterProxyModel = new SortFilterProxyModel(ui->astroListView);
+    sortFilterProxyModel->setSourceModel(fileViewModel);
+
+    connect(fileViewModel, &FileViewModel::getThumbnail, fileRepositoryWorker, &FileRepository::getThumbnail);
+    connect(fileRepositoryWorker, &FileRepository::getThumbnailFinished, fileViewModel, &FileViewModel::getThumbnailFinished);
+    connect(fileRepositoryWorker, &FileRepository::astroFileDeleted, fileViewModel, &FileViewModel::RemoveAstroFile);
     ui->astroListView->setViewMode(QListView::IconMode);
     ui->astroListView->setIconSize(QSize(100,100));
     ui->astroListView->setResizeMode(QListView::Adjust);
-    ui->astroListView->setModel(fileViewModel);
+//    ui->astroListView->setModel(fileViewModel);
+    ui->astroListView->setModel(sortFilterProxyModel);
+    // End - Set up Fileview Model
 
-    emit InitializeFileRepository();
+    // Set up SearchFolderDialog
+    connect(&searchFolderDialog, &SearchFolderDialog::searchFolderAdded, folderCrawlerWorker, &FolderCrawler::crawl);
+    connect(&searchFolderDialog, &SearchFolderDialog::searchFolderRemoved, this, &MainWindow::searchFolderRemoved);
+    // End - Set up SearchFolderDialog
 
-    emit GetAllAstroFiles();
+    filterWidget = new FilterWidget(ui->scrollAreaWidgetContents_2);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::filterMinimumDateChanged, filterWidget, &FilterWidget::setFilterMinimumDate);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::filterMaximumDateChanged, filterWidget, &FilterWidget::setFilterMaximumDate);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::filterReset, filterWidget, &FilterWidget::searchFilterReset);
+    connect(sortFilterProxyModel, &SortFilterProxyModel::astroFileAccepted, filterWidget, &FilterWidget::addAstroFileTags);
+
+    connect(filterWidget, &FilterWidget::minimumDateChanged, sortFilterProxyModel, &SortFilterProxyModel::setFilterMinimumDate);
+    connect(filterWidget, &FilterWidget::maximumDateChanged, sortFilterProxyModel, &SortFilterProxyModel::setFilterMaximumDate);
+    connect(fileRepositoryWorker, &FileRepository::getTagsFinished, filterWidget, &FilterWidget::setAllTags);
+    connect(filterWidget, &FilterWidget::addAcceptedFilter, sortFilterProxyModel, &SortFilterProxyModel::addAcceptedFilter);
+    connect(filterWidget, &FilterWidget::addAcceptedInstrument, sortFilterProxyModel, &SortFilterProxyModel::addAcceptedInstrument);
+    connect(filterWidget, &FilterWidget::addAcceptedObject, sortFilterProxyModel, &SortFilterProxyModel::addAcceptedObject);
+    connect(filterWidget, &FilterWidget::removeAcceptedFilter, sortFilterProxyModel, &SortFilterProxyModel::removeAcceptedFilter);
+    connect(filterWidget, &FilterWidget::removeAcceptedInstrument, sortFilterProxyModel, &SortFilterProxyModel::removeAcceptedInstrument);
+    connect(filterWidget, &FilterWidget::removeAcceptedObject, sortFilterProxyModel, &SortFilterProxyModel::removeAcceptedObject);
+
+    // Enable the tester during development and debugging. Disble before committing
+    //tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
+
+    emit initializeFileRepository();
+
+    emit getAllAstroFileTags();
+
+    emit getAllAstroFiles();
+
 }
 
 void CleanUpWorker(QThread* thread)
@@ -97,7 +135,7 @@ MainWindow::~MainWindow()
     CleanUpWorker(folderCrawlerThread);
 
     qDebug()<<"Cleaning up fitsProcessorThread";
-    fitsProcessorWorker->Cancel();
+    fitsProcessorWorker->cancel();
     CleanUpWorker(fitsProcessorThread);
 
     qDebug()<<"Cleaning up fileRepositoryThread";
@@ -110,7 +148,7 @@ MainWindow::~MainWindow()
     qDebug()<<"Done Cleaning up.";
 }
 
-void MainWindow::NewFileFound(const QFileInfo fileInfo)
+void MainWindow::newFileFound(const QFileInfo fileInfo)
 {
     AstroFile astroFile;
     astroFile.FullPath = fileInfo.absoluteFilePath();
@@ -120,38 +158,47 @@ void MainWindow::NewFileFound(const QFileInfo fileInfo)
     astroFile.FileType = fileInfo.suffix();
     astroFile.FileName = fileInfo.baseName();
 
-    if (fileViewModel->AstroFileExists(fileInfo.absoluteFilePath()))
+    if (fileViewModel->astroFileExists(fileInfo.absoluteFilePath()))
     {
         qDebug() << "File already in DB";
     }
     else
     {
         QImage img;
-        fileViewModel->AddAstroFile(astroFile, img);
-        emit InsertAstroFile(astroFile);
-        emit ProcessFitsFile(astroFile);
-        emit GetAstroFile(fileInfo.absoluteFilePath());
+        fileViewModel->addAstroFile(astroFile, img);
+        emit insertAstroFile(astroFile);
+        emit processFitsFile(astroFile);
+        emit getAstroFile(fileInfo.absoluteFilePath());
     }
 }
 
-void MainWindow::GetAstroFileFinished(const AstroFile astroFile)
+void MainWindow::getAstroFileFinished(const AstroFile astroFile)
 {
 //    qDebug() << "AstroFile from DB: " << astroFile.FullPath;
 
 }
 
-void MainWindow::ProcessFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY )
+void MainWindow::processFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY )
 {
-    emit DbAddTags(astroFile);
+    emit dbAddTags(astroFile);
     QImage thumbnail = MakeThumbnail(img);
-    emit DbAddThumbnail(astroFile, thumbnail);
+    emit dbAddThumbnail(astroFile, thumbnail);
 
-    fileViewModel->AddAstroFile(astroFile, img.scaled( 400, 400, Qt::KeepAspectRatio));
+    fileViewModel->addAstroFile(astroFile, img.scaled( 400, 400, Qt::KeepAspectRatio));
+}
+
+void MainWindow::searchFolderRemoved(const QString folder)
+{
+    // The source folder was removed by the user. We will need to remove all images in this source folder fromthe db.
+    emit deleteAstrofilesInFolder(folder);
 }
 
 void MainWindow::on_pushButton_clicked()
 {
-    emit GetAllAstroFileTags();
+//    emit GetAllAstroFileTags();
+//    QDate date(2020, 11, 04);
+//    sortFilterProxyModel->setFilterMinimumDate(date);
+//    sortFilterProxyModel->invalidate();
 }
 
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
@@ -159,14 +206,15 @@ void MainWindow::on_imageSizeSlider_valueChanged(int value)
     emit fileViewModel->setCellSize(value);
 }
 
-void MainWindow::GetAllAstroFilesFinished(const QList<AstroFile> & files)
+void MainWindow::getAllAstroFilesFinished(const QList<AstroFile> & files)
 {
-    fileViewModel->SetInitialAstrofiles(files);
+    fileViewModel->setInitialAstrofiles(files);
 }
 
-void MainWindow::GetAllAstroFileTagsFinished(const QMap<QString, QSet<QString>> & tags)
+void MainWindow::getAllAstroFileTagsFinished(const QMap<QString, QSet<QString>> & tags)
 {
     qDebug()<< "Got Tags";
+
     QMapIterator<QString, QSet<QString>> iter(tags);
 
     while(iter.hasNext())
@@ -182,7 +230,7 @@ void MainWindow::GetAllAstroFileTagsFinished(const QMap<QString, QSet<QString>> 
 
 }
 
-void MainWindow::GetThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap)
+void MainWindow::getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap)
 {
 }
 
@@ -190,4 +238,9 @@ QImage MainWindow::MakeThumbnail(const QImage &image)
 {
     QImage small =image.scaled( QSize(200, 200), Qt::KeepAspectRatio);
     return small;
+}
+
+void MainWindow::on_actionFolders_triggered()
+{
+    searchFolderDialog.exec();
 }
