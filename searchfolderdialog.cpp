@@ -57,7 +57,7 @@ void SearchFolderDialog::addNewClicked()
         searchFolders.append(OutputFolder);
         settings.setValue("SearchFolders", searchFolders);
         ui->searchFoldersWidget->addItem(OutputFolder);
-        emit SearchFolderAdded(OutputFolder);
+        emit searchFolderAdded(OutputFolder);
     }
 }
 
@@ -66,7 +66,7 @@ void SearchFolderDialog::removeClicked()
     auto selected = ui->searchFoldersWidget->selectedItems();
     for (auto& x : selected)
     {
-        emit SearchFolderRemoved(x->text());
+        emit searchFolderRemoved(x->text());
     }
     qDeleteAll(selected);
     QStringList folderList;

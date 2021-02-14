@@ -37,7 +37,7 @@ FileRepository::FileRepository(QObject *parent) : QObject(parent)
 
 }
 
-void FileRepository::Initialize()
+void FileRepository::initialize()
 {
     qDebug() << "Initializing File Repository";
     createDatabase();
@@ -314,7 +314,7 @@ void FileRepository::deleteAstrofilesInFolder(const QString fullPath)
     return;
 }
 
-void FileRepository::AddTags(const AstroFile& astroFile)
+void FileRepository::addTags(const AstroFile& astroFile)
 {
     int id = GetAstroFileId(astroFile.FullPath);
     for (auto iter = astroFile.Tags.constBegin(); iter != astroFile.Tags.constEnd(); ++iter)
@@ -333,7 +333,7 @@ void FileRepository::AddTags(const AstroFile& astroFile)
     return;
 }
 
-void FileRepository::AddThumbnail(const AstroFile &astroFile, const QImage& thumbnail)
+void FileRepository::addThumbnail(const AstroFile &astroFile, const QImage& thumbnail)
 {
     int id = GetAstroFileId(astroFile.FullPath);
 
@@ -351,7 +351,7 @@ void FileRepository::AddThumbnail(const AstroFile &astroFile, const QImage& thum
         qDebug() << "DB: Failed in insert Thubmanailfor " << astroFile.FullPath << insertThumbnailQuery.lastError();
 }
 
-void FileRepository::GetThumbnails()
+void FileRepository::getThumbnails()
 {
     QSqlQuery query("SELECT fits.*, thumbnails.thumbnail FROM fits LEFT JOIN thumbnails ON thumbnails.fits_id=fits.id");
     if (!query.exec())
@@ -391,7 +391,7 @@ void FileRepository::GetThumbnails()
     return;
 }
 
-void FileRepository::GetThumbnail(const QString fullPath)
+void FileRepository::getThumbnail(const QString fullPath)
 {
     QSqlQuery query("SELECT fits.*, thumbnails.thumbnail FROM fits LEFT JOIN thumbnails ON thumbnails.fits_id=fits.id WHERE fits.FullPath = ?");
     query.bindValue(0, fullPath);
@@ -436,7 +436,7 @@ void FileRepository::GetThumbnail(const QString fullPath)
     return;
 }
 
-void FileRepository::GetTags()
+void FileRepository::getTags()
 {
     auto map = GetAllAstrofileTags();
     emit getTagsFinished(map);

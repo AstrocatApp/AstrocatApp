@@ -52,28 +52,28 @@ public:
     ~MainWindow();
 
 public slots:
-    void NewFileFound(const QFileInfo fileInfo);
-    void GetAstroFileFinished(const AstroFile astroFile);
-    void GetThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
-    void ProcessFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY );
-    void SearchFolderRemoved(const QString folder);
+    void newFileFound(const QFileInfo fileInfo);
+    void getAstroFileFinished(const AstroFile astroFile);
+    void getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
+    void processFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY );
+    void searchFolderRemoved(const QString folder);
 signals:
-    void Crawl(QString rootFolder);
-    void GetAstroFile(QString fullPath);
-    void GetAllAstroFiles();
-    void GetAllAstroFileTags();
-    void InsertAstroFile(AstroFile astroFile);
-    void DeleteAstrofilesInFolder(const QString fullPath);
-    void DbAddTags(const AstroFile& astroFile);
-    void DbAddThumbnail(const AstroFile& astroFile, const QImage& image);
-    void DbGetThumbnails();
-    void InitializeFileRepository();
-    void ProcessFitsFile(const AstroFile& astroFile);
+    void crawl(QString rootFolder);
+    void getAstroFile(QString fullPath);
+    void getAllAstroFiles();
+    void getAllAstroFileTags();
+    void insertAstroFile(AstroFile astroFile);
+    void deleteAstrofilesInFolder(const QString fullPath);
+    void dbAddTags(const AstroFile& astroFile);
+    void dbAddThumbnail(const AstroFile& astroFile, const QImage& image);
+    void dbGetThumbnails();
+    void initializeFileRepository();
+    void processFitsFile(const AstroFile& astroFile);
 private slots:
     void on_pushButton_clicked();
     void on_imageSizeSlider_valueChanged(int value);
-    void GetAllAstroFilesFinished(const QList<AstroFile>&);
-    void GetAllAstroFileTagsFinished(const QMap<QString, QSet<QString>>&);
+    void getAllAstroFilesFinished(const QList<AstroFile>&);
+    void getAllAstroFileTagsFinished(const QMap<QString, QSet<QString>>&);
 
     void on_actionFolders_triggered();
 

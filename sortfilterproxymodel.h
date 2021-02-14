@@ -51,8 +51,8 @@ public slots:
     void removeAcceptedObject(QString objectName);
 
 signals:
-    void FilterMinimumDateChanged(QDate date) const;
-    void FilterMaximumDateChanged(QDate date) const;
+    void filterMinimumDateChanged(QDate date) const;
+    void filterMaximumDateChanged(QDate date) const;
     void astroFileAccepted(const AstroFile& astroFile) const;
     void filterReset() const;
 

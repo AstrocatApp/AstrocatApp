@@ -44,8 +44,8 @@ class FileViewModel : public QAbstractItemModel
 public:
     FileViewModel(QObject* parent = nullptr);
     ~FileViewModel();
-    void SetInitialAstrofiles(const QList<AstroFile>& files);
-    void AddAstroFile(AstroFile astroFile, const QImage& image);
+    void setInitialAstrofiles(const QList<AstroFile>& files);
+    void addAstroFile(AstroFile astroFile, const QImage& image);
 
     // QAbstractItemModel interface
 public:
@@ -58,15 +58,15 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex parent(const QModelIndex &child) const override;
     bool hasChildren(const QModelIndex &parent) const override;
-    bool AstroFileExists(const QString fullPath);
+    bool astroFileExists(const QString fullPath);
 
 public slots:
     void setCellSize(const int newSize);
-    void GetThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
+    void getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
     void RemoveAstroFile(AstroFile astroFile);
 
 signals:
-    void GetThumbnail(const QString fullPath) const;
+    void getThumbnail(const QString fullPath) const;
 
 private:
     struct AstroFileImage

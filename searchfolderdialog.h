@@ -41,8 +41,8 @@ public:
     ~SearchFolderDialog();
 
 signals:
-    void SearchFolderAdded(QString folder);
-    void SearchFolderRemoved(QString folder);
+    void searchFolderAdded(QString folder);
+    void searchFolderRemoved(QString folder);
 
 private:
     Ui::SearchFolderDialog *ui;

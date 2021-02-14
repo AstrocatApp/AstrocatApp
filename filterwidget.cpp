@@ -32,15 +32,15 @@
 FilterWidget::FilterWidget(QWidget *parent) : QWidget(parent)
 {
     QVBoxLayout* vLayout = new QVBoxLayout();
-    vLayout->addWidget(CreateObjectsBox());
-    vLayout->addWidget(CreateDateBox());
-    vLayout->addWidget(CreateInstrumentsBox());
-    vLayout->addWidget(CreateFiltersBox());
+    vLayout->addWidget(createObjectsBox());
+    vLayout->addWidget(createDateBox());
+    vLayout->addWidget(createInstrumentsBox());
+    vLayout->addWidget(createFiltersBox());
     setLayout(vLayout);
     parent->layout()->addWidget(this);
 }
 
-QWidget* FilterWidget::CreateObjectsBox()
+QWidget* FilterWidget::createObjectsBox()
 {
     objectsGroup = new QGroupBox(tr("Objects"));
 
@@ -51,7 +51,7 @@ QWidget* FilterWidget::CreateObjectsBox()
     return objectsGroup;
 }
 
-QWidget* FilterWidget::CreateDateBox()
+QWidget* FilterWidget::createDateBox()
 {
     datesGroup = new QGroupBox(tr("Dates"));
     minDateEdit = new QDateEdit();
@@ -69,7 +69,7 @@ QWidget* FilterWidget::CreateDateBox()
     return datesGroup;
 }
 
-QWidget* FilterWidget::CreateInstrumentsBox()
+QWidget* FilterWidget::createInstrumentsBox()
 {
     instrumentsGroup = new QGroupBox(tr("Instruments"));
 
@@ -80,7 +80,7 @@ QWidget* FilterWidget::CreateInstrumentsBox()
     return instrumentsGroup;
 }
 
-QWidget *FilterWidget::CreateFiltersBox()
+QWidget *FilterWidget::createFiltersBox()
 {
     filtersGroup = new QGroupBox(tr("Filters"));
 
@@ -91,7 +91,7 @@ QWidget *FilterWidget::CreateFiltersBox()
     return filtersGroup;
 }
 
-void FilterWidget::ClearLayout(QLayout* layout)
+void FilterWidget::clearLayout(QLayout* layout)
 {
     QLayoutItem* child;
     while ((child = layout->takeAt(0)) != 0)
@@ -143,16 +143,16 @@ void FilterWidget::addAstroFileTags(const AstroFile &astroFile)
         newTagFound = true;
     }
     if (newTagFound)
-        ResetGroups();
+        resetGroups();
 }
 
 void FilterWidget::searchFilterReset()
 {
     fileTags.clear();
-    ResetGroups();
+    resetGroups();
 }
 
-void FilterWidget::ResetGroups()
+void FilterWidget::resetGroups()
 {
     addObjects();
     addDates();
@@ -164,7 +164,7 @@ void FilterWidget::setAllTags(const QMap<QString, QSet<QString> > &tags)
 {
     fileTags.clear();
     fileTags.insert(tags);
-    ResetGroups();
+    resetGroups();
 }
 
 void FilterWidget::addDates()
@@ -189,7 +189,7 @@ void FilterWidget::addDates()
 
 void FilterWidget::addObjects()
 {
-    ClearLayout(objectsGroup->layout());
+    clearLayout(objectsGroup->layout());
     auto& o = fileTags["OBJECT"];
     QSetIterator setiter(o);
     while (setiter.hasNext())
@@ -204,7 +204,7 @@ void FilterWidget::addObjects()
 
 void FilterWidget::addInstruments()
 {
-    ClearLayout(instrumentsGroup->layout());
+    clearLayout(instrumentsGroup->layout());
     auto& o = fileTags["INSTRUME"];
     QSetIterator setiter(o);
     while (setiter.hasNext())
@@ -219,7 +219,7 @@ void FilterWidget::addInstruments()
 
 void FilterWidget::addFilters()
 {
-    ClearLayout(filtersGroup->layout());
+    clearLayout(filtersGroup->layout());
     auto& o = fileTags["FILTER"];
     QSetIterator setiter(o);
     while (setiter.hasNext())

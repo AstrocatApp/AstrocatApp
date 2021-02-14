@@ -63,16 +63,16 @@ private:
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
 
-    QWidget* CreateDateBox();
-    QWidget* CreateObjectsBox();
-    QWidget* CreateInstrumentsBox();
-    QWidget* CreateFiltersBox();
+    QWidget* createDateBox();
+    QWidget* createObjectsBox();
+    QWidget* createInstrumentsBox();
+    QWidget* createFiltersBox();
     void addObjects();
     void addDates();
     void addInstruments();
     void addFilters();
-    void ClearLayout(QLayout* layout);
-    void ResetGroups();
+    void clearLayout(QLayout* layout);
+    void resetGroups();
     QMap<QString, QSet<QString>> fileTags;
     void selectedObjectsChanged(QString object, int state);
     void selectedInstrumentsChanged(QString object, int state);

@@ -42,12 +42,12 @@ public slots:
     void insertAstrofile(const AstroFile& astroFile);
     void deleteAstrofilesInFolder(const QString fullPath);
     void deleteAstrofile(const AstroFile& astroFile);
-    void Initialize();
-    void AddTags(const AstroFile& astroFile);
-    void AddThumbnail(const AstroFile& astroFile, const QImage& thumbnail);
-    void GetThumbnails();
-    void GetThumbnail(const QString fullPath);
-    void GetTags();
+    void initialize();
+    void addTags(const AstroFile& astroFile);
+    void addThumbnail(const AstroFile& astroFile, const QImage& thumbnail);
+    void getThumbnails();
+    void getThumbnail(const QString fullPath);
+    void getTags();
 private:
     QSqlDatabase db;
     void createTables();

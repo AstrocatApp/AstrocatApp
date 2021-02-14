@@ -39,7 +39,7 @@ FileViewModel::~FileViewModel()
         delete a;
 }
 
-void FileViewModel::SetInitialAstrofiles(const QList<AstroFile> &files)
+void FileViewModel::setInitialAstrofiles(const QList<AstroFile> &files)
 {
     int count = 0;
 
@@ -125,7 +125,7 @@ bool FileViewModel::hasChildren(const QModelIndex &parent) const
     return true;
 }
 
-bool FileViewModel::AstroFileExists(const QString fullPath)
+bool FileViewModel::astroFileExists(const QString fullPath)
 {
     return fileMap.contains(fullPath);
 }
@@ -160,7 +160,7 @@ QModelIndex FileViewModel::getIndexForAstroFile(const AstroFile& astroFile)
     return createIndex(row, 0, &astroFile); // we probably should not pass the astrofile pointer to this index
 }
 
-void FileViewModel::GetThumbnailFinished(const AstroFile &astroFile, const QPixmap &pixmap)
+void FileViewModel::getThumbnailFinished(const AstroFile &astroFile, const QPixmap &pixmap)
 {
     QImage img;
     if (pixmap.isNull())
@@ -204,7 +204,7 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
             auto a = fileList.at(index.row());
             if (a->image.isNull())
             {
-                emit GetThumbnail(a->astroFile.FullPath);
+                emit getThumbnail(a->astroFile.FullPath);
                 auto img = QImage(":Icons/resources/loading.png");
                 return img;
             }
@@ -241,9 +241,9 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
 }
 
 // This should insert or update the AstroFile
-void FileViewModel::AddAstroFile(AstroFile astroFile, const QImage& image)
+void FileViewModel::addAstroFile(AstroFile astroFile, const QImage& image)
 {
-    if (AstroFileExists(astroFile.FullPath))
+    if (astroFileExists(astroFile.FullPath))
     {
         auto& f = fileMap[astroFile.FullPath];
         f->astroFile = astroFile;

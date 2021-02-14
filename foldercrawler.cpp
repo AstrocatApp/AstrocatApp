@@ -31,7 +31,7 @@ FolderCrawler::FolderCrawler(QObject *parent) : QObject(parent)
 
 }
 
-void FolderCrawler::Crawl(QString rootFolder)
+void FolderCrawler::crawl(QString rootFolder)
 {
     QStringList extensions = {"*.fits"};
 
@@ -39,7 +39,7 @@ void FolderCrawler::Crawl(QString rootFolder)
     while (it.hasNext())
     {
         it.next();
-        emit FileFound(it.fileInfo());
+        emit fileFound(it.fileInfo());
     }
     qDebug() << "Done crawling...";
 }
