@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Astrocat");
     QCoreApplication::setOrganizationDomain("astrocat.app");
     MainWindow w;
+    w.initialize();
     w.show();
     return a.exec();
 }

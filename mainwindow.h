@@ -49,6 +49,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void initialize();
 
 public slots:
     void newFileFound(const QFileInfo fileInfo);
@@ -79,6 +80,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    bool isInitialized;
 
     QThread* folderCrawlerThread;
     FolderCrawler* folderCrawlerWorker;
@@ -97,5 +99,6 @@ private:
     FilterWidget* filterWidget;
 
     QImage MakeThumbnail(const QImage& image);
+    void CleanUpWorker(QThread* thread);
 };
 #endif // MAINWINDOW_H
