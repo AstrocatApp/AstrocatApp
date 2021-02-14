@@ -40,6 +40,12 @@ public:
 signals:
     void minimumDateChanged(QDate date);
     void maximumDateChanged(QDate date);
+    void addAcceptedFilter(QString filterName);
+    void removeAcceptedFilter(QString filterName);
+    void addAcceptedInstrument(QString instrumentName);
+    void removeAcceptedInstrument(QString instrumentName);
+    void addAcceptedObject(QString objectName);
+    void removeAcceptedObject(QString objectName);
 
 public slots:
     void setFilterMinimumDate(QDate date);
@@ -68,6 +74,9 @@ private:
     void ClearLayout(QLayout* layout);
     void ResetGroups();
     QMap<QString, QSet<QString>> fileTags;
+    void selectedObjectsChanged(QString object, int state);
+    void selectedInstrumentsChanged(QString object, int state);
+    void selectedFiltersChanged(QString object, int state);
 };
 
 #endif // FILTERWIDGET_H

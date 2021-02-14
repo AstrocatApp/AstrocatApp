@@ -27,9 +27,6 @@
 
 #include <QDate>
 
-QDate SortFilterProxyModel::dateRangeMin;
-QDate SortFilterProxyModel::dateRangeMax;
-
 SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyModel(parent)
 {
 }
@@ -41,27 +38,11 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     QString dateString = astroFile->Tags["DATE-OBS"].remove("'");
     QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-//    auto data = sourceModel()->data(index, AstroFileRoles::DateRole).toString();
-//    data.remove("'");
-
-//    auto d = QDate::fromString(data, Qt::ISODate);
-
-    bool shouldAccept = dateInRange(d);
+    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]);
 
     if (shouldAccept)
     {
         emit astroFileAccepted(*astroFile);
-//        if (!dateRangeMin.isValid() ||  d < dateRangeMin)
-//        {
-//            dateRangeMin = d;
-//            emit FilterMinimumDateChanged(d);
-
-//        }
-//        if (!dateRangeMax.isValid() ||  d > dateRangeMax)
-//        {
-//            dateRangeMax = d;
-//            emit FilterMaximumDateChanged(d);
-//        }
     }
 
     return shouldAccept;
@@ -69,6 +50,7 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
 
 bool SortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
 {
+    // TODO: Sorting logic should be implemented here.
     return true;
 }
 
@@ -78,9 +60,23 @@ bool SortFilterProxyModel::dateInRange(QDate date) const
             && (!maxDate.isValid() || date <= maxDate);
 }
 
+bool SortFilterProxyModel::instrumentAccepted(QString instrument) const
+{
+    return acceptedInstruments.empty() || acceptedInstruments.contains(instrument);
+}
+
+bool SortFilterProxyModel::objectAccepted(QString object) const
+{
+    return acceptedObjects.empty() || acceptedObjects.contains(object);
+}
+
+bool SortFilterProxyModel::filterAccepted(QString filter) const
+{
+    return acceptedFilters.empty() || acceptedFilters.contains(filter);
+}
+
 void SortFilterProxyModel::setFilterMinimumDate(QDate date)
 {
-    qDebug() << "SortFilterProxyModel::setFilterMinimumDate";
     minDate = date;
     emit filterReset();
     invalidateFilter();
@@ -88,8 +84,52 @@ void SortFilterProxyModel::setFilterMinimumDate(QDate date)
 
 void SortFilterProxyModel::setFilterMaximumDate(QDate date)
 {
-    qDebug() << "SortFilterProxyModel::setFilterMaximumDate";
     maxDate = date;
     emit filterReset();
     invalidateFilter();
+}
+
+void SortFilterProxyModel::addAcceptedFilter(QString filterName)
+{
+    if (!acceptedFilters.contains(filterName))
+    {
+        acceptedFilters.append(filterName);
+        invalidateFilter();
+    }
+}
+
+void SortFilterProxyModel::removeAcceptedFilter(QString filterName)
+{
+    if (acceptedFilters.removeOne(filterName))
+        invalidateFilter();
+}
+
+void SortFilterProxyModel::addAcceptedInstrument(QString instrumentName)
+{
+    if (!acceptedInstruments.contains(instrumentName))
+    {
+        acceptedInstruments.append(instrumentName);
+        invalidateFilter();
+    }
+}
+
+void SortFilterProxyModel::removeAcceptedInstrument(QString instrumentName)
+{
+    if (acceptedInstruments.removeOne(instrumentName))
+        invalidateFilter();
+}
+
+void SortFilterProxyModel::addAcceptedObject(QString objectName)
+{
+    if (!acceptedObjects.contains(objectName))
+    {
+        acceptedObjects.append(objectName);
+        invalidateFilter();
+    }
+}
+
+void SortFilterProxyModel::removeAcceptedObject(QString objectName)
+{
+    if (acceptedObjects.removeOne(objectName))
+        invalidateFilter();
 }

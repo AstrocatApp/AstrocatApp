@@ -89,7 +89,6 @@ QWidget *FilterWidget::CreateFiltersBox()
     filtersGroup->setLayout(vbox);
 
     return filtersGroup;
-
 }
 
 void FilterWidget::ClearLayout(QLayout* layout)
@@ -104,13 +103,11 @@ void FilterWidget::ClearLayout(QLayout* layout)
 
 void FilterWidget::setFilterMinimumDate(QDate date)
 {
-    qDebug() << "FilterWidget::setFilterMinimumDate";
     minDateEdit->setDate(date);
 }
 
 void FilterWidget::setFilterMaximumDate(QDate date)
 {
-    qDebug() << "FilterWidget::setFilterMaximumDate";
     maxDateEdit->setDate(date);
 }
 
@@ -138,13 +135,13 @@ void FilterWidget::addAstroFileTags(const AstroFile &astroFile)
         fileTags["FILTER"].insert(x);
         newTagFound = true;
     }
-//    t = astroFile.Tags["OBJECT"];
-//    x= t.remove("'");
-//    if (!fileTags["DATEXXX"].contains(x))
-//    {
-//        fileTags["DATEXXX"].insert(x);
-//        newTagFound = true;
-//    }
+    t = astroFile.Tags["DATE-OBS"];
+    x= t.remove("'");
+    if (!fileTags["DATE-OBS"].contains(x))
+    {
+        fileTags["DATE-OBS"].insert(x);
+        newTagFound = true;
+    }
     if (newTagFound)
         ResetGroups();
 }
@@ -153,12 +150,10 @@ void FilterWidget::searchFilterReset()
 {
     fileTags.clear();
     ResetGroups();
-    qDebug() << "Search Filter has been reset";
 }
 
 void FilterWidget::ResetGroups()
 {
-    qDebug() << "Resetting Groups";
     addObjects();
     addDates();
     addInstruments();
@@ -172,30 +167,39 @@ void FilterWidget::setAllTags(const QMap<QString, QSet<QString> > &tags)
     ResetGroups();
 }
 
+void FilterWidget::addDates()
+{
+    auto& o = fileTags["DATE-OBS"];
+    QSetIterator setiter(o);
+    while (setiter.hasNext())
+    {
+        QString n = setiter.next();
+        n.remove("'");
+        QDate d = QDate::fromString(n, Qt::ISODate);
+        if (d < minDateEdit->date())
+        {
+            minDateEdit->setDate(d);
+        }
+        if (d > maxDateEdit->date())
+        {
+            maxDateEdit->setDate(d);
+        }
+    }
+}
+
 void FilterWidget::addObjects()
 {
     ClearLayout(objectsGroup->layout());
     auto& o = fileTags["OBJECT"];
     QSetIterator setiter(o);
-//    objectsGroup->layout()->invalidate();
     while (setiter.hasNext())
     {
         QString n = setiter.next();
         n.remove("'");
         QCheckBox* chekBox = new QCheckBox(n);
         objectsGroup->layout()->addWidget(chekBox);
+        connect(chekBox, &QCheckBox::stateChanged, this, [=]() {selectedObjectsChanged(chekBox->text(), chekBox->checkState());});
     }
-//    objectsGroup->layout()->update();
-}
-
-void FilterWidget::addDates()
-{
-//    auto& o = fileTags["OBJECT"];
-//    QSetIterator setiter(o);
-//    while (setiter.hasNext())
-//    {
-//        qDebug() << "+++++" << setiter.next();
-//    }
 }
 
 void FilterWidget::addInstruments()
@@ -203,15 +207,14 @@ void FilterWidget::addInstruments()
     ClearLayout(instrumentsGroup->layout());
     auto& o = fileTags["INSTRUME"];
     QSetIterator setiter(o);
-//    instrumentsGroup->layout()->invalidate();
     while (setiter.hasNext())
     {
         QString n = setiter.next();
         n.remove("'");
         QCheckBox* chekBox = new QCheckBox(n);
         instrumentsGroup->layout()->addWidget(chekBox);
+        connect(chekBox, &QCheckBox::stateChanged, this, [=]() {selectedInstrumentsChanged(chekBox->text(), chekBox->checkState());});
     }
-//    instrumentsGroup->layout()->update();
 }
 
 void FilterWidget::addFilters()
@@ -219,13 +222,51 @@ void FilterWidget::addFilters()
     ClearLayout(filtersGroup->layout());
     auto& o = fileTags["FILTER"];
     QSetIterator setiter(o);
-//    filtersGroup->layout()->invalidate();
     while (setiter.hasNext())
     {
         QString n = setiter.next();
         n.remove("'");
         QCheckBox* chekBox = new QCheckBox(n);
         filtersGroup->layout()->addWidget(chekBox);
+        connect(chekBox, &QCheckBox::stateChanged, this, [=]() {selectedFiltersChanged(chekBox->text(), chekBox->checkState());});
     }
-//    filtersGroup->layout()->update();
+}
+
+void FilterWidget::selectedObjectsChanged(QString object, int state)
+{
+    switch (state)
+    {
+    case 0:
+        emit removeAcceptedObject(object);
+        break;
+    case 2:
+        emit addAcceptedObject(object);
+        break;
+    }
+}
+
+void FilterWidget::selectedInstrumentsChanged(QString object, int state)
+{
+    switch (state)
+    {
+    case 0:
+        emit removeAcceptedInstrument(object);
+        break;
+    case 2:
+        emit addAcceptedInstrument(object);
+        break;
+    }
+}
+
+void FilterWidget::selectedFiltersChanged(QString object, int state)
+{
+    switch (state)
+    {
+    case 0:
+        emit removeAcceptedFilter(object);
+        break;
+    case 2:
+        emit addAcceptedFilter(object);
+        break;
+    }
 }

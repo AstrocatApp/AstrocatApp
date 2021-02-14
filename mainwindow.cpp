@@ -104,6 +104,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterWidget, &FilterWidget::minimumDateChanged, sortFilterProxyModel, &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterWidget, &FilterWidget::maximumDateChanged, sortFilterProxyModel, &SortFilterProxyModel::setFilterMaximumDate);
     connect(fileRepositoryWorker, &FileRepository::getTagsFinished, filterWidget, &FilterWidget::setAllTags);
+    connect(filterWidget, &FilterWidget::addAcceptedFilter, sortFilterProxyModel, &SortFilterProxyModel::addAcceptedFilter);
+    connect(filterWidget, &FilterWidget::addAcceptedInstrument, sortFilterProxyModel, &SortFilterProxyModel::addAcceptedInstrument);
+    connect(filterWidget, &FilterWidget::addAcceptedObject, sortFilterProxyModel, &SortFilterProxyModel::addAcceptedObject);
+    connect(filterWidget, &FilterWidget::removeAcceptedFilter, sortFilterProxyModel, &SortFilterProxyModel::removeAcceptedFilter);
+    connect(filterWidget, &FilterWidget::removeAcceptedInstrument, sortFilterProxyModel, &SortFilterProxyModel::removeAcceptedInstrument);
+    connect(filterWidget, &FilterWidget::removeAcceptedObject, sortFilterProxyModel, &SortFilterProxyModel::removeAcceptedObject);
+
     // Enable the tester during development and debugging. Disble before committing
     //tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
 
