@@ -116,6 +116,8 @@ void FilterWidget::addAstroFileTags(const AstroFile &astroFile)
     bool newTagFound = false;
     QString t = astroFile.Tags["OBJECT"];
     auto& x= t.remove("'");
+    if (x.isEmpty())
+        x = "None";
     if (!fileTags["OBJECT"].contains(x))
     {
         fileTags["OBJECT"].insert(x);
@@ -123,6 +125,8 @@ void FilterWidget::addAstroFileTags(const AstroFile &astroFile)
     }
     t = astroFile.Tags["INSTRUME"];
     x= t.remove("'");
+    if (x.isEmpty())
+        x = "None";
     if (!fileTags["INSTRUME"].contains(x))
     {
         fileTags["INSTRUME"].insert(x);
@@ -130,6 +134,8 @@ void FilterWidget::addAstroFileTags(const AstroFile &astroFile)
     }
     t = astroFile.Tags["FILTER"];
     x= t.remove("'");
+    if (x.isEmpty())
+        x = "None";
     if (!fileTags["FILTER"].contains(x))
     {
         fileTags["FILTER"].insert(x);
@@ -137,6 +143,8 @@ void FilterWidget::addAstroFileTags(const AstroFile &astroFile)
     }
     t = astroFile.Tags["DATE-OBS"];
     x= t.remove("'");
+    if (x.isEmpty())
+        x = "None";
     if (!fileTags["DATE-OBS"].contains(x))
     {
         fileTags["DATE-OBS"].insert(x);

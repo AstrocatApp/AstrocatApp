@@ -25,6 +25,7 @@
 #include "searchfolderdialog.h"
 #include "ui_searchfolderdialog.h"
 
+#include <QAbstractItemView>
 #include <QFileDialog>
 
 SearchFolderDialog::SearchFolderDialog(QWidget *parent) :
@@ -36,6 +37,8 @@ SearchFolderDialog::SearchFolderDialog(QWidget *parent) :
     settings.setDefaultFormat(QSettings::IniFormat);
     auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
     searchFolders.append(foldersFromList);
+
+    ui->searchFoldersWidget->setSelectionMode(QAbstractItemView::SelectionMode::MultiSelection);
     ui->searchFoldersWidget->addItems(foldersFromList);
     connect(ui->addNewButton, &QPushButton::clicked, this, &SearchFolderDialog::addNewClicked);
     connect(ui->removeSelectedButton, &QPushButton::clicked, this, &SearchFolderDialog::removeClicked);
@@ -83,8 +86,15 @@ void SearchFolderDialog::removeClicked()
 
 void SearchFolderDialog::selectionChanged()
 {
-    bool itemSelected = ui->searchFoldersWidget->selectedItems().count() > 0;
-    ui->removeSelectedButton->setDisabled(!itemSelected);
+    int selectionCount = ui->searchFoldersWidget->selectedItems().count();
+
+    bool isAnyItemSelected = selectionCount > 0;
+    ui->removeSelectedButton->setEnabled(isAnyItemSelected);
+
+    if (selectionCount > 1)
+        ui->removeSelectedButton->setText(tr("Remove All"));
+    else
+        ui->removeSelectedButton->setText(tr("Remove"));
 }
 
 void SearchFolderDialog::accept()

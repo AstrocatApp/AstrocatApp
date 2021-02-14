@@ -35,10 +35,14 @@ class SearchFolderDialog;
 class SearchFolderDialog : public QDialog
 {
     Q_OBJECT
-
 public:
     explicit SearchFolderDialog(QWidget *parent = nullptr);
     ~SearchFolderDialog();
+
+public slots:
+    // QDialog interface
+    void accept();
+    void reject();
 
 signals:
     void searchFolderAdded(QString folder);
@@ -46,17 +50,11 @@ signals:
 
 private:
     Ui::SearchFolderDialog *ui;
+    QList<QString> searchFolders;
+    QSettings settings;
     void addNewClicked();
     void removeClicked();
     void selectionChanged();
-    QList<QString> searchFolders;
-    QSettings settings;
-
-
-    // QDialog interface
-public slots:
-    void accept();
-    void reject();
 };
 
 #endif // SEARCHFOLDERDIALOG_H

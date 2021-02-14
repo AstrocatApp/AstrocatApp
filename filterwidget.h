@@ -37,6 +37,13 @@ class FilterWidget : public QWidget
 public:
     explicit FilterWidget(QWidget *parent = nullptr);
 
+public slots:
+    void setFilterMinimumDate(QDate date);
+    void setFilterMaximumDate(QDate date);
+    void addAstroFileTags(const AstroFile& astroFile);
+    void searchFilterReset();
+    void setAllTags(const QMap<QString, QSet<QString>>& tags);
+
 signals:
     void minimumDateChanged(QDate date);
     void maximumDateChanged(QDate date);
@@ -47,33 +54,24 @@ signals:
     void addAcceptedObject(QString objectName);
     void removeAcceptedObject(QString objectName);
 
-public slots:
-    void setFilterMinimumDate(QDate date);
-    void setFilterMaximumDate(QDate date);
-    void addAstroFileTags(const AstroFile& astroFile);
-    void searchFilterReset();
-    void setAllTags(const QMap<QString, QSet<QString>>& tags);
-
 private:
     QGroupBox* objectsGroup;
     QGroupBox* instrumentsGroup;
     QGroupBox* filtersGroup;
     QGroupBox* datesGroup;
-
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
-
     QWidget* createDateBox();
     QWidget* createObjectsBox();
     QWidget* createInstrumentsBox();
     QWidget* createFiltersBox();
+    QMap<QString, QSet<QString>> fileTags;
     void addObjects();
     void addDates();
     void addInstruments();
     void addFilters();
     void clearLayout(QLayout* layout);
     void resetGroups();
-    QMap<QString, QSet<QString>> fileTags;
     void selectedObjectsChanged(QString object, int state);
     void selectedInstrumentsChanged(QString object, int state);
     void selectedFiltersChanged(QString object, int state);

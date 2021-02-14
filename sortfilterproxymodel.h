@@ -37,7 +37,6 @@ class SortFilterProxyModel : public  QSortFilterProxyModel
 public:
     explicit SortFilterProxyModel(QObject *parent = nullptr);
     QDate filterMinimumDate() const { return minDate; }
-
     QDate filterMaximumDate() const { return maxDate; }
 
 public slots:
@@ -56,22 +55,21 @@ signals:
     void astroFileAccepted(const AstroFile& astroFile) const;
     void filterReset() const;
 
-    // QSortFilterProxyModel interface
 protected:
+    // QSortFilterProxyModel interface
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
     bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
 
 private:
+    QDate minDate;
+    QDate maxDate;
+    QList<QString> acceptedFilters;
+    QList<QString> acceptedObjects;
+    QList<QString> acceptedInstruments;
     bool dateInRange(QDate date) const;
     bool instrumentAccepted(QString instrument) const;
     bool objectAccepted(QString object) const;
     bool filterAccepted(QString filter) const;
-    QDate minDate;
-    QDate maxDate;
-
-    QList<QString> acceptedFilters;
-    QList<QString> acceptedObjects;
-    QList<QString> acceptedInstruments;
 };
 
 #endif // SORTFILTERPROXYMODEL_H

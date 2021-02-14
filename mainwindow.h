@@ -46,10 +46,10 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void initialize();
 
 public slots:
     void newFileFound(const QFileInfo fileInfo);
@@ -57,6 +57,7 @@ public slots:
     void getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
     void processFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY );
     void searchFolderRemoved(const QString folder);
+
 signals:
     void crawl(QString rootFolder);
     void getAstroFile(QString fullPath);
@@ -69,16 +70,17 @@ signals:
     void dbGetThumbnails();
     void initializeFileRepository();
     void processFitsFile(const AstroFile& astroFile);
+
 private slots:
     void on_pushButton_clicked();
     void on_imageSizeSlider_valueChanged(int value);
     void getAllAstroFilesFinished(const QList<AstroFile>&);
     void getAllAstroFileTagsFinished(const QMap<QString, QSet<QString>>&);
-
     void on_actionFolders_triggered();
 
 private:
     Ui::MainWindow *ui;
+    bool isInitialized;
 
     QThread* folderCrawlerThread;
     FolderCrawler* folderCrawlerWorker;
@@ -93,10 +95,10 @@ private:
     SortFilterProxyModel* sortFilterProxyModel;
 
     SearchFolderDialog searchFolderDialog;
+    QAbstractItemModelTester* tester;
+    FilterWidget* filterWidget;
 
     QImage MakeThumbnail(const QImage& image);
-    QAbstractItemModelTester* tester;
-
-    FilterWidget* filterWidget;
+    void CleanUpWorker(QThread* thread);
 };
 #endif // MAINWINDOW_H
