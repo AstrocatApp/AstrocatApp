@@ -137,6 +137,7 @@ void FileViewModel::setCellSize(const int newSize)
 {
     int size = 400 * newSize/100;
     cellSize = QSize(size,size);
+    emit layoutAboutToBeChanged();
     emit layoutChanged();
 }
 
