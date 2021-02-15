@@ -173,6 +173,8 @@ void MainWindow::getAstroFileFinished(const AstroFile astroFile)
 
 void MainWindow::processFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY )
 {
+    Q_UNUSED(nX);
+    Q_UNUSED(nY);
     emit dbAddTags(astroFile);
     QImage thumbnail = makeThumbnail(img);
     emit dbAddThumbnail(astroFile, thumbnail);
@@ -196,7 +198,7 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
 {
-    emit fileViewModel->setCellSize(value);
+    fileViewModel->setCellSize(value);
 }
 
 void MainWindow::getAllAstroFilesFinished(const QList<AstroFile> & files)

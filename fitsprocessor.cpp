@@ -84,7 +84,7 @@ void FitsProcessor::getPixels(const AstroFile& astroFile)
     int bitpix, naxis;
     long naxes[2] = {1,1};
 
-    QImage* img = NULL;
+    QImage img;
     QString fullPath = astroFile.FullPath;
 
     if (!fits_open_file(&fptr, fullPath.toStdString().c_str(), READONLY, &status))
@@ -107,10 +107,8 @@ void FitsProcessor::getPixels(const AstroFile& astroFile)
               switch (bitpix)
               {
               case BYTE_IMG:
-//                  qDebug() << "Image Type: BYTE_IMG";
                   break;
               case SHORT_IMG:
-//                  qDebug() << "Image Type: SHORT_IMG";
                   bits16.resize(size);
                   fits_read_pix(fptr, TUSHORT, fpixel, size, NULL, &bits16[0], NULL, &status);
                   if(status)
@@ -121,49 +119,41 @@ void FitsProcessor::getPixels(const AstroFile& astroFile)
                       break;
                   }
 
-                  if(true)
+                  img = QImage(w, h, QImage::Format_Grayscale8);
+                  for(size_t i=0; i<h; i++)
                   {
-                      img = new QImage(w, h, QImage::Format_Grayscale8);
-                      for(size_t i=0; i<h; i++)
+                      uchar* ptr = img.scanLine(i);
+                      for(size_t o=0;o<w;o++)
                       {
-                          uchar* ptr = img->scanLine(i);
-                          for(size_t o=0;o<w;o++)
-                          {
-                              ptr[o] = bits16[i*w+o] >> 8;
-                          }
+                          ptr[o] = bits16[i*w+o] >> 8;
                       }
-                      if (img->isNull())
-                      {
-                          qDebug() << "Null Image";
-                          bool ret = img->load("nopreview.png");
-                          if (!ret)
-                              qDebug() << "Failed to load nopreview.png";
-                      }
+                  }
+                  if (img.isNull())
+                  {
+                      qDebug() << "Null Image";
+                      bool ret = img.load("nopreview.png");
+                      if (!ret)
+                          qDebug() << "Failed to load nopreview.png";
                   }
 
                   break;
               case LONG_IMG:
-                  qDebug() << "Image Type: LONG_IMG";
                   break;
               case LONGLONG_IMG:
-                  qDebug() << "Image Type: LONGLONG_IMG";
                   break;
               case FLOAT_IMG:
-                  qDebug() << "Image Type: FLOAT_IMG";
                   break;
               case DOUBLE_IMG:
-                  qDebug() << "Image Type: DOUBLE_IMG";
                   break;
               }
 
             AstroFile f(astroFile);
             auto tags = GetTags(fptr);
             f.Tags.insert(tags);
-            emit processFitsFileFinished(f, *img, naxes[0], naxes[1]);
-            delete img;
+
+            emit processFitsFileFinished(f, img, naxes[0], naxes[1]);
           }
         }
         fits_close_file(fptr, &status);
     }
-
 }
