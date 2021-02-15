@@ -102,14 +102,14 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     qDebug()<<"Cleaning up folderCrawlerThread";
-    CleanUpWorker(folderCrawlerThread);
+    cleanUpWorker(folderCrawlerThread);
 
     qDebug()<<"Cleaning up fitsProcessorThread";
     fitsProcessorWorker->cancel();
-    CleanUpWorker(fitsProcessorThread);
+    cleanUpWorker(fitsProcessorThread);
 
     qDebug()<<"Cleaning up fileRepositoryThread";
-    CleanUpWorker(fileRepositoryThread);
+    cleanUpWorker(fileRepositoryThread);
 
     qDebug()<<"Cleaning up fileViewModel";
     delete fileViewModel;
@@ -134,7 +134,7 @@ void MainWindow::initialize()
     isInitialized = true;
 }
 
-void MainWindow::CleanUpWorker(QThread* thread)
+void MainWindow::cleanUpWorker(QThread* thread)
 {
     thread->quit();
     thread->wait();
@@ -173,8 +173,10 @@ void MainWindow::getAstroFileFinished(const AstroFile astroFile)
 
 void MainWindow::processFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY )
 {
+    Q_UNUSED(nX);
+    Q_UNUSED(nY);
     emit dbAddTags(astroFile);
-    QImage thumbnail = MakeThumbnail(img);
+    QImage thumbnail = makeThumbnail(img);
     emit dbAddThumbnail(astroFile, thumbnail);
 
     fileViewModel->addAstroFile(astroFile, img.scaled( 400, 400, Qt::KeepAspectRatio));
@@ -196,7 +198,7 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
 {
-    emit fileViewModel->setCellSize(value);
+    fileViewModel->setCellSize(value);
 }
 
 void MainWindow::getAllAstroFilesFinished(const QList<AstroFile> & files)
@@ -224,7 +226,7 @@ void MainWindow::getThumbnailFinished(const AstroFile& astroFile, const QPixmap&
 {
 }
 
-QImage MainWindow::MakeThumbnail(const QImage &image)
+QImage MainWindow::makeThumbnail(const QImage &image)
 {
     QImage small =image.scaled( QSize(200, 200), Qt::KeepAspectRatio);
     return small;

@@ -103,7 +103,7 @@ QMap<QString, QString> GetAstrofileTags(int astroFileId)
     QMap<QString, QString> map;
     QSqlQuery query("SELECT * FROM tags WHERE fits_id = ?");
     query.bindValue(0, astroFileId);
-    int err = query.exec();
+    query.exec();
     while (query.next())
     {
         int idtagKey = query.record().indexOf("tagKey");
@@ -121,16 +121,14 @@ QMap<QString, QSet<QString>> GetAllAstrofileTags()
     QMap<QString, QSet<QString>> map;
     QSqlQuery query("SELECT tags.tagKey, tags.tagValue FROM tags");
 //    QSqlQuery query("SELECT tags.tagKey, COUNT(DISTINCT tags.tagValue) FROM tags GROUP BY tags.tagKey");
-    int err = query.exec();
+    query.exec();
     while (query.next())
     {
         auto a1 = query.value(0).toString();
         auto a2 = query.value(1).toString();
-//        map.insert(a1, a2);
+
         if (map.contains(a1))
-        {
             map[a1].insert(a2);
-        }
         else
             map.insert(a1, QSet<QString>({a2}));
     }
@@ -256,7 +254,6 @@ void FileRepository::getAllAstrofiles()
 
 void FileRepository::insertAstrofile(const AstroFile& astroFile)
 {
-    bool success = false;
     QSqlQuery queryAdd;
     queryAdd.prepare("INSERT INTO fits (FileName,FullPath,DirectoryPath,FileType,CreatedTime,LastModifiedTime) VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:CreatedTime,:LastModifiedTime)");
     queryAdd.bindValue(":FileName", astroFile.FileName);
@@ -268,7 +265,6 @@ void FileRepository::insertAstrofile(const AstroFile& astroFile)
 
     if(queryAdd.exec())
     {
-        success = true;
         qDebug() << "record added " << astroFile.FullPath;
     }
     else
@@ -363,8 +359,7 @@ void FileRepository::getThumbnails()
     {
         AstroFile astro;
 
-        auto x = query.record();
-        int idId = query.record().indexOf("Id");
+        query.record();
         int idFileName = query.record().indexOf("FileName");
         int idFullPath = query.record().indexOf("FullPath");
         int idDirectoryPath = query.record().indexOf("DirectoryPath");
@@ -401,7 +396,7 @@ void FileRepository::getThumbnail(const QString fullPath)
     if (query.next())
     {
         AstroFile* astro = new AstroFile();
-        auto x = query.record();
+        query.record();
         int idId = query.record().indexOf("Id");
         int idFileName = query.record().indexOf("FileName");
         int idFullPath = query.record().indexOf("FullPath");

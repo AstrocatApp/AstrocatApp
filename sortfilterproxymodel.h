@@ -50,10 +50,10 @@ public slots:
     void removeAcceptedObject(QString objectName);
 
 signals:
-    void filterMinimumDateChanged(QDate date) const;
-    void filterMaximumDateChanged(QDate date) const;
+    void filterMinimumDateChanged(QDate date);
+    void filterMaximumDateChanged(QDate date);
     void astroFileAccepted(const AstroFile& astroFile) const;
-    void filterReset() const;
+    void filterReset();
 
 protected:
     // QSortFilterProxyModel interface

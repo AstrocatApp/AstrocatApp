@@ -98,7 +98,7 @@ private:
     QAbstractItemModelTester* tester;
     FilterWidget* filterWidget;
 
-    QImage MakeThumbnail(const QImage& image);
-    void CleanUpWorker(QThread* thread);
+    QImage makeThumbnail(const QImage& image);
+    void cleanUpWorker(QThread* thread);
 };
 #endif // MAINWINDOW_H
