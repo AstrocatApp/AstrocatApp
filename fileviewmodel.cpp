@@ -69,12 +69,14 @@ int FileViewModel::columnCount(const QModelIndex &parent) const
 
 QModelIndex FileViewModel::parent(const QModelIndex &child) const
 {
+    Q_UNUSED(child);
     // none of our items have valid parents, because they all are root items
     return QModelIndex();
 }
 
 QModelIndex FileViewModel::index(int row, int column, const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     if (row < fileList.count()  && row >= 0 && column < cc && column >= 0)
     {
         //return fileList[row]->index;
@@ -112,6 +114,7 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
 
 bool FileViewModel::insertColumns(int column, int count, const QModelIndex &parent)
 {
+    Q_UNUSED(count);
     beginInsertColumns(parent,column, column);
     cc++;
     endInsertColumns();
@@ -134,6 +137,7 @@ void FileViewModel::setCellSize(const int newSize)
 {
     int size = 400 * newSize/100;
     cellSize = QSize(size,size);
+    emit layoutAboutToBeChanged();
     emit layoutChanged();
 }
 
