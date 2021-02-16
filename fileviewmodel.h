@@ -35,7 +35,17 @@ enum AstroFileRoles
     InstrumentRole = Qt::UserRole,
     ObjectRole,
     FilterRole,
-    DateRole
+    DateRole,
+    FullPathRole,
+    RaRole,
+    DecRole,
+    CcdTempRole,
+    ImageXSizeRole,
+    ImageYSizeRole,
+    GainRole,
+    ExposureRole,
+    BayerModeRole,
+    OffsetRole
 };
 
 class FileViewModel : public QAbstractItemModel

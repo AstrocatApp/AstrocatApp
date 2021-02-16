@@ -135,9 +135,9 @@ bool FileViewModel::astroFileExists(const QString fullPath)
 
 void FileViewModel::setCellSize(const int newSize)
 {
+    emit layoutAboutToBeChanged();
     int size = 400 * newSize/100;
     cellSize = QSize(size,size);
-    emit layoutAboutToBeChanged();
     emit layoutChanged();
 }
 
@@ -186,26 +186,20 @@ void FileViewModel::getThumbnailFinished(const AstroFile &astroFile, const QPixm
 
 QVariant FileViewModel::data(const QModelIndex &index, int role) const
 {
+    if (index.row() >= fileList.count())
+    {
+        return QVariant();
+    }
+    auto a = fileList.at(index.row());
+
     switch (role)
     {
         case Qt::DisplayRole:
         {
-            if (index.row() >= fileList.count())
-            {
-                qDebug()<<"Invalid Index";
-                return QVariant();
-            }
-            auto a = fileList.at(index.row());
             return a->astroFile.FileName;
         }
         case Qt::DecorationRole:
         {
-            if (index.row() >= fileList.count())
-            {
-                qDebug()<<"Invalid Index";
-                return QVariant();
-            }
-            auto a = fileList.at(index.row());
             if (a->image.isNull())
             {
                 emit getThumbnail(a->astroFile.FullPath);
@@ -221,23 +215,59 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         }
         case AstroFileRoles::ObjectRole:
         {
-            auto a = fileList.at(index.row());
             return a->astroFile.Tags["OBJECT"];
         }
         case AstroFileRoles::InstrumentRole:
         {
-            auto a = fileList.at(index.row());
             return a->astroFile.Tags["INSTRUME"];
         }
         case AstroFileRoles::FilterRole:
         {
-            auto a = fileList.at(index.row());
             return a->astroFile.Tags["FILTER"];
         }
         case AstroFileRoles::DateRole:
         {
-            auto a = fileList.at(index.row());
             return a->astroFile.Tags["DATE-OBS"];
+        }
+        case AstroFileRoles::FullPathRole:
+        {
+            return a->astroFile.FullPath;
+        }
+        case AstroFileRoles::RaRole:
+        {
+            return a->astroFile.Tags["RA"];
+        }
+        case AstroFileRoles::DecRole:
+        {
+            return a->astroFile.Tags["DEC"];
+        }
+        case AstroFileRoles::CcdTempRole:
+        {
+            return a->astroFile.Tags["CCD-TEMP"];
+        }
+        case AstroFileRoles::ImageXSizeRole:
+        {
+            return a->astroFile.Tags["NAXIS1"];
+        }
+        case AstroFileRoles::ImageYSizeRole:
+        {
+            return a->astroFile.Tags["NAXIS2"];
+        }
+        case AstroFileRoles::GainRole:
+        {
+            return a->astroFile.Tags["GAIN"];
+        }
+        case AstroFileRoles::ExposureRole:
+        {
+            return a->astroFile.Tags["EXPTIME"];
+        }
+        case AstroFileRoles::BayerModeRole:
+        {
+            return a->astroFile.Tags["BAYERPAT"];
+        }
+        case AstroFileRoles::OffsetRole:
+        {
+            return a->astroFile.Tags["BLKLEVEL"];
         }
     }
 
