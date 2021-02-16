@@ -38,6 +38,7 @@
 #include <QFileInfo>
 #include <QMainWindow>
 #include <QThread>
+#include <QItemSelection>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -77,6 +78,7 @@ private slots:
     void getAllAstroFilesFinished(const QList<AstroFile>&);
     void getAllAstroFileTagsFinished(const QMap<QString, QSet<QString>>&);
     void on_actionFolders_triggered();
+    void handleSelectionChanged(QItemSelection selection);
 
 private:
     Ui::MainWindow *ui;
@@ -100,5 +102,6 @@ private:
 
     QImage makeThumbnail(const QImage& image);
     void cleanUpWorker(QThread* thread);
+    void clearDetailLabels();
 };
 #endif // MAINWINDOW_H

@@ -23,10 +23,8 @@
 */
 
 #include "mainwindow.h"
-#include "searchfolderdialog.h"
 #include "ui_mainwindow.h"
-
-#include <QFileDialog>
+#include "searchfolderdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -51,9 +49,9 @@ MainWindow::MainWindow(QWidget *parent)
     sortFilterProxyModel = new SortFilterProxyModel(ui->astroListView);
     sortFilterProxyModel->setSourceModel(fileViewModel);
     ui->astroListView->setViewMode(QListView::IconMode);
-    ui->astroListView->setIconSize(QSize(100,100));
     ui->astroListView->setResizeMode(QListView::Adjust);
     ui->astroListView->setModel(sortFilterProxyModel);
+    QItemSelectionModel *selectionModel = ui->astroListView->selectionModel();
     filterWidget = new FilterWidget(ui->scrollAreaWidgetContents_2);
 
     connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
@@ -94,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterWidget,           &FilterWidget::removeAcceptedFilter,                sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedFilter);
     connect(filterWidget,           &FilterWidget::removeAcceptedInstrument,            sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedInstrument);
     connect(filterWidget,           &FilterWidget::removeAcceptedObject,                sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedObject);
+    connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
 
     // Enable the tester during development and debugging. Disble before committing
     //tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
@@ -208,18 +207,18 @@ void MainWindow::getAllAstroFilesFinished(const QList<AstroFile> & files)
 
 void MainWindow::getAllAstroFileTagsFinished(const QMap<QString, QSet<QString>> & tags)
 {
-    QMapIterator<QString, QSet<QString>> iter(tags);
+//    QMapIterator<QString, QSet<QString>> iter(tags);
 
-    while(iter.hasNext())
-    {
-        iter.next();
-        qDebug() << "===" << iter.key();
-        QSetIterator setiter(iter.value());
-        while (setiter.hasNext())
-        {
-            qDebug() << "------" << setiter.next();
-        }
-    }
+//    while(iter.hasNext())
+//    {
+//        iter.next();
+//        qDebug() << "===" << iter.key();
+//        QSetIterator setiter(iter.value());
+//        while (setiter.hasNext())
+//        {
+//            qDebug() << "------" << setiter.next();
+//        }
+//    }
 }
 
 void MainWindow::getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap)
@@ -235,4 +234,70 @@ QImage MainWindow::makeThumbnail(const QImage &image)
 void MainWindow::on_actionFolders_triggered()
 {
     searchFolderDialog.exec();
+}
+
+void MainWindow::clearDetailLabels()
+{
+    ui->filenameLabel->clear();
+    ui->objectLabel->clear();
+    ui->insturmentLabel->clear();
+    ui->filterLabel->clear();
+    ui->dateLabel->clear();
+    ui->bayerpatternLabel->clear();
+    ui->exposureLabel->clear();
+    ui->gainLabel->clear();
+    ui->offsetLabel->clear();
+    ui->raLabel->clear();
+    ui->decLabel->clear();
+    ui->temperatureLabel->clear();
+    ui->fullPathLabel->clear();
+    ui->imagesizeLabel->clear();
+}
+
+void MainWindow::handleSelectionChanged(QItemSelection selection)
+{
+    int numSelectedRows =  ui->astroListView->selectionModel()->selectedRows().count();
+    if (numSelectedRows == 0)
+    {
+        clearDetailLabels();
+        return;
+    }
+
+    if (numSelectedRows > 1)
+    {
+        clearDetailLabels();
+        return;
+    }
+
+    if (selection.count() == 0)
+    {
+        clearDetailLabels();
+        return;
+    }
+
+    if (selection[0].indexes().count() == 0)
+    {
+        clearDetailLabels();
+        return;
+    }
+
+    QModelIndex index = selection[0].indexes()[0];
+
+    auto xSize = fileViewModel->data(index, AstroFileRoles::ImageXSizeRole).toString();
+    auto ySize = fileViewModel->data(index, AstroFileRoles::ImageYSizeRole).toString();
+
+    ui->filenameLabel->setText(fileViewModel->data(index, Qt::DisplayRole).toString());
+    ui->objectLabel->setText(fileViewModel->data(index, AstroFileRoles::ObjectRole).toString());
+    ui->insturmentLabel->setText(fileViewModel->data(index, AstroFileRoles::InstrumentRole).toString());
+    ui->filterLabel->setText(fileViewModel->data(index, AstroFileRoles::FilterRole).toString());
+    ui->dateLabel->setText(fileViewModel->data(index, AstroFileRoles::DateRole).toString());
+    ui->bayerpatternLabel->setText(fileViewModel->data(index, AstroFileRoles::BayerModeRole).toString());
+    ui->exposureLabel->setText(fileViewModel->data(index, AstroFileRoles::ExposureRole).toString());
+    ui->gainLabel->setText(fileViewModel->data(index, AstroFileRoles::GainRole).toString());
+    ui->offsetLabel->setText(fileViewModel->data(index, AstroFileRoles::OffsetRole).toString());
+    ui->raLabel->setText(fileViewModel->data(index, AstroFileRoles::RaRole).toString());
+    ui->decLabel->setText(fileViewModel->data(index, AstroFileRoles::DecRole).toString());
+    ui->temperatureLabel->setText(fileViewModel->data(index, AstroFileRoles::CcdTempRole).toString());
+    ui->fullPathLabel->setText(fileViewModel->data(index, AstroFileRoles::FullPathRole).toString());
+    ui->imagesizeLabel->setText(xSize+"x"+ySize);
 }
