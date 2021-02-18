@@ -35,26 +35,21 @@ class FileRepository : public QObject
     Q_OBJECT
 public:
     FileRepository(QObject *parent = nullptr);
+    void cancel();
 
 public slots:
-    void getAstrofile(const QString fullPath);
-    void getAllAstrofiles();
-    void insertAstrofile(const AstroFile& astroFile);
     void deleteAstrofilesInFolder(const QString fullPath);
-    void deleteAstrofile(const AstroFile& astroFile);
     void initialize();
-    void addTags(const AstroFile& astroFile);
-    void addThumbnail(const AstroFile& astroFile, const QImage& thumbnail);
-    void getThumbnails();
-    void getThumbnail(const QString fullPath);
-    void getTags();
+    void addTags(const AstroFileImage& astroFileImage);
+    void addThumbnail(const AstroFileImage& astroFileImage, const QImage& thumbnail);
+    void loadModel();
+    void insertAstrofileImage(const AstroFileImage& afi);
 
 signals:
-    void getAstroFileFinished(const AstroFile& astroFile );
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
-    void getThumbnailFinished(const AstroFile& astroFile, const QPixmap& thumbnail );
     void getTagsFinished(const QMap<QString, QSet<QString>>& tags);
     void astroFileDeleted(const AstroFile& astroFile);
+    void modelLoaded(const QList<AstroFileImage>& astroFileImages);
 
 private:
     QSqlDatabase db;
@@ -62,6 +57,10 @@ private:
     void createDatabase();
     void initializeTables();
     QList<AstroFile> getAstrofilesInFolder(const QString fullPath, bool includeTags);
+    QMap<int, AstroFileImage> _getAllAstrofiles();
+    QMap<int, QImage> _getAllThumbnails();
+
+    volatile bool cancelSignaled = false;
 };
 
 #endif // FILEREPOSITORY_H

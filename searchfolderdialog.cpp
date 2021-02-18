@@ -34,7 +34,6 @@ SearchFolderDialog::SearchFolderDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    settings.setDefaultFormat(QSettings::IniFormat);
     auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
     searchFolders.append(foldersFromList);
 

@@ -55,29 +55,27 @@ MainWindow::MainWindow(QWidget *parent)
     filterWidget = new FilterWidget(ui->scrollAreaWidgetContents_2);
 
     connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
-    connect(this,                   &MainWindow::getAstroFile,                          fileRepositoryWorker,   &FileRepository::getAstrofile);
-    connect(this,                   &MainWindow::getAllAstroFiles,                      fileRepositoryWorker,   &FileRepository::getAllAstrofiles);
-    connect(this,                   &MainWindow::insertAstroFile,                       fileRepositoryWorker,   &FileRepository::insertAstrofile);
+    connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);
+    connect(this,                   &MainWindow::deleteAstrofilesInFolder,              fileRepositoryWorker,   &FileRepository::deleteAstrofilesInFolder);
+    connect(this,                   &MainWindow::loadModelFromDb,                       fileRepositoryWorker,   &FileRepository::loadModel);
+    connect(this,                   &MainWindow::loadModelIntoViewModel,                fileViewModel,          &FileViewModel::setInitialModel);
+    connect(this,                   &MainWindow::resetModel,                            fileViewModel,          &FileViewModel::clearModel);
+    connect(this,                   &MainWindow::itemModelAddTags,                      fileViewModel,          &FileViewModel::addTags);
+    connect(this,                   &MainWindow::itemModelAddThumbnail,                 fileViewModel,          &FileViewModel::addThumbnail);
     connect(this,                   &MainWindow::dbAddTags,                             fileRepositoryWorker,   &FileRepository::addTags);
     connect(this,                   &MainWindow::dbAddThumbnail,                        fileRepositoryWorker,   &FileRepository::addThumbnail);
-    connect(this,                   &MainWindow::dbGetThumbnails,                       fileRepositoryWorker,   &FileRepository::getThumbnails);
-    connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);
-    connect(this,                   &MainWindow::getAllAstroFileTags,                   fileRepositoryWorker,   &FileRepository::getTags);
-    connect(this,                   &MainWindow::deleteAstrofilesInFolder,              fileRepositoryWorker,   &FileRepository::deleteAstrofilesInFolder);
-    connect(this,                   &MainWindow::processFitsFile,                       fitsProcessorWorker,    &FitsProcessor::processFitsFile);
+    connect(this,                   &MainWindow::insertAstrofileImage,                  fileRepositoryWorker,   &FileRepository::insertAstrofileImage);
+    connect(this,                   &MainWindow::extractTags,                           fitsProcessorWorker,    &FitsProcessor::extractTags);
+    connect(this,                   &MainWindow::extractThumbnail,                      fitsProcessorWorker,    &FitsProcessor::extractThumbnail);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          this,                   &MainWindow::newFileFound);
     connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
-    connect(fileRepositoryWorker,   &FileRepository::getAstroFileFinished,              this,                   &MainWindow::getAstroFileFinished);
-    connect(fileRepositoryWorker,   &FileRepository::getAllAstroFilesFinished,          this,                   &MainWindow::getAllAstroFilesFinished);
-    connect(fileRepositoryWorker,   &FileRepository::getThumbnailFinished,              this,                   &MainWindow::getThumbnailFinished);
-    connect(fileRepositoryWorker,   &FileRepository::getTagsFinished,                   this,                   &MainWindow::getAllAstroFileTagsFinished);
     connect(fileRepositoryWorker,   &FileRepository::getTagsFinished,                   filterWidget,           &FilterWidget::setAllTags);
-    connect(fileRepositoryWorker,   &FileRepository::getThumbnailFinished,              fileViewModel,          &FileViewModel::getThumbnailFinished);
-    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
+    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::removeAstroFile);
+    connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
     connect(fileRepositoryThread,   &QThread::finished,                                 fileRepositoryWorker,   &QObject::deleteLater);
-    connect(fitsProcessorWorker,    &FitsProcessor::processFitsFileFinished,            this,                   &MainWindow::processFitsFileFinished);
+    connect(fitsProcessorWorker,    &FitsProcessor::thumbnailExtracted,                 this,                   &MainWindow::thumbnailExtracted);
+    connect(fitsProcessorWorker,    &FitsProcessor::tagsExtracted,                      this,                   &MainWindow::tagsExtracted);
     connect(fitsProcessorThread,    &QThread::finished,                                 fitsProcessorWorker,    &QObject::deleteLater);
-    connect(fileViewModel,          &FileViewModel::getThumbnail,                       fileRepositoryWorker,   &FileRepository::getThumbnail);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             folderCrawlerWorker,    &FolderCrawler::crawl);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderRemoved,           this,                   &MainWindow::searchFolderRemoved);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMinimumDateChanged,    filterWidget,           &FilterWidget::setFilterMinimumDate);
@@ -95,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
 
     // Enable the tester during development and debugging. Disble before committing
-    //tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
+//    tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
 }
 
 MainWindow::~MainWindow()
@@ -108,6 +106,7 @@ MainWindow::~MainWindow()
     cleanUpWorker(fitsProcessorThread);
 
     qDebug()<<"Cleaning up fileRepositoryThread";
+    fileRepositoryWorker->cancel();
     cleanUpWorker(fileRepositoryThread);
 
     qDebug()<<"Cleaning up fileViewModel";
@@ -127,9 +126,7 @@ void MainWindow::initialize()
     fitsProcessorThread->start();
 
     emit initializeFileRepository();
-    emit getAllAstroFileTags();
-    emit getAllAstroFiles();
-    emit dbGetThumbnails();
+    emit loadModelFromDb();
     isInitialized = true;
 }
 
@@ -150,35 +147,21 @@ void MainWindow::newFileFound(const QFileInfo fileInfo)
     astroFile.FileType = fileInfo.suffix();
     astroFile.FileName = fileInfo.baseName();
 
+    AstroFileImage afi(astroFile, QImage());
+
     if (fileViewModel->astroFileExists(fileInfo.absoluteFilePath()))
     {
-        qDebug() << "File already in DB";
+        // TODO: Only do this if the timestamp is the same.
+        qDebug() << "File already in model";
     }
     else
     {
         QImage img;
-        fileViewModel->addAstroFile(astroFile, img);
-        emit insertAstroFile(astroFile);
-        emit processFitsFile(astroFile);
-        emit getAstroFile(fileInfo.absoluteFilePath());
+        fileViewModel->addAstroFile(afi);
+        emit insertAstrofileImage(afi);
+        emit extractThumbnail(afi);
+        emit extractTags(afi);
     }
-}
-
-void MainWindow::getAstroFileFinished(const AstroFile astroFile)
-{
-//    qDebug() << "AstroFile from DB: " << astroFile.FullPath;
-
-}
-
-void MainWindow::processFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY )
-{
-    Q_UNUSED(nX);
-    Q_UNUSED(nY);
-    emit dbAddTags(astroFile);
-    QImage thumbnail = makeThumbnail(img);
-    emit dbAddThumbnail(astroFile, thumbnail);
-
-    fileViewModel->addAstroFile(astroFile, img.scaled( 400, 400, Qt::KeepAspectRatio));
 }
 
 void MainWindow::searchFolderRemoved(const QString folder)
@@ -189,6 +172,8 @@ void MainWindow::searchFolderRemoved(const QString folder)
 
 void MainWindow::on_pushButton_clicked()
 {
+//    emit loadModelFromDb();
+
 //    emit GetAllAstroFileTags();
 //    QDate date(2020, 11, 04);
 //    sortFilterProxyModel->setFilterMinimumDate(date);
@@ -198,31 +183,6 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
 {
     fileViewModel->setCellSize(value);
-}
-
-void MainWindow::getAllAstroFilesFinished(const QList<AstroFile> & files)
-{
-    fileViewModel->setInitialAstrofiles(files);
-}
-
-void MainWindow::getAllAstroFileTagsFinished(const QMap<QString, QSet<QString>> & tags)
-{
-//    QMapIterator<QString, QSet<QString>> iter(tags);
-
-//    while(iter.hasNext())
-//    {
-//        iter.next();
-//        qDebug() << "===" << iter.key();
-//        QSetIterator setiter(iter.value());
-//        while (setiter.hasNext())
-//        {
-//            qDebug() << "------" << setiter.next();
-//        }
-//    }
-}
-
-void MainWindow::getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap)
-{
 }
 
 QImage MainWindow::makeThumbnail(const QImage &image)
@@ -254,6 +214,16 @@ void MainWindow::clearDetailLabels()
     ui->imagesizeLabel->clear();
 }
 
+void MainWindow::crawlAllSearchFolders()
+{
+    QSettings settings;
+    auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
+    for (auto f : foldersFromList)
+    {
+        emit crawl(f);
+    }
+}
+
 void MainWindow::handleSelectionChanged(QItemSelection selection)
 {
     int numSelectedRows =  ui->astroListView->selectionModel()->selectedRows().count();
@@ -283,21 +253,56 @@ void MainWindow::handleSelectionChanged(QItemSelection selection)
 
     QModelIndex index = selection[0].indexes()[0];
 
-    auto xSize = fileViewModel->data(index, AstroFileRoles::ImageXSizeRole).toString();
-    auto ySize = fileViewModel->data(index, AstroFileRoles::ImageYSizeRole).toString();
+    auto xSize = sortFilterProxyModel->data(index, AstroFileRoles::ImageXSizeRole).toString();
+    auto ySize = sortFilterProxyModel->data(index, AstroFileRoles::ImageYSizeRole).toString();
 
-    ui->filenameLabel->setText(fileViewModel->data(index, Qt::DisplayRole).toString());
-    ui->objectLabel->setText(fileViewModel->data(index, AstroFileRoles::ObjectRole).toString());
-    ui->insturmentLabel->setText(fileViewModel->data(index, AstroFileRoles::InstrumentRole).toString());
-    ui->filterLabel->setText(fileViewModel->data(index, AstroFileRoles::FilterRole).toString());
-    ui->dateLabel->setText(fileViewModel->data(index, AstroFileRoles::DateRole).toString());
-    ui->bayerpatternLabel->setText(fileViewModel->data(index, AstroFileRoles::BayerModeRole).toString());
-    ui->exposureLabel->setText(fileViewModel->data(index, AstroFileRoles::ExposureRole).toString());
-    ui->gainLabel->setText(fileViewModel->data(index, AstroFileRoles::GainRole).toString());
-    ui->offsetLabel->setText(fileViewModel->data(index, AstroFileRoles::OffsetRole).toString());
-    ui->raLabel->setText(fileViewModel->data(index, AstroFileRoles::RaRole).toString());
-    ui->decLabel->setText(fileViewModel->data(index, AstroFileRoles::DecRole).toString());
-    ui->temperatureLabel->setText(fileViewModel->data(index, AstroFileRoles::CcdTempRole).toString());
-    ui->fullPathLabel->setText(fileViewModel->data(index, AstroFileRoles::FullPathRole).toString());
+    ui->filenameLabel->setText(sortFilterProxyModel->data(index, Qt::DisplayRole).toString());
+    ui->objectLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::ObjectRole).toString());
+    ui->insturmentLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::InstrumentRole).toString());
+    ui->filterLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::FilterRole).toString());
+    ui->dateLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::DateRole).toString());
+    ui->bayerpatternLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::BayerModeRole).toString());
+    ui->exposureLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::ExposureRole).toString());
+    ui->gainLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::GainRole).toString());
+    ui->offsetLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::OffsetRole).toString());
+    ui->raLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::RaRole).toString());
+    ui->decLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::DecRole).toString());
+    ui->temperatureLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::CcdTempRole).toString());
+    ui->fullPathLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::FullPathRole).toString());
     ui->imagesizeLabel->setText(xSize+"x"+ySize);
+}
+
+void MainWindow::modelLoadedFromDb(const QList<AstroFileImage> &files)
+{
+    emit loadModelIntoViewModel(files);
+    for (auto& i : files)
+    {
+        if (i.thumbnailStatus == NotProcessedYet)
+            emit extractThumbnail(i);
+        if (i.tagStatus == TagNotProcessedYet)
+            emit extractTags(i);
+    }
+
+    crawlAllSearchFolders();
+}
+
+void MainWindow::tagsExtracted(const AstroFileImage &astroFileImage, const QMap<QString, QString> &tags)
+{
+    AstroFileImage afi(astroFileImage);
+    afi.tagStatus = TagExtracted;
+    afi.astroFile.Tags.clear();
+    afi.astroFile.Tags.insert(tags);
+
+    emit dbAddTags(afi);
+    emit itemModelAddTags(afi);
+}
+
+void MainWindow::thumbnailExtracted(const AstroFileImage &astroFileImage, const QImage &img)
+{
+    AstroFileImage afi(astroFileImage);
+    afi.thumbnailStatus = Loaded;
+    afi.image = img;
+
+    emit dbAddThumbnail(afi, img);
+    emit itemModelAddThumbnail(afi);
 }

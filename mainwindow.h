@@ -54,31 +54,34 @@ public:
 
 public slots:
     void newFileFound(const QFileInfo fileInfo);
-    void getAstroFileFinished(const AstroFile astroFile);
-    void getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
-    void processFitsFileFinished(const AstroFile astroFile, const QImage& img, long nX, long nY );
     void searchFolderRemoved(const QString folder);
 
 signals:
     void crawl(QString rootFolder);
-    void getAstroFile(QString fullPath);
-    void getAllAstroFiles();
-    void getAllAstroFileTags();
-    void insertAstroFile(AstroFile astroFile);
     void deleteAstrofilesInFolder(const QString fullPath);
-    void dbAddTags(const AstroFile& astroFile);
-    void dbAddThumbnail(const AstroFile& astroFile, const QImage& image);
-    void dbGetThumbnails();
+    void dbAddTags(const AstroFileImage& astroFileImage);
+    void dbAddThumbnail(const AstroFileImage& astroFileImage, const QImage& image);
     void initializeFileRepository();
-    void processFitsFile(const AstroFile& astroFile);
+    void loadModelFromDb();
+    void loadModelIntoViewModel(const QList<AstroFileImage> &files);
+    void resetModel();
+
+    void extractTags(const AstroFileImage& astroFileImage);
+    void extractThumbnail(const AstroFileImage& astroFileImage);
+
+    void itemModelAddTags(const AstroFileImage& astroFileImage);
+    void itemModelAddThumbnail(const AstroFileImage& astroFileImage);
+    void insertAstrofileImage(const AstroFileImage& afi);
 
 private slots:
     void on_pushButton_clicked();
     void on_imageSizeSlider_valueChanged(int value);
-    void getAllAstroFilesFinished(const QList<AstroFile>&);
-    void getAllAstroFileTagsFinished(const QMap<QString, QSet<QString>>&);
     void on_actionFolders_triggered();
     void handleSelectionChanged(QItemSelection selection);
+    void modelLoadedFromDb(const QList<AstroFileImage> &files);
+
+    void tagsExtracted(const AstroFileImage& astroFileImage, const QMap<QString, QString>& tags);
+    void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
 
 private:
     Ui::MainWindow *ui;
@@ -103,5 +106,6 @@ private:
     QImage makeThumbnail(const QImage& image);
     void cleanUpWorker(QThread* thread);
     void clearDetailLabels();
+    void crawlAllSearchFolders();
 };
 #endif // MAINWINDOW_H
