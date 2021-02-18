@@ -27,7 +27,21 @@
 
 #include <QDateTime>
 #include <QString>
+#include <qimage.h>
 
+enum ThumbnailLoadStatus
+{
+    Loaded,
+    NotProcessedYet,
+    FailedToProess
+};
+
+enum TagExtractStatus
+{
+    TagExtracted,
+    TagNotProcessedYet,
+    TagFailedToProess
+};
 
 struct AstroFile
 {
@@ -38,6 +52,22 @@ struct AstroFile
     QDateTime CreatedTime;
     QDateTime LastModifiedTime;
     QMap<QString, QString> Tags;
+};
+
+struct AstroFileImage
+{
+    AstroFileImage() {}
+    AstroFileImage(const AstroFileImage& other)
+        :astroFile(other.astroFile), image(other.image), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus)
+    {}
+    AstroFileImage(AstroFile file, QImage img, ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus::NotProcessedYet, TagExtractStatus tagStatus = TagExtractStatus::TagNotProcessedYet)
+        :astroFile(file), image(img), thumbnailStatus(thumbnailStatus), tagStatus(tagStatus)
+    {
+    }
+    AstroFile astroFile;
+    QImage image;
+    ThumbnailLoadStatus thumbnailStatus;
+    TagExtractStatus tagStatus;
 };
 
 #endif // ASTROFILE_H

@@ -54,15 +54,13 @@ class FileViewModel : public QAbstractItemModel
 public:
     FileViewModel(QObject* parent = nullptr);
     ~FileViewModel();
-    void setInitialAstrofiles(const QList<AstroFile>& files);
-    void addAstroFile(AstroFile astroFile, const QImage& image);
     bool astroFileExists(const QString fullPath);
 
     // QAbstractItemModel interface
-    QModelIndex index(int row, int column, const QModelIndex &parent) const  override;
-    bool insertRows(int row, int count, const QModelIndex &parent)  override;
+    QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+    bool insertRows(int row, int count, const QModelIndex &parent) override;
     bool removeRows(int row, int count, const QModelIndex &parent) override;
-    bool insertColumns(int column, int count, const QModelIndex &parent)  override;
+    bool insertColumns(int column, int count, const QModelIndex &parent) override;
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;
     QVariant data(const QModelIndex &index, int role) const override;
@@ -71,26 +69,20 @@ public:
 
 public slots:
     void setCellSize(const int newSize);
-    void getThumbnailFinished(const AstroFile& astroFile, const QPixmap& pixmap);
-    void RemoveAstroFile(AstroFile astroFile);
+    void removeAstroFile(AstroFile astroFile);
+    void clearModel();
+    void setInitialModel(const QList<AstroFileImage>& files);
+    void addTags(const AstroFileImage& astroFileImage);
+    void addThumbnail(const AstroFileImage& astroFileImage);
+    void addAstroFile(const AstroFileImage& astroFileImage);
 
 signals:
-    void getThumbnail(const QString fullPath) const;
 
 private:
-    struct AstroFileImage
-    {
-        AstroFileImage(AstroFile file, QImage img) :astroFile(file), image(img)
-        {
-        }
-        AstroFile astroFile;
-        QImage image;
-    };
     int rc;
     int cc;
-    QObject* myparent;
-    QList<AstroFileImage*> fileList;
-    QMap<QString, AstroFileImage*> fileMap;
+    QList<AstroFileImage> fileList;
+    QMap<QString, AstroFileImage> fileMap;
     int getRowForAstroFile(const AstroFile& astroFile);
     QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
     QSize cellSize = QSize(200, 200);

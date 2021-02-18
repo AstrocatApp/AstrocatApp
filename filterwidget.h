@@ -29,6 +29,7 @@
 
 #include <QDateEdit>
 #include <QGroupBox>
+#include <QSet>
 #include <QWidget>
 
 class FilterWidget : public QWidget
@@ -75,6 +76,7 @@ private:
     void selectedObjectsChanged(QString object, int state);
     void selectedInstrumentsChanged(QString object, int state);
     void selectedFiltersChanged(QString object, int state);
+    QSet<QString> checkedTags;
 };
 
 #endif // FILTERWIDGET_H

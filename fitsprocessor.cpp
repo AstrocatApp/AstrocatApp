@@ -30,54 +30,57 @@ FitsProcessor::FitsProcessor(QObject *parent) : QObject(parent)
 
 }
 
+QImage makeThumbnail(const QImage &image)
+{
+    QImage small =image.scaled( QSize(200, 200), Qt::KeepAspectRatio);
+    return small;
+}
+
+
 void FitsProcessor::cancel()
 {
     cancelSignaled = true;
 }
 
-void FitsProcessor::processFitsFile(const AstroFile& astroFile)
+QMap<QString, QString> GetTags(const AstroFileImage& astroFileImage)
 {
-    if (cancelSignaled)
-    {
-        qDebug() << "Cancel signaled. Draining Queue.";
-        return;
-    }
-    getPixels(astroFile);
-}
-
-QMap<QString, QString> GetTags(fitsfile* fptr)
-{
+    fitsfile *fptr;
     int status = 0;
     int hdupos, nkeys;
     char card[FLEN_CARD];
     QMap<QString, QString> tagsMap;
 
-    fits_get_hdu_num(fptr, &hdupos);
+    QString fullPath = astroFileImage.astroFile.FullPath;
 
-    while (!status)
+    if (!fits_open_file(&fptr, fullPath.toStdString().c_str(), READONLY, &status))
     {
-        hdupos++;
-        fits_get_hdrspace(fptr, &nkeys, NULL, &status);
+        fits_get_hdu_num(fptr, &hdupos);
 
-        for (int i = 1; i <= nkeys; i++)
+        while (!status)
         {
-           if (fits_read_record(fptr, i, card, &status))
-               break;
+            hdupos++;
+            fits_get_hdrspace(fptr, &nkeys, NULL, &status);
 
-           char keyname[FLEN_KEYWORD];
-           char keyvalue[FLEN_VALUE];
-           char comment[FLEN_COMMENT];
+            for (int i = 1; i <= nkeys; i++)
+            {
+               if (fits_read_record(fptr, i, card, &status))
+                   break;
 
-           fits_read_keyn(fptr,i, keyname, keyvalue, comment, &status);
-           tagsMap.insert(QString(keyname).remove("'").trimmed(), QString(keyvalue).remove("'").trimmed());
+               char keyname[FLEN_KEYWORD];
+               char keyvalue[FLEN_VALUE];
+               char comment[FLEN_COMMENT];
+
+               fits_read_keyn(fptr,i, keyname, keyvalue, comment, &status);
+               tagsMap.insert(QString(keyname).remove("'").trimmed(), QString(keyvalue).remove("'").trimmed());
+            }
+
+            fits_movrel_hdu(fptr, 1, NULL, &status);
         }
-
-        fits_movrel_hdu(fptr, 1, NULL, &status);
     }
     return tagsMap;
 }
 
-void FitsProcessor::getPixels(const AstroFile& astroFile)
+QImage getPixels(const AstroFileImage& astroFileImage)
 {
     fitsfile *fptr;
     int status = 0;
@@ -85,7 +88,7 @@ void FitsProcessor::getPixels(const AstroFile& astroFile)
     long naxes[2] = {1,1};
 
     QImage img;
-    QString fullPath = astroFile.FullPath;
+    QString fullPath = astroFileImage.astroFile.FullPath;
 
     if (!fits_open_file(&fptr, fullPath.toStdString().c_str(), READONLY, &status))
     {
@@ -147,13 +150,36 @@ void FitsProcessor::getPixels(const AstroFile& astroFile)
                   break;
               }
 
-            AstroFile f(astroFile);
-            auto tags = GetTags(fptr);
-            f.Tags.insert(tags);
-
-            emit processFitsFileFinished(f, img, naxes[0], naxes[1]);
+            AstroFileImage f(astroFileImage);
           }
         }
         fits_close_file(fptr, &status);
     }
+    return img;
 }
+
+void FitsProcessor::extractTags(const AstroFileImage &astroFileImage)
+{
+    if (cancelSignaled)
+    {
+        qDebug() << "Cancel signaled. Draining Fits Tag Queue.";
+        return;
+    }
+
+    auto tags = GetTags(astroFileImage);
+    emit tagsExtracted(astroFileImage, tags);
+}
+
+void FitsProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
+{
+    if (cancelSignaled)
+    {
+        qDebug() << "Cancel signaled. Draining Fits Thumbnail Queue.";
+        return;
+    }
+
+    auto image = getPixels(astroFileImage);
+    auto thumbnail = makeThumbnail(image);
+    emit thumbnailExtracted(astroFileImage, thumbnail);
+}
+

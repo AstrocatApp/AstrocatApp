@@ -70,6 +70,7 @@ private:
     bool instrumentAccepted(QString instrument) const;
     bool objectAccepted(QString object) const;
     bool filterAccepted(QString filter) const;
+    bool shouldAcceptTagsForFilters(const AstroFileImage* astroFileImage) const;
 };
 
 #endif // SORTFILTERPROXYMODEL_H
