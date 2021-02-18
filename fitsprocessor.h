@@ -38,15 +38,15 @@ public:
     void cancel();
 
 public slots:
-    void processFitsFile(const AstroFile& astroFile);
+    void extractTags(const AstroFileImage& astroFileImage);
+    void extractThumbnail(const AstroFileImage& astroFileImage);
 
 signals:
-    void processFitsFileFinished( const AstroFile astroFile, const QImage& img, long nX, long nY );
+    void tagsExtracted(const AstroFileImage& astroFileImage, const QMap<QString, QString>& tags);
+    void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
 
 private:
     volatile bool cancelSignaled = false;
-    void getPixels(const AstroFile& astroFile);
-    QImage makeThumbnail(const QImage& image);
 };
 
 #endif // FITSPROCESSOR_H

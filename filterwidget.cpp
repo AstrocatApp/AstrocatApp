@@ -62,6 +62,7 @@ QWidget* FilterWidget::createDateBox()
     vbox->addWidget(maxDateEdit);
     vbox->addStretch(1);
     datesGroup->setLayout(vbox);
+    minDateEdit->setDate(QDate::currentDate());
 
     connect(minDateEdit, &QDateEdit::dateChanged, this, &FilterWidget::minimumDateChanged);
     connect(maxDateEdit, &QDateEdit::dateChanged, this, &FilterWidget::maximumDateChanged);
@@ -115,43 +116,41 @@ void FilterWidget::addAstroFileTags(const AstroFile &astroFile)
 {
     bool newTagFound = false;
     QString t = astroFile.Tags["OBJECT"];
-    auto& x= t.remove("'");
-    if (x.isEmpty())
-        x = "None";
-    if (!fileTags["OBJECT"].contains(x))
+    if (t.isEmpty())
+        t = "None";
+    if (!fileTags["OBJECT"].contains(t))
     {
-        fileTags["OBJECT"].insert(x);
+        fileTags["OBJECT"].insert(t);
         newTagFound = true;
     }
     t = astroFile.Tags["INSTRUME"];
-    x= t.remove("'");
-    if (x.isEmpty())
-        x = "None";
-    if (!fileTags["INSTRUME"].contains(x))
+    if (t.isEmpty())
+        t = "None";
+    if (!fileTags["INSTRUME"].contains(t))
     {
-        fileTags["INSTRUME"].insert(x);
+        fileTags["INSTRUME"].insert(t);
         newTagFound = true;
     }
     t = astroFile.Tags["FILTER"];
-    x= t.remove("'");
-    if (x.isEmpty())
-        x = "None";
-    if (!fileTags["FILTER"].contains(x))
+    if (t.isEmpty())
+        t = "None";
+    if (!fileTags["FILTER"].contains(t))
     {
-        fileTags["FILTER"].insert(x);
+        fileTags["FILTER"].insert(t);
         newTagFound = true;
     }
     t = astroFile.Tags["DATE-OBS"];
-    x= t.remove("'");
-    if (x.isEmpty())
-        x = "None";
-    if (!fileTags["DATE-OBS"].contains(x))
+    if (t.isEmpty())
+        t = "None";
+    if (!fileTags["DATE-OBS"].contains(t))
     {
-        fileTags["DATE-OBS"].insert(x);
+        fileTags["DATE-OBS"].insert(t);
         newTagFound = true;
     }
     if (newTagFound)
+    {
         resetGroups();
+    }
 }
 
 void FilterWidget::searchFilterReset()
@@ -182,15 +181,18 @@ void FilterWidget::addDates()
     while (setiter.hasNext())
     {
         QString n = setiter.next();
-        n.remove("'");
         QDate d = QDate::fromString(n, Qt::ISODate);
         if (d < minDateEdit->date())
         {
+            minDateEdit->blockSignals(true);
             minDateEdit->setDate(d);
+            minDateEdit->blockSignals(false);
         }
         if (d > maxDateEdit->date())
         {
+            maxDateEdit->blockSignals(true);
             maxDateEdit->setDate(d);
+            maxDateEdit->blockSignals(false);
         }
     }
 }
@@ -202,11 +204,12 @@ void FilterWidget::addObjects()
     QSetIterator setiter(o);
     while (setiter.hasNext())
     {
-        QString n = setiter.next();
-        n.remove("'");
-        QCheckBox* chekBox = new QCheckBox(n);
-        objectsGroup->layout()->addWidget(chekBox);
-        connect(chekBox, &QCheckBox::stateChanged, this, [=]() {selectedObjectsChanged(chekBox->text(), chekBox->checkState());});
+        QString tagText = setiter.next();
+        QCheckBox* checkBox = new QCheckBox(tagText);
+        if (checkedTags.contains(tagText))
+            checkBox->setChecked(true);
+        objectsGroup->layout()->addWidget(checkBox);
+        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedObjectsChanged(checkBox->text(), checkBox->checkState());});
     }
 }
 
@@ -217,11 +220,12 @@ void FilterWidget::addInstruments()
     QSetIterator setiter(o);
     while (setiter.hasNext())
     {
-        QString n = setiter.next();
-        n.remove("'");
-        QCheckBox* chekBox = new QCheckBox(n);
-        instrumentsGroup->layout()->addWidget(chekBox);
-        connect(chekBox, &QCheckBox::stateChanged, this, [=]() {selectedInstrumentsChanged(chekBox->text(), chekBox->checkState());});
+        QString tagText = setiter.next();
+        QCheckBox* checkBox = new QCheckBox(tagText);
+        if (checkedTags.contains(tagText))
+            checkBox->setChecked(true);
+        instrumentsGroup->layout()->addWidget(checkBox);
+        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedInstrumentsChanged(checkBox->text(), checkBox->checkState());});
     }
 }
 
@@ -232,11 +236,12 @@ void FilterWidget::addFilters()
     QSetIterator setiter(o);
     while (setiter.hasNext())
     {
-        QString n = setiter.next();
-        n.remove("'");
-        QCheckBox* chekBox = new QCheckBox(n);
-        filtersGroup->layout()->addWidget(chekBox);
-        connect(chekBox, &QCheckBox::stateChanged, this, [=]() {selectedFiltersChanged(chekBox->text(), chekBox->checkState());});
+        QString tagText = setiter.next();
+        QCheckBox* checkBox = new QCheckBox(tagText);
+        if (checkedTags.contains(tagText))
+            checkBox->setChecked(true);
+        filtersGroup->layout()->addWidget(checkBox);
+        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedFiltersChanged(checkBox->text(), checkBox->checkState());});
     }
 }
 
@@ -245,9 +250,11 @@ void FilterWidget::selectedObjectsChanged(QString object, int state)
     switch (state)
     {
     case 0:
+        checkedTags.remove(object);
         emit removeAcceptedObject(object);
         break;
     case 2:
+        checkedTags.insert(object);
         emit addAcceptedObject(object);
         break;
     }
@@ -258,9 +265,11 @@ void FilterWidget::selectedInstrumentsChanged(QString object, int state)
     switch (state)
     {
     case 0:
+        checkedTags.remove(object);
         emit removeAcceptedInstrument(object);
         break;
     case 2:
+        checkedTags.insert(object);
         emit addAcceptedInstrument(object);
         break;
     }
@@ -271,9 +280,11 @@ void FilterWidget::selectedFiltersChanged(QString object, int state)
     switch (state)
     {
     case 0:
+        checkedTags.remove(object);
         emit removeAcceptedFilter(object);
         break;
     case 2:
+        checkedTags.insert(object);
         emit addAcceptedFilter(object);
         break;
     }
