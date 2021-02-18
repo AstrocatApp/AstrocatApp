@@ -182,7 +182,16 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
 {
+    auto currentIndex = ui->astroListView->currentIndex();
+
+    if (!currentIndex.isValid())
+        currentIndex = ui->astroListView->indexAt(QPoint(0,0));
+
     fileViewModel->setCellSize(value);
+
+    auto scrollToIndex = sortFilterProxyModel->index(currentIndex.row(), currentIndex.column(), QModelIndex());
+
+    ui->astroListView->scrollTo(scrollToIndex, QAbstractItemView::ScrollHint::PositionAtTop);
 }
 
 QImage MainWindow::makeThumbnail(const QImage &image)
