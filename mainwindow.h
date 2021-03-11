@@ -74,7 +74,6 @@ signals:
     void insertAstrofileImage(const AstroFileImage& afi);
 
 private slots:
-    void on_pushButton_clicked();
     void on_imageSizeSlider_valueChanged(int value);
     void on_actionFolders_triggered();
     void handleSelectionChanged(QItemSelection selection);
