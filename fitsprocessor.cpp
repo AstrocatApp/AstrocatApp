@@ -24,6 +24,7 @@
 
 #include "fitsprocessor.h"
 #include "fitsio.h"
+#include "fitsfile.h"
 
 FitsProcessor::FitsProcessor(QObject *parent) : QObject(parent)
 {
@@ -178,7 +179,14 @@ void FitsProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
         return;
     }
 
-    auto image = getPixels(astroFileImage);
+    FitsFile fits;
+    auto ret = fits.loadFile(astroFileImage.astroFile.FullPath);
+    if (!ret)
+        // TODO: Return an astroimage with failed extraction status
+        return;
+
+//    auto image = getPixels(astroFileImage);
+    auto image = fits.getImage();
     auto thumbnail = makeThumbnail(image);
     emit thumbnailExtracted(astroFileImage, thumbnail);
 }

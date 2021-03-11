@@ -9,9 +9,11 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    autostretcher.cpp \
     filerepository.cpp \
     fileviewmodel.cpp \
     filterwidget.cpp \
+    fitsfile.cpp \
     fitsprocessor.cpp \
     foldercrawler.cpp \
     main.cpp \
@@ -21,9 +23,11 @@ SOURCES += \
 
 HEADERS += \
     astrofile.h \
+    autostretcher.h \
     filerepository.h \
     fileviewmodel.h \
     filterwidget.h \
+    fitsfile.h \
     fitsprocessor.h \
     foldercrawler.h \
     mainwindow.h \
