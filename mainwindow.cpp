@@ -170,16 +170,6 @@ void MainWindow::searchFolderRemoved(const QString folder)
     emit deleteAstrofilesInFolder(folder);
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-//    emit loadModelFromDb();
-
-//    emit GetAllAstroFileTags();
-//    QDate date(2020, 11, 04);
-//    sortFilterProxyModel->setFilterMinimumDate(date);
-//    sortFilterProxyModel->invalidate();
-}
-
 void MainWindow::on_imageSizeSlider_valueChanged(int value)
 {
     auto currentIndex = ui->astroListView->currentIndex();
