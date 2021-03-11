@@ -49,10 +49,6 @@
  * can be moved inside a single function, with pre-computed values. For example, the
  * ExpansionFunction is redundant when r=1 and l=0
  *
- * At this time, the median and medianf functions consume significant amount of time.
- * We'll need to combine them and maybe use sampling to reduce the amount of time spent
- * in these functions.
- *
  * We are normalizing the data before any further calculations, which is probably not
  * needed. The spec was mainly giving floating point examples and calculations in the
  * [0,1] range, and therefore we followed that practise. We porobably can get away without
@@ -110,12 +106,22 @@ StretchParams AutoStretcher<T>::getParams()
 }
 
 template <typename T>
-float median(T* data, int len)
+float median(T* data, int len, int sampleSize)
 {
     std::vector<float> d;
-    d.assign(data, data + len);
+    int jump = len/sampleSize;
+    if (jump == 0)
+        jump = 1;
+    T* it = data;
+    int count = 0;
+    while (it < (data + len))
+    {
+        d.push_back(*it);
+        it += jump;
+        count++;
+    }
     std::sort(d.begin(), d.end());
-    return d[len/2];
+    return d[count/2];
 }
 
 template <typename T>
@@ -131,6 +137,7 @@ void AutoStretcher<T>::calculateParams()
 {
     QElapsedTimer timer;
     timer.start();
+    int sampleSize = 50000;
 
     int channelSize = _width * _height;
     float* channelMedians = new float[_numberOfChannels];
@@ -138,23 +145,32 @@ void AutoStretcher<T>::calculateParams()
     {
         float* channelArr = &_normalData[k*channelSize];
 //        T* channelArr = &_data[k*channelSize];
-        float channelMedian = median(channelArr, channelSize);
-        qDebug() << "median took" << timer.elapsed() << "milliseconds";
+        float channelMedian = median(channelArr, channelSize, sampleSize);
+//        qDebug() << "median took" << timer.elapsed() << "milliseconds";
         channelMedians[k] = channelMedian;
 
         float* it = _normalData;
 //        T* it = _data;
         std::vector<float> v;
+        int jump = channelSize/sampleSize;
+        if (jump == 0)
+            jump = 1;
+        int counter = jump;
         for (int i = 0; i < _height; i++)
         {
             for (int j = 0; j < _width; j++)
             {
+                counter--;
+                if (counter != 0)
+                    continue;
+                counter = jump;
                 v.push_back(abs((*it) - channelMedian));
                 it++;
             }
         }
         float med = medianf(v);
-        qDebug() << "medianf took" << timer.elapsed() << "milliseconds";
+
+//        qDebug() << "medianf took" << timer.elapsed() << "milliseconds";
         float normalizedMedian = 1.4826f * med;
 
         float B = 0.25f;
@@ -194,7 +210,7 @@ void AutoStretcher<T>::calculateParams()
             M = MidtonesTransferFunction(B, H - channelMedian);
         }
         stretchParams.channel[k] = {A, B, C, S, H, M};
-        qDebug() << "Channel took" << timer.elapsed() << "milliseconds";
+//        qDebug() << "Channel took" << timer.elapsed() << "milliseconds";
     }
 
     delete [] channelMedians;
