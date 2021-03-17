@@ -33,7 +33,7 @@ FitsProcessor::FitsProcessor(QObject *parent) : QObject(parent)
 
 QImage makeThumbnail(const QImage &image)
 {
-    QImage small =image.scaled( QSize(200, 200), Qt::KeepAspectRatio);
+    QImage small =image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     return small;
 }
 
