@@ -48,7 +48,6 @@ public:
     ~AutoStretcher();
     void setData(T* data);
     void stretch();
-    void stretch(float m, float s, float h, float l, float r);
     void calculateParams();
     void normalize();
     StretchParams getParams();

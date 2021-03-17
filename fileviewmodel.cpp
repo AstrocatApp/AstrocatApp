@@ -178,7 +178,7 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
                 auto img = QImage(":Icons/resources/loading.png");
                 return img;
             }
-            QImage small = a.image.scaled( cellSize*0.9, Qt::KeepAspectRatio);
+            QImage small = a.image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             return small;
         }
         case Qt::SizeHintRole:

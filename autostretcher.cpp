@@ -242,19 +242,6 @@ void AutoStretcher<T>::getRange()
 template<typename T>
 void AutoStretcher<T>::stretch()
 {
-    float m = 0.5;
-    float s = 0;
-    float h = 1;
-    float l = 0;
-    float r = 1;
-
-    stretch(m, s, h, l, r);
-}
-
-template<typename T>
-void AutoStretcher<T>::stretch(float m, float s, float h, float l, float r)
-{
-    calculateParams();
     T* dit = (T*)_data;
     float* it = _normalData;
     float range = _rangeMax - _rangeMin;
@@ -270,18 +257,14 @@ void AutoStretcher<T>::stretch(float m, float s, float h, float l, float r)
                 float x = *it;
 
                 auto sp = stretchParams.channel[k];
-                m = sp.M;
-                s = sp.S;
-                h = sp.H;
-                l = 0;
-                r = 1;
-                int xxxx= 0;
+                float m = sp.M;
+                float s = sp.S;
+                float h = sp.H;
+                float l = 0;
+                float r = 1;
                 float stretched = DisplayFunction(x, m, s, h, l, r);
-                if (stretched > 0 )
-                    xxxx++;
-                float stretchedAndRanged = stretched*255; // 255 is not universal
-                T xxx = (T)stretchedAndRanged;
-                *dit = xxx;
+                float stretchedAndRanged = stretched*255;
+                *dit = (T)stretchedAndRanged;
                 dit++;
                 it++;
             }
