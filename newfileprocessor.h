@@ -22,16 +22,33 @@
     SOFTWARE.
 */
 
-#ifndef FITSPROCESSOR_H
-#define FITSPROCESSOR_H
+#ifndef NEWFILEPROCESSOR_H
+#define NEWFILEPROCESSOR_H
 
+#include "astrofile.h"
 #include "fileprocessor.h"
 
-class FitsProcessor : public FileProcessor
+#include <QFileInfo>
+#include <QObject>
+
+class NewFileProcessor : public QObject
 {
+    Q_OBJECT
 public:
+    explicit NewFileProcessor(QObject *parent = nullptr);
+    void processNewFile(const QFileInfo& fileInfo);
     void extractTags(const AstroFileImage& astroFileImage);
     void extractThumbnail(const AstroFileImage& astroFileImage);
+    void cancel();
+
+signals:
+    void tagsExtracted(const AstroFileImage& astroFileImage, const QMap<QString, QString>& tags);
+    void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
+
+private:
+    volatile bool cancelSignaled = false;
+    FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);
+    FileProcessor* getProcessorForFile(const AstroFile& astroFile);
 };
 
-#endif // FITSPROCESSOR_H
+#endif // NEWFILEPROCESSOR_H

@@ -32,12 +32,18 @@ FitsFile::FitsFile()
 
 }
 
+FitsFile::~FitsFile()
+{
+    int status = 0;
+    fits_close_file(_fptr, &status);
+}
+
 #define CHK_STATUS(status) { if (status)  \
 { \
     char err_text[1024]; \
     fits_get_errstatus( status, err_text); \
     qDebug() << err_text; \
-fits_close_file(_fptr, &status); return false; \
+return; \
 } }
 
 bool FitsFile::loadFile(QString filePath)
@@ -45,11 +51,46 @@ bool FitsFile::loadFile(QString filePath)
     qDebug () <<"Processing: " <<filePath;
 
     int status = 0;
+    fits_open_file(&_fptr, filePath.toStdString().c_str(), READONLY, &status);
+
+    return status == 0;
+}
+
+void FitsFile::extractTags()
+{
+    int hdupos, nkeys;
+    char card[FLEN_CARD];
+    int status = 0;
+
+    fits_get_hdu_num(_fptr, &hdupos);
+
+    while (!status)
+    {
+        hdupos++;
+        fits_get_hdrspace(_fptr, &nkeys, NULL, &status);
+
+        for (int i = 1; i <= nkeys; i++)
+        {
+           if (fits_read_record(_fptr, i, card, &status))
+               break;
+
+           char keyname[FLEN_KEYWORD];
+           char keyvalue[FLEN_VALUE];
+           char comment[FLEN_COMMENT];
+
+           fits_read_keyn(_fptr,i, keyname, keyvalue, comment, &status);
+           _tags.insert(QString(keyname).remove("'").trimmed(), QString(keyvalue).remove("'").trimmed());
+        }
+
+        fits_movrel_hdu(_fptr, 1, NULL, &status);
+    }
+}
+
+void FitsFile::extractImage()
+{
+    int status = 0;
     int imageType;
     _qImageFormat = QImage::Format::Format_Invalid;
-
-    fits_open_file(&_fptr, filePath.toStdString().c_str(), READONLY, &status);
-    CHK_STATUS(status);
 
     fits_get_img_type(_fptr, &imageType, &status);
     CHK_STATUS(status);
@@ -57,28 +98,19 @@ bool FitsFile::loadFile(QString filePath)
     fits_get_img_equivtype(_fptr, &_imageEquivType, &status);
     CHK_STATUS(status);
 
-    qDebug() << QString("ImgType: %1, EquivType: %2, File: %3").arg(imageType).arg(_imageEquivType).arg(filePath);
-
-
     int fitsDataType = 0;
     long long naxesLongLongArr[3] = {0,0,0};
     int bitpix, naxis;
 
     fits_get_img_paramll(_fptr, 2, &bitpix, &naxis, naxesLongLongArr, &status);
-    if (status)
-    {
-        qDebug() << "Failed fits_get_img_paramll: " << filePath;
-    }
     qDebug() << QString("ParamLL Naxis: %1, Naxes: %2 x %3").arg(naxis).arg(naxesLongLongArr[0]).arg(naxesLongLongArr[1]);
 
     if (naxis < 2)
     {
         qDebug() << "Not a 2D image";
         fits_close_file(_fptr, &status);
-        return false;
+        return;
     }
-
-    loadTags();
 
     _numberOfChannels = _tags.contains("BAYERPAT") || _tags.value("NAXIS3") == "3"? 3: 1;
 
@@ -276,38 +308,6 @@ bool FitsFile::loadFile(QString filePath)
     }
 
     delete [] _data;
-    fits_close_file(_fptr, &status);
-    return true;
-}
-
-void FitsFile::loadTags()
-{
-    int hdupos, nkeys;
-    char card[FLEN_CARD];
-    int status = 0;
-
-    fits_get_hdu_num(_fptr, &hdupos);
-
-    while (!status)
-    {
-        hdupos++;
-        fits_get_hdrspace(_fptr, &nkeys, NULL, &status);
-
-        for (int i = 1; i <= nkeys; i++)
-        {
-           if (fits_read_record(_fptr, i, card, &status))
-               break;
-
-           char keyname[FLEN_KEYWORD];
-           char keyvalue[FLEN_VALUE];
-           char comment[FLEN_COMMENT];
-
-           fits_read_keyn(_fptr,i, keyname, keyvalue, comment, &status);
-           _tags.insert(QString(keyname).remove("'").trimmed(), QString(keyvalue).remove("'").trimmed());
-        }
-
-        fits_movrel_hdu(_fptr, 1, NULL, &status);
-    }
 }
 
 template <typename T>

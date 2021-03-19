@@ -22,16 +22,14 @@
     SOFTWARE.
 */
 
-#ifndef FITSPROCESSOR_H
-#define FITSPROCESSOR_H
+#include "imageprocessor.h"
 
-#include "fileprocessor.h"
-
-class FitsProcessor : public FileProcessor
+void ImageProcessor::extractTags(const AstroFileImage &astroFileImage)
 {
-public:
-    void extractTags(const AstroFileImage& astroFileImage);
-    void extractThumbnail(const AstroFileImage& astroFileImage);
-};
+//    emit tagsExtracted(astroFileImage, QMap<QString, QString>());
+}
 
-#endif // FITSPROCESSOR_H
+void ImageProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
+{
+//    emit thumbnailExtracted(astroFileImage, QImage());
+}

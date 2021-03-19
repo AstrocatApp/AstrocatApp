@@ -22,16 +22,16 @@
     SOFTWARE.
 */
 
-#ifndef FITSPROCESSOR_H
-#define FITSPROCESSOR_H
+#ifndef XISFPROCESSOR_H
+#define XISFPROCESSOR_H
 
 #include "fileprocessor.h"
 
-class FitsProcessor : public FileProcessor
+class XisfProcessor : public FileProcessor
 {
 public:
-    void extractTags(const AstroFileImage& astroFileImage);
-    void extractThumbnail(const AstroFileImage& astroFileImage);
+    void extractTags(const AstroFileImage &astroFileImage);
+    void extractThumbnail(const AstroFileImage &astroFileImage);
 };
 
-#endif // FITSPROCESSOR_H
+#endif // XISFPROCESSOR_H

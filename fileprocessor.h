@@ -22,16 +22,23 @@
     SOFTWARE.
 */
 
-#ifndef FITSPROCESSOR_H
-#define FITSPROCESSOR_H
+#ifndef FILEPROCESSOR_H
+#define FILEPROCESSOR_H
 
-#include "fileprocessor.h"
+#include "astrofile.h"
 
-class FitsProcessor : public FileProcessor
+class FileProcessor
 {
 public:
-    void extractTags(const AstroFileImage& astroFileImage);
-    void extractThumbnail(const AstroFileImage& astroFileImage);
+    virtual ~FileProcessor() {};
+
+    virtual void extractTags(const AstroFileImage& astroFileImage) = 0;
+    virtual void extractThumbnail(const AstroFileImage& astroFileImage) = 0;
+    virtual QMap<QString, QString> getTags() {return _tags;}
+    virtual QImage getThumbnail() {return _thumbnail;}
+protected:
+    QMap<QString, QString> _tags;
+    QImage _thumbnail;
 };
 
-#endif // FITSPROCESSOR_H
+#endif // FILEPROCESSOR_H
