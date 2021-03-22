@@ -25,28 +25,13 @@
 #ifndef FITSPROCESSOR_H
 #define FITSPROCESSOR_H
 
-#include "astrofile.h"
+#include "fileprocessor.h"
 
-#include <QObject>
-#include <QImage>
-
-class FitsProcessor : public QObject
+class FitsProcessor : public FileProcessor
 {
-    Q_OBJECT
 public:
-    explicit FitsProcessor(QObject *parent = nullptr);
-    void cancel();
-
-public slots:
     void extractTags(const AstroFileImage& astroFileImage);
     void extractThumbnail(const AstroFileImage& astroFileImage);
-
-signals:
-    void tagsExtracted(const AstroFileImage& astroFileImage, const QMap<QString, QString>& tags);
-    void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
-
-private:
-    volatile bool cancelSignaled = false;
 };
 
 #endif // FITSPROCESSOR_H

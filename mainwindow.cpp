@@ -41,9 +41,9 @@ MainWindow::MainWindow(QWidget *parent)
     fileRepositoryWorker = new FileRepository;
     fileRepositoryWorker->moveToThread(fileRepositoryThread);
 
-    fitsProcessorThread = new QThread(this);
-    fitsProcessorWorker = new FitsProcessor;
-    fitsProcessorWorker->moveToThread(fitsProcessorThread);
+    newFileProcessorThread = new QThread(this);
+    newFileProcessorWorker = new NewFileProcessor;
+    newFileProcessorWorker->moveToThread(newFileProcessorThread);
 
     fileViewModel = new FileViewModel(ui->astroListView);
     sortFilterProxyModel = new SortFilterProxyModel(ui->astroListView);
@@ -65,17 +65,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::dbAddTags,                             fileRepositoryWorker,   &FileRepository::addTags);
     connect(this,                   &MainWindow::dbAddThumbnail,                        fileRepositoryWorker,   &FileRepository::addThumbnail);
     connect(this,                   &MainWindow::insertAstrofileImage,                  fileRepositoryWorker,   &FileRepository::insertAstrofileImage);
-    connect(this,                   &MainWindow::extractTags,                           fitsProcessorWorker,    &FitsProcessor::extractTags);
-    connect(this,                   &MainWindow::extractThumbnail,                      fitsProcessorWorker,    &FitsProcessor::extractThumbnail);
+    connect(this,                   &MainWindow::extractTags,                           newFileProcessorWorker, &NewFileProcessor::extractTags);
+    connect(this,                   &MainWindow::extractThumbnail,                      newFileProcessorWorker, &NewFileProcessor::extractThumbnail);
+    connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          this,                   &MainWindow::newFileFound);
     connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
     connect(fileRepositoryWorker,   &FileRepository::getTagsFinished,                   filterWidget,           &FilterWidget::setAllTags);
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::removeAstroFile);
     connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
     connect(fileRepositoryThread,   &QThread::finished,                                 fileRepositoryWorker,   &QObject::deleteLater);
-    connect(fitsProcessorWorker,    &FitsProcessor::thumbnailExtracted,                 this,                   &MainWindow::thumbnailExtracted);
-    connect(fitsProcessorWorker,    &FitsProcessor::tagsExtracted,                      this,                   &MainWindow::tagsExtracted);
-    connect(fitsProcessorThread,    &QThread::finished,                                 fitsProcessorWorker,    &QObject::deleteLater);
+    connect(newFileProcessorWorker, &NewFileProcessor::thumbnailExtracted,              this,                   &MainWindow::thumbnailExtracted);
+    connect(newFileProcessorWorker, &NewFileProcessor::tagsExtracted,                   this,                   &MainWindow::tagsExtracted);
+    connect(newFileProcessorThread, &QThread::finished,                                 newFileProcessorWorker, &QObject::deleteLater);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             folderCrawlerWorker,    &FolderCrawler::crawl);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderRemoved,           this,                   &MainWindow::searchFolderRemoved);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMinimumDateChanged,    filterWidget,           &FilterWidget::setFilterMinimumDate);
@@ -101,9 +102,9 @@ MainWindow::~MainWindow()
     qDebug()<<"Cleaning up folderCrawlerThread";
     cleanUpWorker(folderCrawlerThread);
 
-    qDebug()<<"Cleaning up fitsProcessorThread";
-    fitsProcessorWorker->cancel();
-    cleanUpWorker(fitsProcessorThread);
+    qDebug()<<"Cleaning up newFileProcessorThread";
+    newFileProcessorWorker->cancel();
+    cleanUpWorker(newFileProcessorThread);
 
     qDebug()<<"Cleaning up fileRepositoryThread";
     fileRepositoryWorker->cancel();
@@ -123,7 +124,7 @@ void MainWindow::initialize()
 
     folderCrawlerThread->start();
     fileRepositoryThread->start();
-    fitsProcessorThread->start();
+    newFileProcessorThread->start();
 
     emit initializeFileRepository();
     emit loadModelFromDb();
@@ -139,14 +140,7 @@ void MainWindow::cleanUpWorker(QThread* thread)
 
 void MainWindow::newFileFound(const QFileInfo fileInfo)
 {
-    AstroFile astroFile;
-    astroFile.FullPath = fileInfo.absoluteFilePath();
-    astroFile.CreatedTime = fileInfo.birthTime();
-    astroFile.LastModifiedTime = fileInfo.lastModified();
-    astroFile.DirectoryPath = fileInfo.canonicalPath();
-    astroFile.FileType = fileInfo.suffix();
-    astroFile.FileName = fileInfo.baseName();
-
+    AstroFile astroFile(fileInfo);
     AstroFileImage afi(astroFile, QImage());
 
     if (fileViewModel->astroFileExists(fileInfo.absoluteFilePath()))
@@ -156,11 +150,9 @@ void MainWindow::newFileFound(const QFileInfo fileInfo)
     }
     else
     {
-        QImage img;
         fileViewModel->addAstroFile(afi);
         emit insertAstrofileImage(afi);
-        emit extractThumbnail(afi);
-        emit extractTags(afi);
+        emit processNewFile(fileInfo);
     }
 }
 

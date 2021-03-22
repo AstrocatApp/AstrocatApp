@@ -31,6 +31,7 @@
 #include "filterwidget.h"
 #include "fitsprocessor.h"
 #include "foldercrawler.h"
+#include "newfileprocessor.h"
 #include "searchfolderdialog.h"
 #include "sortfilterproxymodel.h"
 
@@ -68,6 +69,7 @@ signals:
 
     void extractTags(const AstroFileImage& astroFileImage);
     void extractThumbnail(const AstroFileImage& astroFileImage);
+    void processNewFile(const QFileInfo& fileInfo);
 
     void itemModelAddTags(const AstroFileImage& astroFileImage);
     void itemModelAddThumbnail(const AstroFileImage& astroFileImage);
@@ -92,8 +94,8 @@ private:
     QThread* fileRepositoryThread;
     FileRepository* fileRepositoryWorker;
 
-    QThread* fitsProcessorThread;
-    FitsProcessor* fitsProcessorWorker;
+    QThread* newFileProcessorThread;
+    NewFileProcessor* newFileProcessorWorker;
 
     FileViewModel* fileViewModel;
     SortFilterProxyModel* sortFilterProxyModel;

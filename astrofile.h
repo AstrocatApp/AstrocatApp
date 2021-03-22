@@ -26,6 +26,7 @@
 #define ASTROFILE_H
 
 #include <QDateTime>
+#include <QFileInfo>
 #include <QString>
 #include <qimage.h>
 
@@ -43,15 +44,51 @@ enum TagExtractStatus
     TagFailedToProess
 };
 
+enum AstroFileType
+{
+    Fits,
+    Xisf,
+    Image
+};
+
 struct AstroFile
 {
     QString FileName;
     QString FullPath;
     QString DirectoryPath;
-    QString FileType;
+    AstroFileType FileType;
     QDateTime CreatedTime;
     QDateTime LastModifiedTime;
     QMap<QString, QString> Tags;
+
+    AstroFile()
+    {
+    }
+
+    AstroFile(const QFileInfo& fileInfo)
+    {
+        FullPath = fileInfo.absoluteFilePath();
+        CreatedTime = fileInfo.birthTime();
+        LastModifiedTime = fileInfo.lastModified();
+        DirectoryPath = fileInfo.canonicalPath();
+        FileName = fileInfo.baseName();
+
+        QString suffix = fileInfo.suffix().toLower();
+        if ( suffix == "fits")
+            FileType = AstroFileType::Fits;
+        else if (suffix == "fit")
+            FileType = AstroFileType::Fits;
+        else if (suffix== "xisf")
+            FileType = AstroFileType::Xisf;
+        else if (suffix == "png")
+            FileType = AstroFileType::Image;
+        else if (suffix == "jpg")
+            FileType = AstroFileType::Image;
+        else if (suffix == "jpeg")
+            FileType = AstroFileType::Image;
+        else if (suffix == "tiff")
+            FileType = AstroFileType::Image;
+    }
 };
 
 struct AstroFileImage

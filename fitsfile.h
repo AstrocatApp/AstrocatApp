@@ -51,6 +51,7 @@ class FitsFile
 {
 public:
     FitsFile();
+    ~FitsFile();
 
     bool loadFile(QString filaPath);
     int getNumberOfChannels()
@@ -68,6 +69,14 @@ public:
         return _qImage;
     }
 
+    QMap<QString, QString> getTags()
+    {
+        return _tags;
+    }
+
+    void extractTags();
+    void extractImage();
+
 private:
     int _numberOfChannels;
     BayerPattern _bayerPattern;
@@ -82,7 +91,6 @@ private:
     long long _width;
     long long _height;
     int _bytesPerPixel;
-    void loadTags();
     template <typename T>
     void deBayer();
     template <typename T>

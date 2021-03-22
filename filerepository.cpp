@@ -173,7 +173,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();
-        astro.FileType = query.value(idFileType).toString();
+        astro.FileType = AstroFileType(query.value(idFileType).toInt());
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
 
@@ -336,7 +336,7 @@ QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();
-        astro.FileType = query.value(idFileType).toString();
+        astro.FileType = AstroFileType(query.value(idFileType).toInt());
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
         ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
