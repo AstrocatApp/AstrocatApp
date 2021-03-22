@@ -52,7 +52,7 @@ add_library(${PROJECT_NAME} ${SRCS})
 
 #target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE )
 target_compile_options(${PROJECT_NAME} PUBLIC "-pthread")
-target_compile_options(${PROJECT_NAME} PUBLIC "-arch x86_64")
+target_compile_options(${PROJECT_NAME} PUBLIC "-march=x86-64")
 target_compile_options(${PROJECT_NAME} PUBLIC "-fPIC")
 target_compile_options(${PROJECT_NAME} PUBLIC "-mtune=skylake")
 target_compile_options(${PROJECT_NAME} PUBLIC "-msse4.2")
