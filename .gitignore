@@ -77,3 +77,5 @@ cfitsio.pc
 config.log
 config.status
 external/build
+
+build-AstrocatApp*
