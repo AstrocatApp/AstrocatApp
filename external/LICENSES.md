@@ -16,7 +16,7 @@ Astrocat uses QT and QT Creator under the LGPL v3.0 License
 ## PixInsight PCL  
 **Website:** https://pixinsight.com  
 **Source Code:** https://gitlab.com/pixinsight/PCL  
-**License:** [pcl/License.txt](pcl/License.txt)  
+**License:** [pcl/LICENSE.txt](pcl/LICENSE.txt)  
 
 ## LCMS  
 **Website:** https://www.littlecms.com  
@@ -31,14 +31,14 @@ Astrocat uses QT and QT Creator under the LGPL v3.0 License
 ## RFC6234  
 **Website:** https://tools.ietf.org/html/rfc6234  
 **Source Code:**   
-**License:** [RFC6234/License.txt](RFC6234/LICENSE.txt)  
+**License:** [RFC6234/License](RFC6234/LICENSE)  
 
 ## ZLIB  
 **Website:** https://zlib.net  
 **Source Code:**   
-**License:** [zlibLicense.txt](ZLIB/License.txt)  
+**License:** [zlib/License.txt](zlib/License.txt)  
 
 ## CMINPACK  
 **Website:** https://zlib.net  
 **Source Code:**   
-**License:** [cminpack/CopyrightMINPACK.txt](cminpack/CMINPACKCopyrightMINPACK.txt)  
+**License:** [cminpack/CopyrightMINPACK.txt](cminpack/CopyrightMINPACK.txt)  
