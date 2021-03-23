@@ -72,6 +72,7 @@ void FileRepository::createDatabase()
     db.setDatabaseName(location + "/astrocat.db");
     if(!db.open())
         qWarning() << "ERROR: " << db.lastError();
+    db.exec("PRAGMA foreign_keys = ON");
 }
 
 void FileRepository::migrateDatabase()
