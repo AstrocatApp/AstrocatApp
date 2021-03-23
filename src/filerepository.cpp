@@ -25,12 +25,14 @@
 #include "filerepository.h"
 
 #include <QBuffer>
+#include <QDir>
 #include <QPixmap>
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QStandardPaths>
 
 FileRepository::FileRepository(QObject *parent) : QObject(parent)
 {
@@ -61,8 +63,12 @@ void FileRepository::createDatabase()
         return;
     }
 
+    auto location = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    QDir dir{location};
+    dir.mkpath(dir.absolutePath());
+
     db = QSqlDatabase::addDatabase(DRIVER);
-    db.setDatabaseName("astrocat.db");
+    db.setDatabaseName(location + "/astrocat.db");
     if(!db.open())
         qWarning() << "ERROR: " << db.lastError();
 }
