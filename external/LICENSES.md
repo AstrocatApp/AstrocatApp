@@ -39,6 +39,6 @@ Astrocat uses QT and QT Creator under the LGPL v3.0 License
 **License:** [zlib/License.txt](zlib/License.txt)  
 
 ## CMINPACK  
-**Website:** https://zlib.net  
+**Website:** http://devernay.github.io/cminpack/
 **Source Code:**   
 **License:** [cminpack/CopyrightMINPACK.txt](cminpack/CopyrightMINPACK.txt)  

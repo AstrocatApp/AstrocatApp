@@ -1,0 +1,23 @@
+<table style="border-collapse: collapse; width: 100%;" border="1">
+<tbody>
+<tr style="height: 18px;">
+<td style="width: 50%; height: 18px;">Website:</td>
+<td style="width: 50%; height: 18px;"><a href="https://pixinsight.com/" rel="nofollow">https://pixinsight.com</a></td>
+</tr>
+<tr style="height: 18px;">
+<td style="width: 50%; height: 18px;">Source Code:</td>
+<td style="width: 50%; height: 18px;"><a href="https://gitlab.com/pixinsight/PCL" rel="nofollow">https://gitlab.com/pixinsight/PCL</a></td>
+</tr>
+</tbody>
+</table>
+<p>*******************************************************************************<br />PixInsight Class Library License Version 1.0<br />*******************************************************************************</p>
+<p>Copyright (c) 2003-2020, Pleiades Astrophoto S.L. All Rights Reserved.</p>
+<p>Redistribution and use in both source and binary forms, with or without<br />modification, is permitted provided that the following conditions are met:</p>
+<p>1. All redistributions of source code must retain the above copyright notice,<br /> this list of conditions and the following disclaimer.</p>
+<p>2. All redistributions in binary form must reproduce the above copyright<br /> notice, this list of conditions and the following disclaimer in the<br /> documentation and/or other materials provided with the distribution.</p>
+<p>3. Neither the names "PixInsight" and "Pleiades Astrophoto", nor the names of<br /> their contributors, may be used to endorse or promote products derived from<br /> this software without specific prior written permission. For written<br /> permission, please contact info@pixinsight.com.</p>
+<p>4. All products derived from this software, in any form whatsoever, must<br /> reproduce the following acknowledgment in the end-user documentation and/or<br /> other materials provided with the product:</p>
+<p>"This product is based on software from the PixInsight project, developed by<br /> Pleiades Astrophoto and its contributors (http://pixinsight.com/)."</p>
+<p>Alternatively, if that is where third-party acknowledgments normally appear,<br /> this acknowledgment must be reproduced in the product itself.</p>
+<p>THIS SOFTWARE IS PROVIDED BY PLEIADES ASTROPHOTO AND ITS CONTRIBUTORS "AS IS"<br />AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE<br />IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE<br />DISCLAIMED. IN NO EVENT SHALL PLEIADES ASTROPHOTO OR ITS CONTRIBUTORS BE LIABLE<br />FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY OR CONSEQUENTIAL<br />DAMAGES (INCLUDING, BUT NOT LIMITED TO, BUSINESS INTERRUPTION; PROCUREMENT OF<br />SUBSTITUTE GOODS OR SERVICES; AND LOSS OF USE, DATA OR PROFITS) HOWEVER CAUSED<br />AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<br />(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS<br />SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+<p>*******************************************************************************</p>

@@ -3,4 +3,14 @@
         <file>resources/loading.png</file>
         <file>resources/nopreview.png</file>
     </qresource>
+    <qresource prefix="/Licenses">
+        <file>resources/Licenses/QT.lic</file>
+        <file>resources/Licenses/CFITSIO.lic</file>
+        <file>resources/Licenses/CMINPACK.lic</file>
+        <file>resources/Licenses/LCMS.lic</file>
+        <file>resources/Licenses/LZ4.lic</file>
+        <file>resources/Licenses/PCL.lic</file>
+        <file>resources/Licenses/RFC6234.lic</file>
+        <file>resources/Licenses/ZLIB.lic</file>
+    </qresource>
 </RCC>

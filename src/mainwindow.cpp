@@ -25,6 +25,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "searchfolderdialog.h"
+#include "aboutwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -186,6 +187,13 @@ void MainWindow::on_actionFolders_triggered()
 {
     searchFolderDialog.exec();
 }
+
+void MainWindow::on_actionAbout_triggered()
+{
+    AboutWindow about(this);
+    about.exec();
+}
+
 
 void MainWindow::clearDetailLabels()
 {
