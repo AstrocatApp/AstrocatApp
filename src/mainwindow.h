@@ -84,6 +84,8 @@ private slots:
     void tagsExtracted(const AstroFileImage& astroFileImage, const QMap<QString, QString>& tags);
     void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
 
+    void on_actionAbout_triggered();
+
 private:
     Ui::MainWindow *ui;
     bool isInitialized;

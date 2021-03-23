@@ -25,12 +25,16 @@
 #include "filerepository.h"
 
 #include <QBuffer>
+#include <QDir>
 #include <QPixmap>
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QStandardPaths>
+
+#define DB_SCHEMA_VERSION 1
 
 FileRepository::FileRepository(QObject *parent) : QObject(parent)
 {
@@ -46,8 +50,7 @@ void FileRepository::initialize()
 {
     qDebug() << "Initializing File Repository";
     createDatabase();
-    createTables();
-    initializeTables();
+    migrateDatabase();
 
      qDebug() << "Done Initializing File Repository";
 }
@@ -61,10 +64,52 @@ void FileRepository::createDatabase()
         return;
     }
 
+    auto location = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    QDir dir{location};
+    dir.mkpath(dir.absolutePath());
+
     db = QSqlDatabase::addDatabase(DRIVER);
-    db.setDatabaseName("astrocat.db");
+    db.setDatabaseName(location + "/astrocat.db");
     if(!db.open())
         qWarning() << "ERROR: " << db.lastError();
+}
+
+void FileRepository::migrateDatabase()
+{
+    // Check DB Schema version
+    int dbCurrentSchemaVersion;
+    QSqlQuery query("PRAGMA user_version");
+    query.exec();
+    if (query.first())
+    {
+        dbCurrentSchemaVersion = query.record().value(0).toInt();
+        if (dbCurrentSchemaVersion == DB_SCHEMA_VERSION)
+        {
+            // No migration needed
+            return;
+        }
+    }
+
+    QSqlDatabase::database().transaction();
+    migrateFromVersion(dbCurrentSchemaVersion);
+    QSqlDatabase::database().commit();
+}
+
+void FileRepository::migrateFromVersion(int oldVersion)
+{
+    switch (oldVersion)
+    {
+    case 0:
+        // This is a new installation. Just create the tables and return
+        createTables();
+        break;
+    default:
+        // Should not get here
+        break;
+    }
+
+    // Set the new schema version
+    db.exec(QString("PRAGMA user_version = %1").arg(DB_SCHEMA_VERSION));
 }
 
 void FileRepository::createTables()
@@ -83,10 +128,6 @@ void FileRepository::createTables()
     thumbnailsquery.exec("PRAGMA foreign_keys = ON");
     if(!thumbnailsquery.isActive())
         qWarning() << "ERROR: " << thumbnailsquery.lastError().text();
-}
-
-void FileRepository::initializeTables()
-{
 }
 
 int GetAstroFileId(const QString fullPath)

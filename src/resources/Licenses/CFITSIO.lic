@@ -1,0 +1,18 @@
+<table style="border-collapse: collapse; width: 100%;" border="1">
+<tbody>
+<tr style="height: 18px;">
+<td style="width: 50%; height: 18px;">Website:</td>
+<td style="width: 50%; height: 18px;"><a href="https://heasarc.gsfc.nasa.gov/fitsio/" rel="nofollow">https://heasarc.gsfc.nasa.gov/fitsio/</a></td>
+</tr>
+<tr style="height: 18px;">
+<td style="width: 50%; height: 18px;">Download:</td>
+<td style="width: 50%; height: 18px;">
+<p><a href="http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.49.tar.gz" rel="nofollow">http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.49.tar.gz</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Copyright (Unpublished--all rights reserved under the copyright laws of<br />the United States), U.S. Government as represented by the Administrator<br />of the National Aeronautics and Space Administration. No copyright is<br />claimed in the United States under Title 17, U.S. Code.</p>
+<p>Permission to freely use, copy, modify, and distribute this software<br />and its documentation without fee is hereby granted, provided that this<br />copyright notice and disclaimer of warranty appears in all copies.</p>
+<p>DISCLAIMER:</p>
+<p>THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT ANY WARRANTY OF ANY KIND,<br />EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO,<br />ANY WARRANTY THAT THE SOFTWARE WILL CONFORM TO SPECIFICATIONS, ANY<br />IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR<br />PURPOSE, AND FREEDOM FROM INFRINGEMENT, AND ANY WARRANTY THAT THE<br />DOCUMENTATION WILL CONFORM TO THE SOFTWARE, OR ANY WARRANTY THAT THE<br />SOFTWARE WILL BE ERROR FREE. IN NO EVENT SHALL NASA BE LIABLE FOR ANY<br />DAMAGES, INCLUDING, BUT NOT LIMITED TO, DIRECT, INDIRECT, SPECIAL OR<br />CONSEQUENTIAL DAMAGES, ARISING OUT OF, RESULTING FROM, OR IN ANY WAY<br />CONNECTED WITH THIS SOFTWARE, WHETHER OR NOT BASED UPON WARRANTY,<br />CONTRACT, TORT , OR OTHERWISE, WHETHER OR NOT INJURY WAS SUSTAINED BY<br />PERSONS OR PROPERTY OR OTHERWISE, AND WHETHER OR NOT LOSS WAS SUSTAINED<br />FROM, OR AROSE OUT OF THE RESULTS OF, OR USE OF, THE SOFTWARE OR<br />SERVICES PROVIDED HEREUNDER.</p>

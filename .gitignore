@@ -76,6 +76,8 @@ Thumbs.db
 cfitsio.pc
 config.log
 config.status
-external/build
 
+# build folders
+external/build
 build-AstrocatApp*
+bulid

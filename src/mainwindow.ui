@@ -326,6 +326,7 @@
      <string>Settings</string>
     </property>
     <addaction name="actionFolders"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuSettings"/>
   </widget>
@@ -333,6 +334,11 @@
   <action name="actionFolders">
    <property name="text">
     <string>Folders</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

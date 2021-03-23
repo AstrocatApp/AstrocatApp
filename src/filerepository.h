@@ -55,7 +55,8 @@ private:
     QSqlDatabase db;
     void createTables();
     void createDatabase();
-    void initializeTables();
+    void migrateDatabase();
+    void migrateFromVersion(int oldVersion);
     QList<AstroFile> getAstrofilesInFolder(const QString fullPath, bool includeTags);
     QMap<int, AstroFileImage> _getAllAstrofiles();
     QMap<int, QImage> _getAllThumbnails();
