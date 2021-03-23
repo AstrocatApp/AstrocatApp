@@ -25,20 +25,14 @@
 #include "aboutwindow.h"
 #include "ui_aboutwindow.h"
 
+#include <QDirIterator>
 #include <QFile>
 
 AboutWindow::AboutWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AboutWindow)
 {
-    cfitsioLicense  = readLicenseFromResource("CFITSIO.lic");
-    cminpackLicense = readLicenseFromResource("CMINPACK.lic");
-    lcmsLicense     = readLicenseFromResource("LCMS.lic");
-    lz4License      = readLicenseFromResource("LZ4.lic");
-    pclLicense      = readLicenseFromResource("PCL.lic");
-    qtLicense       = readLicenseFromResource("QT.lic");
-    rfc6234License  = readLicenseFromResource("RFC6234.lic");
-    zlibLicense     = readLicenseFromResource("ZLIB.lic");
+    readLicenseFromResource();
 
     QString ver = QCoreApplication::applicationVersion();
     QString version = QString("Version: %1").arg(CURRENT_APP_VERSION);
@@ -55,35 +49,24 @@ AboutWindow::~AboutWindow()
 
 void AboutWindow::on_listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
 {
-    QString lic;
     QString selected = current->text();
-    if (selected == "CFITSIO")
-        lic = cfitsioLicense;
-    else if (selected == "CMINPACK")
-        lic = cminpackLicense;
-    else if (selected == "LCMS")
-        lic = lcmsLicense;
-    else if (selected == "LZ4")
-        lic = lz4License;
-    else if (selected == "PCL")
-        lic = pclLicense;
-    else if (selected == "QT")
-        lic = qtLicense;
-    else if (selected == "RFC6234")
-        lic = rfc6234License;
-    else if (selected == "ZLIB")
-        lic = zlibLicense;
+    QString lic = _licenses[selected];
 
     ui->textBrowser->setText(lic);
 }
 
-QString AboutWindow::readLicenseFromResource(QString library)
+void AboutWindow::readLicenseFromResource()
 {
-    qDebug() <<"Reading License: " + library;
-    QString licTxt(":Licenses/resources/Licenses/" + library);
-    QFile licFile(licTxt);
-    licFile.open(QIODevice::ReadOnly);
-    QString lic = licFile.readAll();
-    licFile.close();
-    return lic;
+    QDirIterator it(":Licenses/resources/Licenses/", QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        QString resourcePath = it.next();
+        QFile licFile(resourcePath);
+        licFile.open(QIODevice::ReadOnly);
+        QString lic = licFile.readAll();
+        licFile.close();
+
+        QString fileName = it.fileInfo().baseName();
+        _licenses.insert(fileName, lic);
+    }
 }

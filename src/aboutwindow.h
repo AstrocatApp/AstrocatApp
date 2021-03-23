@@ -45,15 +45,8 @@ private slots:
 
 private:
     Ui::AboutWindow *ui;
-    QString readLicenseFromResource(QString libName);
-    QString qtLicense;
-    QString cfitsioLicense;
-    QString cminpackLicense;
-    QString lcmsLicense;
-    QString lz4License;
-    QString pclLicense;
-    QString rfc6234License;
-    QString zlibLicense;
+    QMap<QString, QString> _licenses;
+    void readLicenseFromResource();
 };
 
 #endif // ABOUTWINDOW_H
