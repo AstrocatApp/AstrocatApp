@@ -95,13 +95,18 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     if (parent.isValid())
         return false;
-    beginRemoveRows(parent, row, row + count -1);
+
+    // We will tell views that we reset the entire model due
+    // to the way we are handling filters in the filter widget
+    // We cannot handle removing of individual tags there. Therefore
+    // we will tell views we nuked the entire model.
+
+    beginResetModel();
     rc-= count;
     auto astroFileImage = fileList.at(row);
-    auto& f = fileMap[astroFileImage.astroFile.FullPath];
     fileMap.remove(astroFileImage.astroFile.FullPath);
     fileList.removeAt(row);
-    endRemoveRows();
+    endResetModel();
     return true;
 }
 
