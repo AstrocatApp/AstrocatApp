@@ -77,6 +77,7 @@ public slots:
     void addAstroFile(const AstroFileImage& astroFileImage);
 
 signals:
+    void modelIsEmpty(bool isEmpty);
 
 private:
     int rc;

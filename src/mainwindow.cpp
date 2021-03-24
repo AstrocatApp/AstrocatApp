@@ -27,6 +27,9 @@
 #include "searchfolderdialog.h"
 #include "aboutwindow.h"
 
+#include <QMessageBox>
+#include <QPainter>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
@@ -84,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterWidget,           &FilterWidget::setFilterMaximumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterReset,                 filterWidget,           &FilterWidget::searchFilterReset);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::astroFileAccepted,           filterWidget,           &FilterWidget::addAstroFileTags);
+    connect(fileViewModel,          &FileViewModel::modelIsEmpty,                       this,                   &MainWindow::setWatermark);
     connect(filterWidget,           &FilterWidget::minimumDateChanged,                  sortFilterProxyModel,   &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterWidget,           &FilterWidget::maximumDateChanged,                  sortFilterProxyModel,   &SortFilterProxyModel::setFilterMaximumDate);
     connect(filterWidget,           &FilterWidget::addAcceptedFilter,                   sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFilter);
@@ -304,4 +308,42 @@ void MainWindow::thumbnailExtracted(const AstroFileImage &astroFileImage, const 
 
     emit dbAddThumbnail(afi, img);
     emit itemModelAddThumbnail(afi);
+}
+
+void MainWindow::setWatermark(bool shouldSet)
+{
+    shouldShowWatermark = shouldSet;
+    if (shouldSet)
+    {
+        QFont font;
+        font.setPixelSize(24);
+
+        QBrush brush;
+        QPixmap pix(ui->astroListView->size());
+        pix.fill(Qt::transparent);
+        QPainter paint(&pix);
+        paint.setFont(font);
+        paint.setPen(QPen(QColor(Qt::GlobalColor::gray), Qt::SolidPattern));
+        paint.drawText(ui->astroListView->frameRect(), Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignVCenter, "Select Settings -> Folders in the menu to add folders ...");
+        brush.setTexture(pix);
+
+        QPalette palette;
+        palette.setBrush(QPalette::Base, brush);
+        ui->astroListView->setPalette(palette);
+    }
+    else
+    {
+        ui->astroListView->setPalette(QPalette());
+    }
+
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    setWatermark(shouldShowWatermark);
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    setWatermark(shouldShowWatermark);
 }

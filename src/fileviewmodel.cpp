@@ -88,6 +88,8 @@ bool FileViewModel::insertRows(int row, int count, const QModelIndex &parent)
     beginInsertRows(parent, row, row + count -1);
     rc+= count;
     endInsertRows();
+    if (rc == 1)
+        emit modelIsEmpty(false);
     return true;
 }
 
@@ -107,6 +109,8 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
     fileMap.remove(astroFileImage.astroFile.FullPath);
     fileList.removeAt(row);
     endResetModel();
+    if (rc == 0)
+        emit modelIsEmpty(true);
     return true;
 }
 
