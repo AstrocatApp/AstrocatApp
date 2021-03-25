@@ -113,6 +113,8 @@ private:
     void crawlAllSearchFolders();
 
     bool shouldShowWatermark = true;
+    const QString DEFAULT_WATERMARK_MESSAGE = "Select Settings -> Folders in the menu to add folders ...";
+    QString _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
 
     // QWidget interface
 protected:

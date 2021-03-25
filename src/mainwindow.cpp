@@ -135,6 +135,8 @@ void MainWindow::initialize()
     newFileProcessorThread->start();
 
     emit initializeFileRepository();
+    _watermarkMessage = "Loading Catalog...";
+    setWatermark(true);
     emit loadModelFromDb();
     isInitialized = true;
 }
@@ -200,7 +202,6 @@ void MainWindow::on_actionAbout_triggered()
     AboutWindow about(this);
     about.exec();
 }
-
 
 void MainWindow::clearDetailLabels()
 {
@@ -280,6 +281,8 @@ void MainWindow::handleSelectionChanged(QItemSelection selection)
 
 void MainWindow::modelLoadedFromDb(const QList<AstroFileImage> &files)
 {
+    _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
+    setWatermark(true);
     emit loadModelIntoViewModel(files);
     for (auto& i : files)
     {
@@ -327,7 +330,7 @@ void MainWindow::setWatermark(bool shouldSet)
         QPainter paint(&pix);
         paint.setFont(font);
         paint.setPen(QPen(QColor(Qt::GlobalColor::gray), Qt::SolidPattern));
-        paint.drawText(ui->astroListView->frameRect(), Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignVCenter, "Select Settings -> Folders in the menu to add folders ...");
+        paint.drawText(ui->astroListView->frameRect(), Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignVCenter, _watermarkMessage);
         brush.setTexture(pix);
 
         QPalette palette;
@@ -338,7 +341,6 @@ void MainWindow::setWatermark(bool shouldSet)
     {
         ui->astroListView->setPalette(QPalette());
     }
-
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
