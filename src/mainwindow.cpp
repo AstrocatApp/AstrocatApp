@@ -221,7 +221,7 @@ void MainWindow::crawlAllSearchFolders()
 {
     QSettings settings;
     auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
-    for (auto f : foldersFromList)
+    for (auto& f : foldersFromList)
     {
         emit crawl(f);
     }
@@ -340,10 +340,12 @@ void MainWindow::setWatermark(bool shouldSet)
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
+    Q_UNUSED(event);
     setWatermark(shouldShowWatermark);
 }
 
 void MainWindow::showEvent(QShowEvent *event)
 {
+    Q_UNUSED(event);
     setWatermark(shouldShowWatermark);
 }
