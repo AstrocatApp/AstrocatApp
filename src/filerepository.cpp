@@ -336,7 +336,7 @@ void FileRepository::addThumbnail(const AstroFileImage &astroFileImage, const QI
     QByteArray inByteArray;
     QBuffer inBuffer( &inByteArray );
     inBuffer.open( QIODevice::WriteOnly );
-    inPixmap.save( &inBuffer, "PNG" ); // write inPixmap into inByteArray in PNG format
+    inPixmap.save( &inBuffer, "XPM" ); // write inPixmap into inByteArray in PNG format
 
     QSqlQuery insertThumbnailQuery;
     insertThumbnailQuery.prepare("INSERT INTO thumbnails (fits_id, thumbnail) VALUES (:fits_id, :bytedata)");
@@ -422,7 +422,7 @@ QMap<int, QImage> FileRepository::_getAllThumbnails()
         int fitsId = query.value(fits_idId).toInt();
         QByteArray inByteArray = query.value(idThumbnail).toByteArray();
 
-        images[fitsId].loadFromData(inByteArray, "PNG");
+        images[fitsId].loadFromData(inByteArray, "XPM");
     }
 
     return images;
