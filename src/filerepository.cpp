@@ -72,12 +72,13 @@ void FileRepository::createDatabase()
     db.setDatabaseName(location + "/astrocat.db");
     if(!db.open())
         qWarning() << "ERROR: " << db.lastError();
+    db.exec("PRAGMA foreign_keys = ON");
 }
 
 void FileRepository::migrateDatabase()
 {
     // Check DB Schema version
-    int dbCurrentSchemaVersion;
+    int dbCurrentSchemaVersion = 0;
     QSqlQuery query("PRAGMA user_version");
     query.exec();
     if (query.first())
@@ -115,17 +116,14 @@ void FileRepository::migrateFromVersion(int oldVersion)
 void FileRepository::createTables()
 {
     QSqlQuery fitsquery("CREATE TABLE fits (id INTEGER PRIMARY KEY AUTOINCREMENT, FileName TEXT, FullPath TEXT, DirectoryPath TEXT, FileType TEXT, CreatedTime DATE, LastModifiedTime DATE, TagStatus INTEGER, ThumbnailStatus INTEGER)");
-    fitsquery.exec("PRAGMA foreign_keys = ON");
     if(!fitsquery.isActive())
         qWarning() << "ERROR: " << fitsquery.lastError().text();
 
     QSqlQuery tagsquery("CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, tagKey TEXT, tagValue TEXT, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
-    tagsquery.exec("PRAGMA foreign_keys = ON");
     if(!tagsquery.isActive())
         qWarning() << "ERROR: " << tagsquery.lastError().text();
 
     QSqlQuery thumbnailsquery("CREATE TABLE thumbnails (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, thumbnail BLOB, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
-    thumbnailsquery.exec("PRAGMA foreign_keys = ON");
     if(!thumbnailsquery.isActive())
         qWarning() << "ERROR: " << thumbnailsquery.lastError().text();
 }

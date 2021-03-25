@@ -85,6 +85,7 @@ private slots:
     void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
 
     void on_actionAbout_triggered();
+    void setWatermark(bool shoudSet);
 
 private:
     Ui::MainWindow *ui;
@@ -110,5 +111,15 @@ private:
     void cleanUpWorker(QThread* thread);
     void clearDetailLabels();
     void crawlAllSearchFolders();
+
+    bool shouldShowWatermark = true;
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event);
+
+    // QWidget interface
+protected:
+    void showEvent(QShowEvent *event);
 };
 #endif // MAINWINDOW_H

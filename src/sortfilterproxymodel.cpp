@@ -71,6 +71,11 @@ bool SortFilterProxyModel::shouldAcceptTagsForFilters(const AstroFileImage* astr
     return astroFileImage->tagStatus == TagExtracted;
 }
 
+void SortFilterProxyModel::resetInternalData()
+{
+    emit filterReset();
+}
+
 bool SortFilterProxyModel::instrumentAccepted(QString instrument) const
 {
     return acceptedInstruments.empty() || acceptedInstruments.contains(instrument) || (acceptedInstruments.contains("None") && instrument.isEmpty());

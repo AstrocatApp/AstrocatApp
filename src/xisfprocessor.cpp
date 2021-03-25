@@ -24,9 +24,6 @@
 
 #include "autostretcher.h"
 #include "xisfprocessor.h"
-#define __PCL_MACOSX
-#include <pcl/XISF.h>
-#include <pcl/StandardStatus.h>
 
 
 using namespace pcl;
@@ -80,7 +77,7 @@ void XisfProcessor::extractTags(const AstroFileImage &astroFileImage)
     xisf.Open(astroFileImage.astroFile.FullPath.toStdWString().c_str());
 
     auto fitsTags = xisf.ReadFITSKeywords();
-    for (auto f : fitsTags)
+    for (auto& f : fitsTags)
     {
         _tags.insert(QString(f.name.c_str()).remove("'").trimmed(), QString(f.value.c_str()).remove("'").trimmed());
     }

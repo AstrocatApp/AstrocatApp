@@ -49,6 +49,8 @@ AboutWindow::~AboutWindow()
 
 void AboutWindow::on_listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
 {
+    Q_UNUSED(previous);
+
     QString selected = current->text();
     QString lic = _licenses[selected];
 

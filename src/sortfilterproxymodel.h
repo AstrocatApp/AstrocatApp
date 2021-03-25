@@ -71,6 +71,8 @@ private:
     bool objectAccepted(QString object) const;
     bool filterAccepted(QString filter) const;
     bool shouldAcceptTagsForFilters(const AstroFileImage* astroFileImage) const;
+protected slots:
+    void resetInternalData();
 };
 
 #endif // SORTFILTERPROXYMODEL_H
