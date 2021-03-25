@@ -24,9 +24,6 @@
 
 #include "autostretcher.h"
 #include "xisfprocessor.h"
-#define __PCL_MACOSX
-#include <pcl/XISF.h>
-#include <pcl/StandardStatus.h>
 
 
 using namespace pcl;

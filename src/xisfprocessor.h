@@ -25,6 +25,21 @@
 #ifndef XISFPROCESSOR_H
 #define XISFPROCESSOR_H
 
+#ifdef __llvm__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-else"
+#pragma GCC diagnostic ignored "-Wlogical-op-parentheses"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+#define __PCL_MACOSX
+#include <pcl/XISF.h>
+#include <pcl/StandardStatus.h>
+
+#ifdef __llvm__
+#pragma GCC diagnostic pop
+#endif
+
 #include "fileprocessor.h"
 
 class XisfProcessor : public FileProcessor
