@@ -2,7 +2,7 @@ QT       += core gui sql testlib
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11
+CONFIG += c++17
 
 VERSION = 0.0.9
 DEFINES += CURRENT_APP_VERSION=\"\\\"$${VERSION}\\\"\"
@@ -59,6 +59,15 @@ RESOURCES += \
 
 LIBS += -L$$PWD/../external/build/libs/ -llcms -llz4 -lpcl -lRFC6234 -lcfitsio -lzlib
 
+win32 {
+    LIBS += -L$$PWD/../external/build/libs/Release
+    LIBS += -luser32 -luserenv -ladvapi32
+    DEFINES += __PCL_WINDOWS WIN32 WIN64 __PCL_NO_WIN32_MINIMUM_VERSIONS UNICODE _UNICODE _WINDOWS _NDEBUG
+    QMAKE_CXXFLAGS = "/EHsc /MP"
+}
+macx {
+    DEFINES += __PCL_MACOSX
+}
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
