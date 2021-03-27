@@ -34,6 +34,7 @@ SET(${PROJECT_NAME}_MINOR_VERSION 49)
 SET(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
 SET(LIB_NAME cfitsio)
 
+IF(NOT MSVC)
 add_compile_definitions(_REENTRANT)
 add_compile_definitions(STDC_HEADERS)
 add_compile_definitions(HAVE_SYS_TYPES_H)
@@ -58,6 +59,7 @@ add_compile_definitions(HAVE_LONGLONG)
 add_compile_definitions(HAVE_UNION_SEMUN)
 add_compile_definitions(HAVE_FMEMOPEN)
 add_compile_definitions(HAVE_NET_SERVICES)
+#ENDIF()
 
 include_directories(
     .
@@ -92,14 +94,9 @@ ENDIF (BUILD_SHARED_LIBS)
 
 FILE(GLOB H_FILES "*.h")
 
-IF (USE_PTHREADS)
-    IF (MSVC)
-        ADD_DEFINITIONS(-DHAVE_STRUCT_TIMESPEC=1)
-        INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/pthread/include)
-        SET(PTHREADS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/pthread/include)
-        SET(PTHREADS_LIBRARY ${PROJECT_SOURCE_DIR}/pthread/lib/x64/pthreadsVC2.lib)
-    ELSE()
-        FIND_PACKAGE(pthreads REQUIRED PATH ${PROJECT_SOURCE_DIR}/../pthread)
+IF (NOT MSVC)
+    IF (USE_PTHREADS)
+        FIND_PACKAGE(pthreads REQUIRED PATH ${CMAKE_SOURCE_DIR}/pthread)
         INCLUDE_DIRECTORIES(${PTHREADS_INCLUDE_DIR})
         ADD_DEFINITIONS(-D_REENTRANT)
     ENDIF()
