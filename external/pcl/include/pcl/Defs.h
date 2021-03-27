@@ -518,7 +518,11 @@ template <typename... Args> inline void __pcl_unused__( Args&&... ) {}
  * Let the restrict type qualifier be the same for all supported C++ compilers.
  */
 #ifdef _MSC_VER
-# define __restrict__ __restrict
+// [CHANGED_BY_ASTROCAT][BEGIN]
+// [CHANGED_BY_ASTROCAT][DESC: Could not make __retrict build on Windows. The PCL library builds fine, but the app does not.]
+// # define __restrict__ __restrict
+# define __restrict__
+// [CHANGED_BY_ASTROCAT][END]
 #endif
 
 /*
