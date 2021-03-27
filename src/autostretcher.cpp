@@ -249,20 +249,35 @@ void AutoStretcher<T>::stretch()
 
     for (int k = 0; k < _numberOfChannels; k++)
     {
+        auto sp = stretchParams.channel[k];
+        const float m = sp.M;
+        const float s = sp.S;
+        const float h = sp.H;
+        const float l = 0;
+        const float r = 1;
+        const float A = m-1;
+        const float B = 2*m-1;
+        const float C = (h-s)*m;
         for (int i = 0; i < _height; i++)
         {
             for (int j = 0; j < _width; j++)
             {
-//                float x = (float)*it / range;
-                float x = *it;
+                const float x = *it;
+                const float X = x - s;
 
-                auto sp = stretchParams.channel[k];
-                float m = sp.M;
-                float s = sp.S;
-                float h = sp.H;
-                float l = 0;
-                float r = 1;
-                float stretched = DisplayFunction(x, m, s, h, l, r);
+//                float stretched = DisplayFunction(x, m, s, h, l, r);
+                // ---- The following is equivalent to the DisplayFunction call above
+                float stretched  = 0;
+                if (x < s)
+                    stretched = 0;
+                else if (x > h)
+                    stretched = 1;
+                else
+                {
+                    stretched = A / (B - C/X);
+                }
+                // ----
+
                 float stretchedAndRanged = stretched*255;
                 *dit = (T)stretchedAndRanged;
                 dit++;
