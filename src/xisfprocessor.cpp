@@ -93,7 +93,7 @@ void XisfProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
     xisf.ReadImage(image);
 
     int channels = image.NumberOfChannels();
-    qDebug()<<"Image channels: " << channels;
+//    qDebug()<<"Image channels: " << channels;
 
     int height = image.Height();
     int width = image.Width();

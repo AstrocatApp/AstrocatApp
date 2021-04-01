@@ -37,18 +37,18 @@ class NewFileProcessor : public QObject
 public:
     explicit NewFileProcessor(QObject *parent = nullptr);
     void processNewFile(const QFileInfo& fileInfo);
-    void extractTags(const AstroFileImage& astroFileImage);
-    void extractThumbnail(const AstroFileImage& astroFileImage);
     void cancel();
 
 signals:
-    void tagsExtracted(const AstroFileImage& astroFileImage, const QMap<QString, QString>& tags);
-    void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
+    void astrofileProcessed(const AstroFileImage& astroFileImage);
+    void processingCancelled(const QFileInfo& fileInfo);
 
 private:
     volatile bool cancelSignaled = false;
     FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);
     FileProcessor* getProcessorForFile(const AstroFile& astroFile);
+    AstroFileImage extractTags(const AstroFileImage& astroFileImage);
+    AstroFileImage extractThumbnail(const AstroFileImage& astroFileImage);
 };
 
 #endif // NEWFILEPROCESSOR_H

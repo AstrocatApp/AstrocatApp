@@ -25,7 +25,7 @@
 
 #include "autostretcher.h"
 
-#include <fitsfile.h>
+#include "fitsfile.h"
 
 FitsFile::FitsFile()
 {
@@ -48,8 +48,6 @@ return; \
 
 bool FitsFile::loadFile(QString filePath)
 {
-    qDebug () <<"Processing: " <<filePath;
-
     int status = 0;
     fits_open_file(&_fptr, filePath.toStdString().c_str(), READONLY, &status);
 
@@ -103,7 +101,6 @@ void FitsFile::extractImage()
     int bitpix, naxis;
 
     fits_get_img_paramll(_fptr, 2, &bitpix, &naxis, naxesLongLongArr, &status);
-    qDebug() << QString("ParamLL Naxis: %1, Naxes: %2 x %3").arg(naxis).arg(naxesLongLongArr[0]).arg(naxesLongLongArr[1]);
 
     if (naxis < 2)
     {
@@ -163,8 +160,6 @@ void FitsFile::extractImage()
     }
 
     _qImageFormat = _numberOfChannels == 3 ? QImage::Format::Format_RGB32 : QImage::Format::Format_Grayscale8;
-    if (_numberOfChannels == 3)
-        qDebug()<<"RGB";
 
     _data = new unsigned char[numberOfPixels * _bytesPerPixel * _numberOfChannels];
     fits_movabs_hdu(_fptr, 1, IMAGE_HDU, &status);

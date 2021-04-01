@@ -16,7 +16,7 @@ SOURCES += \
     autostretcher.cpp \
     filerepository.cpp \
     fileviewmodel.cpp \
-    filterwidget.cpp \
+    filterview.cpp \
     fitsfile.cpp \
     fitsprocessor.cpp \
     foldercrawler.cpp \
@@ -35,7 +35,7 @@ HEADERS += \
     fileprocessor.h \
     filerepository.h \
     fileviewmodel.h \
-    filterwidget.h \
+    filterview.h \
     fitsfile.h \
     fitsprocessor.h \
     foldercrawler.h \
