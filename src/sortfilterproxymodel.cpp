@@ -40,11 +40,12 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     QString dateString = astroFileImage->astroFile.Tags["DATE-OBS"];
     QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-    bool shouldAccept = dateInRange(d) && objectAccepted(astroFileImage->astroFile.Tags["OBJECT"]) && instrumentAccepted(astroFileImage->astroFile.Tags["INSTRUME"]) && filterAccepted(astroFileImage->astroFile.Tags["FILTER"]);
+    bool shouldAccept = dateInRange(d) && objectAccepted(astroFileImage->astroFile.Tags["OBJECT"]) && instrumentAccepted(astroFileImage->astroFile.Tags["INSTRUME"]) && filterAccepted(astroFileImage->astroFile.Tags["FILTER"]) && extensionAccepted(astroFileImage->astroFile.FileExtension);
 //    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags.value("OBJECT")) && instrumentAccepted(astroFile->Tags.value("INSTRUME")) && filterAccepted(astroFile->Tags.value("FILTER"));
 
     if (shouldAccept && shouldAcceptTagsForFilters(astroFileImage))
     {
+        qDebug() << "Accepting: " << astroFileImage->astroFile.FileName;
         emit astroFileAccepted(astroFileImage->astroFile);
     }
 
@@ -91,6 +92,11 @@ bool SortFilterProxyModel::filterAccepted(QString filter) const
     return acceptedFilters.empty() || acceptedFilters.contains(filter) || (acceptedFilters.contains("None") && filter.isEmpty());
 }
 
+bool SortFilterProxyModel::extensionAccepted(QString extension) const
+{
+    return acceptedExtensions.empty() || acceptedExtensions.contains(extension) || (acceptedExtensions.contains("None") && extension.isEmpty());
+}
+
 void SortFilterProxyModel::setFilterMinimumDate(QDate date)
 {
     minDate = date;
@@ -110,6 +116,7 @@ void SortFilterProxyModel::addAcceptedFilter(QString filterName)
     if (!acceptedFilters.contains(filterName))
     {
         acceptedFilters.append(filterName);
+        emit filterReset();
         invalidateFilter();
     }
 }
@@ -117,7 +124,10 @@ void SortFilterProxyModel::addAcceptedFilter(QString filterName)
 void SortFilterProxyModel::removeAcceptedFilter(QString filterName)
 {
     if (acceptedFilters.removeOne(filterName))
+    {
+        emit filterReset();
         invalidateFilter();
+    }
 }
 
 void SortFilterProxyModel::addAcceptedInstrument(QString instrumentName)
@@ -125,6 +135,7 @@ void SortFilterProxyModel::addAcceptedInstrument(QString instrumentName)
     if (!acceptedInstruments.contains(instrumentName))
     {
         acceptedInstruments.append(instrumentName);
+        emit filterReset();
         invalidateFilter();
     }
 }
@@ -132,7 +143,10 @@ void SortFilterProxyModel::addAcceptedInstrument(QString instrumentName)
 void SortFilterProxyModel::removeAcceptedInstrument(QString instrumentName)
 {
     if (acceptedInstruments.removeOne(instrumentName))
+    {
+        emit filterReset();
         invalidateFilter();
+    }
 }
 
 void SortFilterProxyModel::addAcceptedObject(QString objectName)
@@ -140,6 +154,7 @@ void SortFilterProxyModel::addAcceptedObject(QString objectName)
     if (!acceptedObjects.contains(objectName))
     {
         acceptedObjects.append(objectName);
+        emit filterReset();
         invalidateFilter();
     }
 }
@@ -147,5 +162,29 @@ void SortFilterProxyModel::addAcceptedObject(QString objectName)
 void SortFilterProxyModel::removeAcceptedObject(QString objectName)
 {
     if (acceptedObjects.removeOne(objectName))
+    {
+        emit filterReset();
         invalidateFilter();
+    }
 }
+
+void SortFilterProxyModel::addAcceptedExtension(QString extensionName)
+{
+    if (!acceptedExtensions.contains(extensionName))
+    {
+        acceptedExtensions.append(extensionName);
+        emit filterReset();
+        invalidateFilter();
+    }
+}
+
+void SortFilterProxyModel::removeAcceptedExtension(QString extensionName)
+{
+    if (acceptedExtensions.removeOne(extensionName))
+    {
+        emit filterReset();
+        invalidateFilter();
+    }
+}
+
+

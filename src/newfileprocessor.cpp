@@ -37,44 +37,46 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
     if (cancelSignaled)
     {
         qDebug() << "Cancel signaled. Draining Fits Tag Queue.";
+        emit processingCancelled(fileInfo);
         return;
     }
 
     AstroFile astroFile(fileInfo);
     AstroFileImage afi(astroFile, QImage());
 
-    extractTags(afi);
-    extractThumbnail(afi);
+    afi = extractTags(afi);
+    afi = extractThumbnail(afi);
+    afi.processStatus = Processed;
+    emit astrofileProcessed(afi);
+
 }
 
-void NewFileProcessor::extractTags(const AstroFileImage &astroFileImage)
+AstroFileImage NewFileProcessor::extractTags(const AstroFileImage &astroFileImage)
 {
-    if (cancelSignaled)
-    {
-        qDebug() << "Cancel signaled. Draining Fits Tag Queue.";
-        return;
-    }
-
     FileProcessor* processor = getProcessorForFile(astroFileImage.astroFile);
     processor->extractTags(astroFileImage);
     auto tags = processor->getTags();
-    emit tagsExtracted(astroFileImage, tags);
+    AstroFileImage afi(astroFileImage);
+    afi.astroFile.Tags.swap(tags);
+    afi.tagStatus = TagExtracted;
+
     delete processor;
+
+    return afi;
 }
 
-void NewFileProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
+AstroFileImage NewFileProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
 {
-    if (cancelSignaled)
-    {
-        qDebug() << "Cancel signaled. Draining Fits Tag Queue.";
-        return;
-    }
-
     FileProcessor* processor = getProcessorForFile(astroFileImage.astroFile);
     processor->extractThumbnail(astroFileImage);
     auto thumbnail = processor->getThumbnail();
-    emit thumbnailExtracted(astroFileImage, thumbnail);
+    AstroFileImage afi(astroFileImage);
+    afi.image = thumbnail;
+    afi.thumbnailStatus = Loaded;
+
     delete processor;
+
+    return afi;
 }
 
 void NewFileProcessor::cancel()

@@ -22,28 +22,28 @@
     SOFTWARE.
 */
 
-#ifndef FILTERWIDGET_H
-#define FILTERWIDGET_H
+#ifndef FILTERVIEW_H
+#define FILTERVIEW_H
 
 #include "astrofile.h"
 
+#include <QAbstractItemView>
 #include <QDateEdit>
 #include <QGroupBox>
-#include <QSet>
-#include <QWidget>
+#include <QObject>
+#include <QVBoxLayout>
 
-class FilterWidget : public QWidget
+class FilterView : public QAbstractItemView
 {
     Q_OBJECT
 public:
-    explicit FilterWidget(QWidget *parent = nullptr);
+    explicit FilterView(QWidget *parent = nullptr);
 
 public slots:
     void setFilterMinimumDate(QDate date);
     void setFilterMaximumDate(QDate date);
     void addAstroFileTags(const AstroFile& astroFile);
     void searchFilterReset();
-    void setAllTags(const QMap<QString, QSet<QString>>& tags);
 
 signals:
     void minimumDateChanged(QDate date);
@@ -54,11 +54,18 @@ signals:
     void removeAcceptedInstrument(QString instrumentName);
     void addAcceptedObject(QString objectName);
     void removeAcceptedObject(QString objectName);
+    void addAcceptedExtension(QString objectName);
+    void removeAcceptedExtension(QString objectName);
+    void astroFileAdded(int numberAdded);
+    void astroFileRemoved(int numberRemoved);
 
 private:
+    QWidget* _parent;
+    QVBoxLayout* vLayout;
     QGroupBox* objectsGroup;
     QGroupBox* instrumentsGroup;
     QGroupBox* filtersGroup;
+    QGroupBox* extensionsGroup;
     QGroupBox* datesGroup;
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
@@ -66,17 +73,44 @@ private:
     QWidget* createObjectsBox();
     QWidget* createInstrumentsBox();
     QWidget* createFiltersBox();
-    QMap<QString, QSet<QString>> fileTags;
+    QWidget* createFileExtensionsBox();
+    QSet<QString> acceptedAstroFiles;
+    QMap<QString, QMap<QString,int>> fileTags;
+    QSet<QString> checkedTags;
     void addObjects();
     void addDates();
     void addInstruments();
     void addFilters();
-    void clearLayout(QLayout* layout);
+    void addFileExtensions();
     void resetGroups();
+    void clearLayout(QLayout* layout);
     void selectedObjectsChanged(QString object, int state);
     void selectedInstrumentsChanged(QString object, int state);
     void selectedFiltersChanged(QString object, int state);
-    QSet<QString> checkedTags;
+    void selectedFileExtensionsChanged(QString object, int state);
+
+    // QPaintDevice interface
+public:
+    QPaintEngine *paintEngine() const;
+
+    // QAbstractItemView interface
+public:
+    QRect visualRect(const QModelIndex &index) const;
+    void scrollTo(const QModelIndex &index, ScrollHint hint);
+    QModelIndex indexAt(const QPoint &point) const;
+
+protected:
+    QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
+    int horizontalOffset() const;
+    int verticalOffset() const;
+    bool isIndexHidden(const QModelIndex &index) const;
+    void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command);
+    QRegion visualRegionForSelection(const QItemSelection &selection) const;
+
+    // QAbstractItemView interface
+protected slots:
+    void rowsInserted(const QModelIndex &parent, int start, int end);
+    void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
 };
 
-#endif // FILTERWIDGET_H
+#endif // FILTERVIEW_H

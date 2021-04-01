@@ -28,7 +28,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QString>
-#include <qimage.h>
+#include <QImage>
 
 enum ThumbnailLoadStatus
 {
@@ -44,8 +44,16 @@ enum TagExtractStatus
     TagFailedToProess
 };
 
+enum AstroFileProcessStatus
+{
+    NeedsToBeProcessed,
+    Processed,
+    FailedToProcess
+};
+
 enum AstroFileType
 {
+    Unknown = -1,
     Fits,
     Xisf,
     Image
@@ -57,6 +65,7 @@ struct AstroFile
     QString FullPath;
     QString DirectoryPath;
     AstroFileType FileType;
+    QString FileExtension;
     QDateTime CreatedTime;
     QDateTime LastModifiedTime;
     QMap<QString, QString> Tags;
@@ -72,8 +81,9 @@ struct AstroFile
         LastModifiedTime = fileInfo.lastModified();
         DirectoryPath = fileInfo.canonicalPath();
         FileName = fileInfo.baseName();
+        FileExtension = fileInfo.suffix();
 
-        QString suffix = fileInfo.suffix().toLower();
+        QString suffix = FileExtension.toLower();
         if ( suffix == "fits")
             FileType = AstroFileType::Fits;
         else if (suffix == "fit")
@@ -95,16 +105,21 @@ struct AstroFileImage
 {
     AstroFileImage() {}
     AstroFileImage(const AstroFileImage& other)
-        :astroFile(other.astroFile), image(other.image), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus)
+        :astroFile(other.astroFile), image(other.image), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus)
     {}
-    AstroFileImage(AstroFile file, QImage img, ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus::NotProcessedYet, TagExtractStatus tagStatus = TagExtractStatus::TagNotProcessedYet)
-        :astroFile(file), image(img), thumbnailStatus(thumbnailStatus), tagStatus(tagStatus)
+    AstroFileImage(AstroFile file,
+                   QImage img,
+                   ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus::NotProcessedYet,
+                   TagExtractStatus tagStatus = TagExtractStatus::TagNotProcessedYet,
+                   AstroFileProcessStatus processStatus = AstroFileProcessStatus::NeedsToBeProcessed)
+        :astroFile(file), image(img), thumbnailStatus(thumbnailStatus), tagStatus(tagStatus), processStatus(processStatus)
     {
     }
     AstroFile astroFile;
     QImage image;
     ThumbnailLoadStatus thumbnailStatus;
     TagExtractStatus tagStatus;
+    AstroFileProcessStatus processStatus;
 };
 
 #endif // ASTROFILE_H

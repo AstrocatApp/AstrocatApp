@@ -32,7 +32,6 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-#define __PCL_MACOSX
 #include <pcl/XISF.h>
 #include <pcl/StandardStatus.h>
 

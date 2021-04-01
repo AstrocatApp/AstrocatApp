@@ -115,9 +115,13 @@ void FileRepository::migrateFromVersion(int oldVersion)
 
 void FileRepository::createTables()
 {
-    QSqlQuery fitsquery("CREATE TABLE fits (id INTEGER PRIMARY KEY AUTOINCREMENT, FileName TEXT, FullPath TEXT, DirectoryPath TEXT, FileType TEXT, CreatedTime DATE, LastModifiedTime DATE, TagStatus INTEGER, ThumbnailStatus INTEGER)");
+    QSqlQuery fitsquery("CREATE TABLE fits (id INTEGER PRIMARY KEY AUTOINCREMENT, FileName TEXT, FullPath TEXT, DirectoryPath TEXT, FileType TEXT, FileExtension TEXT, CreatedTime DATE, LastModifiedTime DATE, TagStatus INTEGER, ThumbnailStatus INTEGER, ProcessStatus INTEGER)");
     if(!fitsquery.isActive())
         qWarning() << "ERROR: " << fitsquery.lastError().text();
+
+    QSqlQuery fitsFileNameIndexQuery("CREATE UNIQUE INDEX idx_fits_fullpath ON fits (FullPath);");
+    if(!fitsFileNameIndexQuery.isActive())
+        qWarning() << "ERROR: " << fitsFileNameIndexQuery.lastError().text();
 
     QSqlQuery tagsquery("CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, tagKey TEXT, tagValue TEXT, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
     if(!tagsquery.isActive())
@@ -206,6 +210,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
         int idFullPath = query.record().indexOf("FullPath");
         int idDirectoryPath = query.record().indexOf("DirectoryPath");
         int idFileType = query.record().indexOf("FileType");
+        int idFileExtension = query.record().indexOf("FileExtension");
         int idCreatedTime = query.record().indexOf("CreatedTime");
         int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
         AstroFile astro;
@@ -213,6 +218,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();
         astro.FileType = AstroFileType(query.value(idFileType).toInt());
+        astro.FileExtension = query.value(idFileExtension).toString();
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
 
@@ -239,16 +245,18 @@ void FileRepository::insertAstrofileImage(const AstroFileImage& astroFileImage)
     QSqlQuery queryAdd;
     auto& astroFile = astroFileImage.astroFile;
 
-    queryAdd.prepare("INSERT INTO fits (FileName,FullPath,DirectoryPath,FileType,CreatedTime,LastModifiedTime, TagStatus, ThumbnailStatus) "
-                        "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:CreatedTime,:LastModifiedTime, :TagStatus, :ThumbnailStatus)");
+    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime, TagStatus, ThumbnailStatus, ProcessStatus) "
+                        "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime, :TagStatus, :ThumbnailStatus, :ProcessStatus)");
     queryAdd.bindValue(":FileName", astroFile.FileName);
     queryAdd.bindValue(":FullPath", astroFile.FullPath);
     queryAdd.bindValue(":DirectoryPath", astroFile.DirectoryPath);
     queryAdd.bindValue(":FileType", astroFile.FileType);
+    queryAdd.bindValue(":FileExtension", astroFile.FileExtension);
     queryAdd.bindValue(":CreatedTime", astroFile.CreatedTime);
     queryAdd.bindValue(":LastModifiedTime", astroFile.LastModifiedTime);
     queryAdd.bindValue(":TagStatus", astroFileImage.tagStatus);
     queryAdd.bindValue(":ThumbnailStatus", astroFileImage.thumbnailStatus);
+    queryAdd.bindValue(":ProcessStatus", astroFileImage.processStatus);
 
     if(queryAdd.exec())
     {
@@ -260,11 +268,11 @@ void FileRepository::insertAstrofileImage(const AstroFileImage& astroFileImage)
 
 void FileRepository::deleteAstrofilesInFolder(const QString fullPath)
 {
-    if (cancelSignaled)
-    {
-        qDebug() << "Cancel signaled. Draining DB Queue.";
-        return;
-    }
+//    if (cancelSignaled)
+//    {
+//        qDebug() << "Cancel signaled. Draining DB Queue.";
+//        return;
+//    }
 
     auto files = getAstrofilesInFolder(fullPath, false);
     QSqlQuery query;
@@ -352,6 +360,24 @@ void FileRepository::addThumbnail(const AstroFileImage &astroFileImage, const QI
         qDebug() << "FAILED to execute UPDATE Thumbnail Status query" << tagStatusQuery.lastError();
 }
 
+void FileRepository::saveStatus(const AstroFileImage& astroFileImage)
+{
+    if (cancelSignaled)
+    {
+        qDebug() << "Cancel signaled. Draining DB Queue.";
+        return;
+    }
+
+    auto& astroFile = astroFileImage.astroFile;
+
+    QSqlQuery processStatusQuery;
+    processStatusQuery.prepare("UPDATE fits set ProcessStatus = :processStatus WHERE FullPath = :fullPath");
+    processStatusQuery.bindValue(":processStatus", astroFileImage.processStatus);
+    processStatusQuery.bindValue(":fullPath", astroFile.FullPath);
+    if (!processStatusQuery.exec())
+        qDebug() << "FAILED to execute UPDATE TAG Status query: " <<processStatusQuery.lastError() ;
+}
+
 QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
 {
     QSqlQuery query("SELECT * FROM fits");
@@ -361,10 +387,12 @@ QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
     int idFullPath = query.record().indexOf("FullPath");
     int idDirectoryPath = query.record().indexOf("DirectoryPath");
     int idFileType = query.record().indexOf("FileType");
+    int idFileExtension = query.record().indexOf("FileExtension");
     int idCreatedTime = query.record().indexOf("CreatedTime");
     int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
     int idTagStatus = query.record().indexOf("TagStatus");
     int idThumbnailStatus = query.record().indexOf("ThumbnailStatus");
+    int idProcessStatus = query.record().indexOf("ProcessStatus");
 
     QMap<int, AstroFileImage> files;
     while (query.next())
@@ -375,11 +403,13 @@ QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();
         astro.FileType = AstroFileType(query.value(idFileType).toInt());
+        astro.FileExtension = query.value(idFileExtension).toString();
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
         ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
         TagExtractStatus tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
-        AstroFileImage afi(astro, QImage(), thumbnailStatus, tagStatus);
+        AstroFileProcessStatus processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
+        AstroFileImage afi(astro, QImage(), thumbnailStatus, tagStatus, processStatus);
 
         files.insert(astroFileId, afi);
     }

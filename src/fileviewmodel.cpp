@@ -45,6 +45,7 @@ void FileViewModel::setInitialModel(const QList<AstroFileImage> &files)
         fileList.append(i);
         fileMap.insert(i.astroFile.FullPath, i);
         insertRow(count);
+
         count++;
     }
 }
@@ -75,7 +76,6 @@ QModelIndex FileViewModel::index(int row, int column, const QModelIndex &parent)
     Q_UNUSED(parent);
     if (row < fileList.count()  && row >= 0 && column < cc && column >= 0)
     {
-        //return fileList[row]->index;
         return createIndex(row, 0, &fileList[row]);
     }
     return QModelIndex();
@@ -90,6 +90,10 @@ bool FileViewModel::insertRows(int row, int count, const QModelIndex &parent)
     endInsertRows();
     if (rc == 1)
         emit modelIsEmpty(false);
+
+    // The following signal is used by the Main Window to display the number of items.
+    emit itemsAdded(count);
+
     return true;
 }
 
@@ -98,17 +102,12 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
     if (parent.isValid())
         return false;
 
-    // We will tell views that we reset the entire model due
-    // to the way we are handling filters in the filter widget
-    // We cannot handle removing of individual tags there. Therefore
-    // we will tell views we nuked the entire model.
-
-    beginResetModel();
+    beginRemoveRows(parent, row, row);
     rc-= count;
     auto astroFileImage = fileList.at(row);
     fileMap.remove(astroFileImage.astroFile.FullPath);
     fileList.removeAt(row);
-    endResetModel();
+    endRemoveRows();
     if (rc == 0)
         emit modelIsEmpty(true);
     return true;
@@ -250,6 +249,14 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         {
             return a.astroFile.Tags["BLKLEVEL"];
         }
+        case AstroFileRoles::FileTypeRole:
+        {
+            return a.astroFile.FileType;
+        }
+        case AstroFileRoles::FileExtensionRole:
+        {
+            return a.astroFile.FileExtension;
+        }
     }
 
     return QVariant();
@@ -261,6 +268,9 @@ void FileViewModel::removeAstroFile(AstroFile astroFile)
     if (row>=0)
     {
         removeRow(row);
+
+        // The following signal is used by the Main Window to display the number of items.
+        emit itemsRemoved(1);
     }
 }
 
@@ -272,32 +282,6 @@ void FileViewModel::clearModel()
     fileList.clear();
     rc=0;
     emit endResetModel();
-}
-
-void FileViewModel::addTags(const AstroFileImage &astroFileImage)
-{
-    fileMap[astroFileImage.astroFile.FullPath].astroFile.Tags.clear();
-    fileMap[astroFileImage.astroFile.FullPath].astroFile.Tags.insert(astroFileImage.astroFile.Tags);
-    fileMap[astroFileImage.astroFile.FullPath].tagStatus = astroFileImage.tagStatus;
-
-    QModelIndex index = getIndexForAstroFile(astroFileImage.astroFile);
-    fileList[index.row()].astroFile.Tags.clear();
-    fileList[index.row()].astroFile.Tags.insert(astroFileImage.astroFile.Tags);
-    fileList[index.row()].tagStatus = astroFileImage.tagStatus;
-
-    emit dataChanged(index, index);
-}
-
-void FileViewModel::addThumbnail(const AstroFileImage &astroFileImage)
-{
-    fileMap[astroFileImage.astroFile.FullPath].image = astroFileImage.image;
-    fileMap[astroFileImage.astroFile.FullPath].thumbnailStatus = astroFileImage.thumbnailStatus;
-
-    QModelIndex index = getIndexForAstroFile(astroFileImage.astroFile);
-    fileList[index.row()].image = astroFileImage.image;
-    fileList[index.row()].thumbnailStatus = astroFileImage.thumbnailStatus;
-
-    emit dataChanged(index, index);
 }
 
 void FileViewModel::addAstroFile(const AstroFileImage &astroFileImage)

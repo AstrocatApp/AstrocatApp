@@ -48,6 +48,8 @@ public slots:
     void removeAcceptedInstrument(QString instrumentName);
     void addAcceptedObject(QString objectName);
     void removeAcceptedObject(QString objectName);
+    void addAcceptedExtension(QString extensionName);
+    void removeAcceptedExtension(QString extensionName);
 
 signals:
     void filterMinimumDateChanged(QDate date);
@@ -66,13 +68,17 @@ private:
     QList<QString> acceptedFilters;
     QList<QString> acceptedObjects;
     QList<QString> acceptedInstruments;
+    QList<QString> acceptedExtensions;
     bool dateInRange(QDate date) const;
     bool instrumentAccepted(QString instrument) const;
     bool objectAccepted(QString object) const;
     bool filterAccepted(QString filter) const;
+    bool extensionAccepted(QString filter) const;
     bool shouldAcceptTagsForFilters(const AstroFileImage* astroFileImage) const;
+
 protected slots:
-    void resetInternalData();
+    virtual void resetInternalData();
+
 };
 
 #endif // SORTFILTERPROXYMODEL_H

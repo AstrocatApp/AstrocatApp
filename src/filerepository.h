@@ -44,6 +44,7 @@ public slots:
     void addThumbnail(const AstroFileImage& astroFileImage, const QImage& thumbnail);
     void loadModel();
     void insertAstrofileImage(const AstroFileImage& afi);
+    void saveStatus(const AstroFileImage& astroFileImage);
 
 signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );

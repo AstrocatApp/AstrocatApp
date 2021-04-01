@@ -28,18 +28,19 @@
 #include "astrofile.h"
 #include "filerepository.h"
 #include "fileviewmodel.h"
-#include "filterwidget.h"
 #include "fitsprocessor.h"
 #include "foldercrawler.h"
 #include "newfileprocessor.h"
 #include "searchfolderdialog.h"
 #include "sortfilterproxymodel.h"
+#include "filterview.h"
 
 #include <QAbstractItemModelTester>
 #include <QFileInfo>
 #include <QMainWindow>
 #include <QThread>
 #include <QItemSelection>
+#include <QLabel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -52,6 +53,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void initialize();
+    void cancelPendingOperations();
 
 public slots:
     void newFileFound(const QFileInfo fileInfo);
@@ -60,8 +62,10 @@ public slots:
 signals:
     void crawl(QString rootFolder);
     void deleteAstrofilesInFolder(const QString fullPath);
+    void dbAddOrUpdateAstroFileImage(const AstroFileImage& astroFileImage);
     void dbAddTags(const AstroFileImage& astroFileImage);
     void dbAddThumbnail(const AstroFileImage& astroFileImage, const QImage& image);
+    void dbUpdateProcessStatus(const AstroFileImage& astroFileImage);
     void initializeFileRepository();
     void loadModelFromDb();
     void loadModelIntoViewModel(const QList<AstroFileImage> &files);
@@ -71,8 +75,6 @@ signals:
     void extractThumbnail(const AstroFileImage& astroFileImage);
     void processNewFile(const QFileInfo& fileInfo);
 
-    void itemModelAddTags(const AstroFileImage& astroFileImage);
-    void itemModelAddThumbnail(const AstroFileImage& astroFileImage);
     void insertAstrofileImage(const AstroFileImage& afi);
 
 private slots:
@@ -81,11 +83,17 @@ private slots:
     void handleSelectionChanged(QItemSelection selection);
     void modelLoadedFromDb(const QList<AstroFileImage> &files);
 
-    void tagsExtracted(const AstroFileImage& astroFileImage, const QMap<QString, QString>& tags);
-    void thumbnailExtracted(const AstroFileImage& astroFileImage, const QImage& img);
+    void astroFileProcessed(const AstroFileImage& astroFileImage);
+    void processingCancelled(const QFileInfo& fileInfo);
 
     void on_actionAbout_triggered();
     void setWatermark(bool shoudSet);
+
+    void itemAddedToModel(int numberAdded);
+    void itemRemovedFromModel(int numberRemoved);
+    void modelReset();
+    void itemAddedToSortFilterView(int numberAdded);
+    void itemRemovedFromSortFilterView(int numberRemoved);
 
 private:
     Ui::MainWindow *ui;
@@ -105,7 +113,7 @@ private:
 
     SearchFolderDialog searchFolderDialog;
     QAbstractItemModelTester* tester;
-    FilterWidget* filterWidget;
+    FilterView* filterView;
 
     QImage makeThumbnail(const QImage& image);
     void cleanUpWorker(QThread* thread);
@@ -115,6 +123,16 @@ private:
     bool shouldShowWatermark = true;
     const QString DEFAULT_WATERMARK_MESSAGE = "Select Settings -> Folders in the menu to add folders ...";
     QString _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
+
+    int numberOfItems = 0;
+    int numberOfVisibleItems = 0;
+    int numberOfSelectedItems = 0;
+    int numberOfActiveJobs = 0;
+
+    QLabel numberOfItemsLabel;
+    QLabel numberOfVisibleItemsLabel;
+    QLabel numberOfSelectedItemsLabel;
+    QLabel numberOfActiveJobsLabel;
 
     // QWidget interface
 protected:

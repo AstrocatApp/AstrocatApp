@@ -45,7 +45,9 @@ enum AstroFileRoles
     GainRole,
     ExposureRole,
     BayerModeRole,
-    OffsetRole
+    OffsetRole,
+    FileTypeRole,
+    FileExtensionRole
 };
 
 class FileViewModel : public QAbstractItemModel
@@ -72,12 +74,12 @@ public slots:
     void removeAstroFile(AstroFile astroFile);
     void clearModel();
     void setInitialModel(const QList<AstroFileImage>& files);
-    void addTags(const AstroFileImage& astroFileImage);
-    void addThumbnail(const AstroFileImage& astroFileImage);
     void addAstroFile(const AstroFileImage& astroFileImage);
 
 signals:
     void modelIsEmpty(bool isEmpty);
+    void itemsAdded(int numberAdded);
+    void itemsRemoved(int nnumberRemoved);
 
 private:
     int rc;
