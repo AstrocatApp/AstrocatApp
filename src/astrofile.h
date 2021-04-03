@@ -68,6 +68,8 @@ struct AstroFile
     QString FileExtension;
     QDateTime CreatedTime;
     QDateTime LastModifiedTime;
+    QString FileHash;
+    QString ImageHash;
     QMap<QString, QString> Tags;
 
     AstroFile()

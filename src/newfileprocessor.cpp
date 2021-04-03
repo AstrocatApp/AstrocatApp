@@ -28,6 +28,8 @@
 #include "newfileprocessor.h"
 #include "fitsprocessor.h"
 
+#include <QCryptographicHash>
+
 NewFileProcessor::NewFileProcessor(QObject *parent) : QObject(parent)
 {
 }
@@ -44,39 +46,65 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
     AstroFile astroFile(fileInfo);
     AstroFileImage afi(astroFile, QImage());
 
-    afi = extractTags(afi);
-    afi = extractThumbnail(afi);
-    afi.processStatus = Processed;
-    emit astrofileProcessed(afi);
+//    afi = extractTags(afi);
+//    afi = extractThumbnail(afi);
 
-}
+    FileProcessor* processor = getProcessorForFile(afi.astroFile);
 
-AstroFileImage NewFileProcessor::extractTags(const AstroFileImage &astroFileImage)
-{
-    FileProcessor* processor = getProcessorForFile(astroFileImage.astroFile);
-    processor->extractTags(astroFileImage);
+    processor->loadFile(afi);
+    processor->extractTags();
+
     auto tags = processor->getTags();
-    AstroFileImage afi(astroFileImage);
     afi.astroFile.Tags.swap(tags);
     afi.tagStatus = TagExtracted;
 
-    delete processor;
-
-    return afi;
-}
-
-AstroFileImage NewFileProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
-{
-    FileProcessor* processor = getProcessorForFile(astroFileImage.astroFile);
-    processor->extractThumbnail(astroFileImage);
+    processor->extractThumbnail();
     auto thumbnail = processor->getThumbnail();
-    AstroFileImage afi(astroFileImage);
     afi.image = thumbnail;
     afi.thumbnailStatus = Loaded;
 
-    delete processor;
+    qDebug()<<"File: "<<astroFile.FullPath;
+    QString hash = getFileHash(fileInfo).toHex();
+    afi.astroFile.FileHash = hash;
+    qDebug()<<"Hash: "<<hash;
 
-    return afi;
+    QString imageHash = processor->getImageHash().toHex();
+    afi.astroFile.ImageHash = imageHash;
+    qDebug()<<"Image Hash: "<<imageHash;
+    delete processor;
+    afi.processStatus = Processed;
+    emit astrofileProcessed(afi);
+}
+
+QByteArray fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)
+{
+    QFile sourceFile(fileName);
+    qint64 fileSize = sourceFile.size();
+    const qint64 bufferSize = 10240;
+
+    if (sourceFile.open(QIODevice::ReadOnly))
+    {
+        char buffer[bufferSize];
+        int bytesRead;
+        int readSize = qMin(fileSize, bufferSize);
+
+        QCryptographicHash hash(hashAlgorithm);
+        while (readSize > 0 && (bytesRead = sourceFile.read(buffer, readSize)) > 0)
+        {
+            fileSize -= bytesRead;
+            hash.addData(buffer, bytesRead);
+            readSize = qMin(fileSize, bufferSize);
+        }
+
+        sourceFile.close();
+        return hash.result();
+    }
+    return QByteArray();
+}
+
+QByteArray NewFileProcessor::getFileHash(const QFileInfo &fileInfo)
+{
+    return fileChecksum(fileInfo.absoluteFilePath(), QCryptographicHash::Sha1);
 }
 
 void NewFileProcessor::cancel()

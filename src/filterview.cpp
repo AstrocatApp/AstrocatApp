@@ -44,17 +44,13 @@ FilterView::FilterView(QWidget *parent)
 
 void FilterView::setFilterMinimumDate(QDate date)
 {
+    minDateEdit->setDate(date);
 
 }
 
 void FilterView::setFilterMaximumDate(QDate date)
 {
-
-}
-
-void FilterView::addAstroFileTags(const AstroFile &astroFile)
-{
-
+    maxDateEdit->setDate(date);
 }
 
 void FilterView::searchFilterReset()
@@ -133,47 +129,6 @@ QWidget *FilterView::createFileExtensionsBox()
 
     return extensionsGroup;
 }
-
-QPaintEngine *FilterView::paintEngine() const
-{
-}
-
-QRect FilterView::visualRect(const QModelIndex &index) const
-{
-}
-
-void FilterView::scrollTo(const QModelIndex &index, ScrollHint hint)
-{
-}
-
-QModelIndex FilterView::indexAt(const QPoint &point) const
-{
-}
-
-QModelIndex FilterView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
-{
-}
-
-int FilterView::horizontalOffset() const
-{
-}
-
-int FilterView::verticalOffset() const
-{
-}
-
-bool FilterView::isIndexHidden(const QModelIndex &index) const
-{
-}
-
-void FilterView::setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command)
-{
-}
-
-QRegion FilterView::visualRegionForSelection(const QItemSelection &selection) const
-{
-}
-
 
 void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
@@ -419,4 +374,44 @@ void FilterView::selectedFileExtensionsChanged(QString object, int state)
         emit addAcceptedExtension(object);
         break;
     }
+}
+
+QPaintEngine *FilterView::paintEngine() const
+{
+}
+
+QRect FilterView::visualRect(const QModelIndex &index) const
+{
+}
+
+void FilterView::scrollTo(const QModelIndex &index, ScrollHint hint)
+{
+}
+
+QModelIndex FilterView::indexAt(const QPoint &point) const
+{
+}
+
+QModelIndex FilterView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
+{
+}
+
+int FilterView::horizontalOffset() const
+{
+}
+
+int FilterView::verticalOffset() const
+{
+}
+
+bool FilterView::isIndexHidden(const QModelIndex &index) const
+{
+}
+
+void FilterView::setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command)
+{
+}
+
+QRegion FilterView::visualRegionForSelection(const QItemSelection &selection) const
+{
 }

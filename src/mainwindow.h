@@ -70,6 +70,7 @@ signals:
     void loadModelFromDb();
     void loadModelIntoViewModel(const QList<AstroFileImage> &files);
     void resetModel();
+    void dbGetDuplicates();
 
     void extractTags(const AstroFileImage& astroFileImage);
     void extractThumbnail(const AstroFileImage& astroFileImage);
@@ -94,7 +95,10 @@ private slots:
     void modelReset();
     void itemAddedToSortFilterView(int numberAdded);
     void itemRemovedFromSortFilterView(int numberRemoved);
+    void itemContextMenuRequested(const QPoint &pos);
 
+    void reveal();
+    void remove();
 private:
     Ui::MainWindow *ui;
     bool isInitialized;
@@ -134,12 +138,12 @@ private:
     QLabel numberOfSelectedItemsLabel;
     QLabel numberOfActiveJobsLabel;
 
-    // QWidget interface
+    QAction *revealAct;
+    QAction *removeAct;
+    void createActions();
+
 protected:
     void resizeEvent(QResizeEvent *event);
-
-    // QWidget interface
-protected:
     void showEvent(QShowEvent *event);
 };
 #endif // MAINWINDOW_H

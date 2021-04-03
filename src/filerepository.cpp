@@ -115,7 +115,22 @@ void FileRepository::migrateFromVersion(int oldVersion)
 
 void FileRepository::createTables()
 {
-    QSqlQuery fitsquery("CREATE TABLE fits (id INTEGER PRIMARY KEY AUTOINCREMENT, FileName TEXT, FullPath TEXT, DirectoryPath TEXT, FileType TEXT, FileExtension TEXT, CreatedTime DATE, LastModifiedTime DATE, TagStatus INTEGER, ThumbnailStatus INTEGER, ProcessStatus INTEGER)");
+    QSqlQuery fitsquery(
+        "CREATE TABLE fits ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "FileName TEXT, "
+            "FullPath TEXT, "
+            "DirectoryPath TEXT, "
+            "FileType TEXT, "
+            "FileExtension TEXT, "
+            "CreatedTime DATE, "
+            "LastModifiedTime DATE, "
+            "TagStatus INTEGER, "
+            "ThumbnailStatus INTEGER, "
+            "ProcessStatus INTEGER,"
+            "FileHash TEXT,"
+            "ImageHash TEXT)");
+
     if(!fitsquery.isActive())
         qWarning() << "ERROR: " << fitsquery.lastError().text();
 
@@ -123,11 +138,24 @@ void FileRepository::createTables()
     if(!fitsFileNameIndexQuery.isActive())
         qWarning() << "ERROR: " << fitsFileNameIndexQuery.lastError().text();
 
-    QSqlQuery tagsquery("CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, tagKey TEXT, tagValue TEXT, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+    QSqlQuery tagsquery(
+        "CREATE TABLE tags ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "fits_id INTEGER, "
+            "tagKey TEXT, "
+            "tagValue TEXT, "
+            "FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+
     if(!tagsquery.isActive())
         qWarning() << "ERROR: " << tagsquery.lastError().text();
 
-    QSqlQuery thumbnailsquery("CREATE TABLE thumbnails (id INTEGER PRIMARY KEY AUTOINCREMENT, fits_id INTEGER, thumbnail BLOB, FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+    QSqlQuery thumbnailsquery(
+        "CREATE TABLE thumbnails ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "fits_id INTEGER, "
+            "thumbnail BLOB, "
+            "FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
+
     if(!thumbnailsquery.isActive())
         qWarning() << "ERROR: " << thumbnailsquery.lastError().text();
 }
@@ -213,6 +241,8 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
         int idFileExtension = query.record().indexOf("FileExtension");
         int idCreatedTime = query.record().indexOf("CreatedTime");
         int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
+        int idFileHash = query.record().indexOf("FileHash");
+        int idImageHash = query.record().indexOf("ImageHash");
         AstroFile astro;
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
@@ -221,6 +251,8 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
         astro.FileExtension = query.value(idFileExtension).toString();
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
+        astro.FileHash = query.value(idFileHash).toString();
+        astro.ImageHash = query.value(idImageHash).toString();
 
         int astroFileId = query.value(idId).toInt();
         if (includeTags)
@@ -245,8 +277,8 @@ void FileRepository::insertAstrofileImage(const AstroFileImage& astroFileImage)
     QSqlQuery queryAdd;
     auto& astroFile = astroFileImage.astroFile;
 
-    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime, TagStatus, ThumbnailStatus, ProcessStatus) "
-                        "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime, :TagStatus, :ThumbnailStatus, :ProcessStatus)");
+    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime, TagStatus, ThumbnailStatus, ProcessStatus, FileHash, ImageHash) "
+                        "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime, :TagStatus, :ThumbnailStatus, :ProcessStatus, :FileHash, :ImageHash)");
     queryAdd.bindValue(":FileName", astroFile.FileName);
     queryAdd.bindValue(":FullPath", astroFile.FullPath);
     queryAdd.bindValue(":DirectoryPath", astroFile.DirectoryPath);
@@ -254,6 +286,8 @@ void FileRepository::insertAstrofileImage(const AstroFileImage& astroFileImage)
     queryAdd.bindValue(":FileExtension", astroFile.FileExtension);
     queryAdd.bindValue(":CreatedTime", astroFile.CreatedTime);
     queryAdd.bindValue(":LastModifiedTime", astroFile.LastModifiedTime);
+    queryAdd.bindValue(":FileHash", astroFile.FileHash);
+    queryAdd.bindValue(":ImageHash", astroFile.ImageHash);
     queryAdd.bindValue(":TagStatus", astroFileImage.tagStatus);
     queryAdd.bindValue(":ThumbnailStatus", astroFileImage.thumbnailStatus);
     queryAdd.bindValue(":ProcessStatus", astroFileImage.processStatus);
@@ -378,6 +412,43 @@ void FileRepository::saveStatus(const AstroFileImage& astroFileImage)
         qDebug() << "FAILED to execute UPDATE TAG Status query: " <<processStatusQuery.lastError() ;
 }
 
+void FileRepository::getDuplicateFiles()
+{
+    qDebug()<<"By File Hash:";
+    getDuplicateFilesByFileHash();
+    qDebug()<<"By Image Hash:";
+    getDuplicateFilesByImageHash();
+}
+void FileRepository::getDuplicateFilesByFileHash()
+{
+    QSqlQuery query("SELECT FullPath, COUNT(*) c FROM fits GROUP BY FileHash HAVING c > 1");
+    query.exec();
+    int idCount = query.record().indexOf("c");
+    int idFullPath = query.record().indexOf("FullPath");
+
+    while (query.next())
+    {
+        int count = query.value(idCount).toInt();
+        QString fullPath = query.value(idFullPath).toString();
+
+        qDebug()<<"Duplicate: " << fullPath << " Count: " << count;
+    }
+}
+void FileRepository::getDuplicateFilesByImageHash()
+{
+    QSqlQuery query("SELECT FullPath, COUNT(*) c FROM fits GROUP BY ImageHash HAVING c > 1");
+    query.exec();
+    int idCount = query.record().indexOf("c");
+    int idFullPath = query.record().indexOf("FullPath");
+
+    while (query.next())
+    {
+        int count = query.value(idCount).toInt();
+        QString fullPath = query.value(idFullPath).toString();
+
+        qDebug()<<"Duplicate: " << fullPath << " Count: " << count;
+    }
+}
 QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
 {
     QSqlQuery query("SELECT * FROM fits");
@@ -390,6 +461,8 @@ QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
     int idFileExtension = query.record().indexOf("FileExtension");
     int idCreatedTime = query.record().indexOf("CreatedTime");
     int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
+    int idFileHash = query.record().indexOf("FileHash");
+    int idImageHash = query.record().indexOf("ImageHash");
     int idTagStatus = query.record().indexOf("TagStatus");
     int idThumbnailStatus = query.record().indexOf("ThumbnailStatus");
     int idProcessStatus = query.record().indexOf("ProcessStatus");
@@ -404,6 +477,8 @@ QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
         astro.DirectoryPath = query.value(idDirectoryPath).toString();
         astro.FileType = AstroFileType(query.value(idFileType).toInt());
         astro.FileExtension = query.value(idFileExtension).toString();
+        astro.FileHash = query.value(idFileHash).toString();
+        astro.ImageHash = query.value(idImageHash).toString();
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
         ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());

@@ -42,7 +42,6 @@ public:
 public slots:
     void setFilterMinimumDate(QDate date);
     void setFilterMaximumDate(QDate date);
-    void addAstroFileTags(const AstroFile& astroFile);
     void searchFilterReset();
 
 signals:

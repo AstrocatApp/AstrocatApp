@@ -28,30 +28,44 @@
 
 QImage makeThumbnail(const QImage &image)
 {
-    QImage small =image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QImage small = image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     return small;
 }
 
-void FitsProcessor::extractTags(const AstroFileImage &astroFileImage)
+void FitsProcessor::extractTags()
 {
-    FitsFile fits;
-    auto ret = fits.loadFile(astroFileImage.astroFile.FullPath);
-    if (!ret)
-        // TODO: Return an astroimage with failed extraction status
-        return;
     fits.extractTags();
     _tags = fits.getTags();
 }
 
-void FitsProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
+void FitsProcessor::extractThumbnail()
 {
-    FitsFile fits;
+    fits.extractImage();
+    auto image = fits.getImage();
+    _thumbnail = makeThumbnail(image);
+    _imageHash = fits.getImageHash();
+}
+
+void FitsProcessor::loadFile(const AstroFileImage &astroFileImage)
+{
     auto ret = fits.loadFile(astroFileImage.astroFile.FullPath);
     if (!ret)
         // TODO: Return an astroimage with failed extraction status
         return;
-    fits.extractImage();
-    auto image = fits.getImage();
-    _thumbnail = makeThumbnail(image);
 }
 
+
+QMap<QString, QString> FitsProcessor::getTags()
+{
+    return _tags;
+}
+
+QImage FitsProcessor::getThumbnail()
+{
+    return _thumbnail;
+}
+
+QByteArray FitsProcessor::getImageHash()
+{
+    return _imageHash;
+}

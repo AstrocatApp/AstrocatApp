@@ -54,7 +54,6 @@ public slots:
 signals:
     void filterMinimumDateChanged(QDate date);
     void filterMaximumDateChanged(QDate date);
-    void astroFileAccepted(const AstroFile& astroFile) const;
     void filterReset();
 
 protected:
@@ -74,7 +73,6 @@ private:
     bool objectAccepted(QString object) const;
     bool filterAccepted(QString filter) const;
     bool extensionAccepted(QString filter) const;
-    bool shouldAcceptTagsForFilters(const AstroFileImage* astroFileImage) const;
 
 protected slots:
     virtual void resetInternalData();

@@ -24,12 +24,61 @@
 
 #include "imageprocessor.h"
 
-void ImageProcessor::extractTags(const AstroFileImage &astroFileImage)
+#include <QCryptographicHash>
+
+QByteArray ImageProcessor::fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)
 {
-//    emit tagsExtracted(astroFileImage, QMap<QString, QString>());
+    QFile sourceFile(fileName);
+    qint64 fileSize = sourceFile.size();
+    const qint64 bufferSize = 10240;
+
+    if (sourceFile.open(QIODevice::ReadOnly))
+    {
+        char buffer[bufferSize];
+        int bytesRead;
+        int readSize = qMin(fileSize, bufferSize);
+
+        QCryptographicHash hash(hashAlgorithm);
+        while (readSize > 0 && (bytesRead = sourceFile.read(buffer, readSize)) > 0)
+        {
+            fileSize -= bytesRead;
+            hash.addData(buffer, bytesRead);
+            readSize = qMin(fileSize, bufferSize);
+        }
+
+        sourceFile.close();
+        return hash.result();
+    }
+    return QByteArray();
 }
 
-void ImageProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
+void ImageProcessor::loadFile(const AstroFileImage &astroFileImage)
 {
-//    emit thumbnailExtracted(astroFileImage, QImage());
+    image.load(astroFileImage.astroFile.FullPath);
+    _imageHash = fileChecksum(astroFileImage.astroFile.FullPath, QCryptographicHash::Sha1);
 }
+
+void ImageProcessor::extractTags()
+{
+}
+
+void ImageProcessor::extractThumbnail()
+{
+    _thumbnail = image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
+
+QMap<QString, QString> ImageProcessor::getTags()
+{
+    return _tags;
+}
+
+QImage ImageProcessor::getThumbnail()
+{
+    return _thumbnail;
+}
+
+QByteArray ImageProcessor::getImageHash()
+{
+    return _imageHash;
+}
+

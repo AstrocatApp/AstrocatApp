@@ -43,12 +43,6 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     bool shouldAccept = dateInRange(d) && objectAccepted(astroFileImage->astroFile.Tags["OBJECT"]) && instrumentAccepted(astroFileImage->astroFile.Tags["INSTRUME"]) && filterAccepted(astroFileImage->astroFile.Tags["FILTER"]) && extensionAccepted(astroFileImage->astroFile.FileExtension);
 //    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags.value("OBJECT")) && instrumentAccepted(astroFile->Tags.value("INSTRUME")) && filterAccepted(astroFile->Tags.value("FILTER"));
 
-    if (shouldAccept && shouldAcceptTagsForFilters(astroFileImage))
-    {
-        qDebug() << "Accepting: " << astroFileImage->astroFile.FileName;
-        emit astroFileAccepted(astroFileImage->astroFile);
-    }
-
     return shouldAccept;
 }
 
@@ -65,11 +59,6 @@ bool SortFilterProxyModel::dateInRange(QDate date) const
 {
     return (!minDate.isValid() || date >= minDate) &&
            (!maxDate.isValid() || date <= maxDate);
-}
-
-bool SortFilterProxyModel::shouldAcceptTagsForFilters(const AstroFileImage* astroFileImage) const
-{
-    return astroFileImage->tagStatus == TagExtracted;
 }
 
 void SortFilterProxyModel::resetInternalData()

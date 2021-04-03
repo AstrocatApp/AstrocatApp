@@ -27,6 +27,8 @@
 
 #include "fitsfile.h"
 
+#include <QCryptographicHash>
+
 FitsFile::FitsFile()
 {
 
@@ -82,6 +84,12 @@ void FitsFile::extractTags()
 
         fits_movrel_hdu(_fptr, 1, NULL, &status);
     }
+}
+
+QByteArray calculateHash(QByteArray &array)
+{
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    return hash.hash(array,QCryptographicHash::Sha1);
 }
 
 void FitsFile::extractImage()
@@ -171,6 +179,9 @@ void FitsFile::extractImage()
 
     fits_read_img(_fptr, fitsDataType, 1, numberOfPixels, NULL, _data, NULL, &status);
     CHK_STATUS(status);
+
+    auto hashData = QByteArray((char*)_data, numberOfPixels * _bytesPerPixel * _numberOfChannels);
+    _imageHash = calculateHash(hashData);
 
     if (_numberOfChannels == 3)
     switch (_imageEquivType)

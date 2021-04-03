@@ -26,12 +26,24 @@
 #define FITSPROCESSOR_H
 
 #include "fileprocessor.h"
+#include "fitsfile.h"
 
 class FitsProcessor : public FileProcessor
 {
 public:
-    void extractTags(const AstroFileImage& astroFileImage);
-    void extractThumbnail(const AstroFileImage& astroFileImage);
+    void loadFile(const AstroFileImage &astroFileImage);
+    void extractTags();
+    void extractThumbnail();
+    QByteArray getImageHash();
+    QMap<QString, QString> getTags();
+    QImage getThumbnail();
+
+private:
+    QMap<QString, QString> _tags;
+    QImage _thumbnail;
+    QByteArray _imageHash;
+
+    FitsFile fits;
 };
 
 #endif // FITSPROCESSOR_H

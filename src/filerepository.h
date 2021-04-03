@@ -45,6 +45,9 @@ public slots:
     void loadModel();
     void insertAstrofileImage(const AstroFileImage& afi);
     void saveStatus(const AstroFileImage& astroFileImage);
+    void getDuplicateFiles();
+    void getDuplicateFilesByFileHash();
+    void getDuplicateFilesByImageHash();
 
 signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );

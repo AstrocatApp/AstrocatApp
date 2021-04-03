@@ -47,8 +47,8 @@ private:
     volatile bool cancelSignaled = false;
     FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);
     FileProcessor* getProcessorForFile(const AstroFile& astroFile);
-    AstroFileImage extractTags(const AstroFileImage& astroFileImage);
-    AstroFileImage extractThumbnail(const AstroFileImage& astroFileImage);
+
+    QByteArray getFileHash(const QFileInfo& fileInfo);
 };
 
 #endif // NEWFILEPROCESSOR_H

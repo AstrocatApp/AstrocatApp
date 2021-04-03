@@ -27,8 +27,11 @@
 #include "searchfolderdialog.h"
 #include "aboutwindow.h"
 
+#include <QContextMenuEvent>
 #include <QMessageBox>
 #include <QPainter>
+#include <QDesktopServices>
+#include <QProcess>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -65,7 +68,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusbar->addPermanentWidget(&numberOfItemsLabel);
     ui->statusbar->addPermanentWidget(&numberOfVisibleItemsLabel);
     ui->statusbar->addPermanentWidget(&numberOfSelectedItemsLabel);
-//    ui->statusbar->addPermanentWidget(&numberOfActiveJobsLabel);
+    //    ui->statusbar->addPermanentWidget(&numberOfActiveJobsLabel);
+
+    ui->astroListView->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+    createActions();
 
     connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
     connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);
@@ -78,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::dbAddThumbnail,                        fileRepositoryWorker,   &FileRepository::addThumbnail);
     connect(this,                   &MainWindow::insertAstrofileImage,                  fileRepositoryWorker,   &FileRepository::insertAstrofileImage);
     connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
+    connect(this,                   &MainWindow::dbGetDuplicates,                        fileRepositoryWorker, &FileRepository::getDuplicateFiles);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          this,                   &MainWindow::newFileFound);
     connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::removeAstroFile);
@@ -91,7 +98,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMinimumDateChanged,    filterView,             &FilterView::setFilterMinimumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterView,             &FilterView::setFilterMaximumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterReset,                 filterView,             &FilterView::searchFilterReset);
-    connect(sortFilterProxyModel,   &SortFilterProxyModel::astroFileAccepted,           filterView,             &FilterView::addAstroFileTags);
     connect(fileViewModel,          &FileViewModel::modelIsEmpty,                       this,                   &MainWindow::setWatermark);
     connect(fileViewModel,          &FileViewModel::itemsAdded,                          this,                   &MainWindow::itemAddedToModel);
     connect(fileViewModel,          &FileViewModel::itemsRemoved,                        this,                   &MainWindow::itemRemovedFromModel);
@@ -108,6 +114,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterView,             &FilterView::removeAcceptedExtension,               sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedExtension);
     connect(filterView,             &FilterView::astroFileAdded,                        this,                   &MainWindow::itemAddedToSortFilterView);
     connect(filterView,             &FilterView::astroFileRemoved,                      this,                   &MainWindow::itemRemovedFromSortFilterView);
+    connect(ui->astroListView,      &QWidget::customContextMenuRequested,             this,                   &MainWindow::itemContextMenuRequested);
     connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
 
     // Enable the tester during development and debugging. Disble before committing
@@ -154,6 +161,8 @@ void MainWindow::initialize()
     setWatermark(true);
     emit loadModelFromDb();
     isInitialized = true;
+    emit dbGetDuplicates();
+
 }
 
 void MainWindow::cleanUpWorker(QThread* thread)
@@ -383,6 +392,27 @@ void MainWindow::itemRemovedFromSortFilterView(int numberRemoved)
     this->numberOfVisibleItemsLabel.setText(QString("Shown Items: %1").arg(numberOfVisibleItems));
 }
 
+void MainWindow::itemContextMenuRequested(const QPoint &pos)
+{
+    auto index = ui->astroListView->indexAt(pos);
+    if (!index.isValid())
+        return;
+
+    QItemSelectionModel *select = ui->astroListView->selectionModel();
+    auto items = select->selectedRows();
+
+    for (auto item: items)
+    {
+        qDebug()<<"Context Menu Requested: " << item;
+    }
+
+    QMenu menu(this);
+    menu.addAction(revealAct);
+    menu.addAction(removeAct);
+    auto menuPos = ui->astroListView->viewport()->mapToGlobal(pos);
+    menu.exec(menuPos);
+}
+
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     Q_UNUSED(event);
@@ -393,4 +423,92 @@ void MainWindow::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event);
     setWatermark(shouldShowWatermark);
+}
+
+void revealFile(QWidget* parent, const QString &pathToReveal) {
+
+    // See http://stackoverflow.com/questions/3490336/how-to-reveal-in-finder-or-show-in-explorer-with-qt
+    // for details
+
+    // Mac, Windows support folder or file.
+#if defined(Q_OS_WIN)
+    const QString explorer = Environment::systemEnvironment().searchInPath(QLatin1String("explorer.exe"));
+    if (explorer.isEmpty()) {
+        QMessageBox::warning(parent,
+                             tr("Launching Windows Explorer failed"),
+                             tr("Could not find explorer.exe in path to launch Windows Explorer."));
+        return;
+    }
+    QString param;
+    if (!QFileInfo(pathIn).isDir())
+        param = QLatin1String("/select,");
+    param += QDir::toNativeSeparators(pathIn);
+    QString command = explorer + " " + param;
+    QString command = explorer + " " + param;
+    QProcess::startDetached(command);
+
+#elif defined(Q_OS_MAC)
+    Q_UNUSED(parent)
+    QStringList scriptArgs;
+    scriptArgs << QLatin1String("-e")
+            << QString::fromLatin1("tell application \"Finder\" to reveal POSIX file \"%1\"")
+            .arg(pathToReveal);
+    QProcess::execute(QLatin1String("/usr/bin/osascript"), scriptArgs);
+    scriptArgs.clear();
+    scriptArgs << QLatin1String("-e")
+            << QLatin1String("tell application \"Finder\" to activate");
+    QProcess::execute("/usr/bin/osascript", scriptArgs);
+#else
+    // we cannot select a file here, because no file browser really supports it...
+    const QFileInfo fileInfo(pathIn);
+    const QString folder = fileInfo.absoluteFilePath();
+    const QString app = Utils::UnixUtils::fileBrowser(Core::ICore::instance()->settings());
+    QProcess browserProc;
+    const QString browserArgs = Utils::UnixUtils::substituteFileBrowserParameters(app, folder);
+    if (debug)
+        qDebug() <<  browserArgs;
+    bool success = browserProc.startDetached(browserArgs);
+    const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
+    success = success && error.isEmpty();
+    if (!success)
+        showGraphicalShellError(parent, app, error);
+#endif
+
+}
+
+void MainWindow::reveal()
+{
+    QItemSelectionModel *select = ui->astroListView->selectionModel();
+    auto items = select->selectedRows();
+
+    for (auto item: items)
+    {
+        auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::FullPathRole).toString();
+        qDebug()<<"Revealing: " << QUrl::fromLocalFile( fullPath );
+        revealFile(this, fullPath);
+    }
+}
+
+void MainWindow::remove()
+{
+    QItemSelectionModel *select = ui->astroListView->selectionModel();
+    auto items = select->selectedRows();
+
+    for (auto item: items)
+    {
+        auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::FullPathRole).toString();
+        qDebug()<<"Removing: " << QUrl::fromLocalFile( fullPath );
+        // TODO: Remove it here
+    }
+}
+
+void MainWindow::createActions()
+{
+    revealAct = new QAction(tr("Reveal"), this);
+    revealAct->setStatusTip(tr("Open the file in the file browser"));
+    connect(revealAct, &QAction::triggered, this, &MainWindow::reveal);
+
+    removeAct = new QAction(tr("Remove"), this);
+    removeAct->setStatusTip(tr("Removes the image from the catalog. Does not delete the file."));
+    connect(removeAct, &QAction::triggered, this, &MainWindow::remove);
 }
