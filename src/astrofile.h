@@ -94,7 +94,11 @@ struct AstroFile
             FileType = AstroFileType::Image;
         else if (suffix == "jpg")
             FileType = AstroFileType::Image;
+        else if (suffix == "gif")
+            FileType = AstroFileType::Image;
         else if (suffix == "jpeg")
+            FileType = AstroFileType::Image;
+        else if (suffix == "tif")
             FileType = AstroFileType::Image;
         else if (suffix == "tiff")
             FileType = AstroFileType::Image;

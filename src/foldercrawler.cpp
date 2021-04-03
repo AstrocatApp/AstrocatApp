@@ -33,7 +33,7 @@ FolderCrawler::FolderCrawler(QObject *parent) : QObject(parent)
 
 void FolderCrawler::crawl(QString rootFolder)
 {
-    QStringList extensions = {"*.fits", "*.fit", "*.xisf"};
+    QStringList extensions = {"*.fits", "*.fit", "*.xisf", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.tif", "*.tiff"};
 
     QDirIterator it(rootFolder, extensions, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext())
