@@ -57,7 +57,7 @@ TRANSLATIONS += \
 RESOURCES += \
     Resources.qrc
 
-LIBS += -L$$PWD/../external/build/libs/ -llcms -llz4 -lpcl -lRFC6234 -lcfitsio -lzlib
+LIBS += -L$$PWD/../external/build/libs/ -lpcl -llcms -llz4 -lRFC6234 -lcfitsio -lzlib
 
 win32 {
     LIBS += -L$$PWD/../external/build/libs/Release
@@ -67,6 +67,9 @@ win32 {
 }
 macx {
     DEFINES += __PCL_MACOSX
+}
+linux {
+DEFINES += __PCL_LINUX
 }
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
