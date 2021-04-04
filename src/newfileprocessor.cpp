@@ -59,7 +59,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 
     processor->extractThumbnail();
     auto thumbnail = processor->getThumbnail();
-    astroFile.image = thumbnail;
+    astroFile.thumbnail = thumbnail;
     astroFile.thumbnailStatus = Loaded;
 
     qDebug()<<"File: "<<astroFile.FullPath;

@@ -567,7 +567,7 @@ void FileRepository::loadModel()
         thumbiter.next();
         auto fitsId = thumbiter.key();
         auto& image = thumbiter.value();
-        fitsmap[fitsId].image = image;
+        fitsmap[fitsId].thumbnail = image;
         fitsmap[fitsId].thumbnailStatus = Loaded;
     }
 

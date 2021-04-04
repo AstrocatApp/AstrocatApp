@@ -181,12 +181,12 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         }
         case Qt::DecorationRole:
         {
-            if (a.image.isNull())
+            if (a.thumbnail.isNull())
             {
                 auto img = QImage(":Icons/resources/loading.png");
                 return img;
             }
-            QImage small = a.image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            QImage small = a.thumbnail.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             return small;
         }
         case Qt::SizeHintRole:

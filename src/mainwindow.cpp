@@ -319,7 +319,7 @@ void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 {
     emit dbAddOrUpdateAstroFile(astroFile);
     emit dbAddTags(astroFile);
-    emit dbAddThumbnail(astroFile, astroFile.image);
+    emit dbAddThumbnail(astroFile, astroFile.thumbnail);
     fileViewModel->addAstroFile(astroFile);
     numberOfActiveJobs--;
 //    this->numberOfActiveJobsLabel.setText(QString("Jobs Queue: %1").arg(numberOfActiveJobs));

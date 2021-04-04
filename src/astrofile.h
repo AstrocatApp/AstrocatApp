@@ -72,7 +72,7 @@ struct AstroFile
     QString ImageHash;
     QMap<QString, QString> Tags;
 
-    QImage image;
+    QImage thumbnail;
     ThumbnailLoadStatus thumbnailStatus;
     TagExtractStatus tagStatus;
     AstroFileProcessStatus processStatus;
@@ -84,7 +84,7 @@ struct AstroFile
     AstroFile(const AstroFile& other)
         : FileName(other.FileName), FullPath(other.FullPath),  DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
           CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
-          image(other.image), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus)
+          thumbnail(other.thumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus)
     {
     }
 
