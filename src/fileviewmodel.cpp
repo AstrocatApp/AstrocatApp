@@ -44,10 +44,9 @@ void FileViewModel::setInitialModel(const QList<AstroFile> &files)
     {
         fileList.append(i);
         fileMap.insert(i.FullPath, i);
-        insertRow(count);
-
         count++;
     }
+    insertRows(0, count, QModelIndex());
 }
 
 int FileViewModel::rowCount(const QModelIndex &parent) const
@@ -88,7 +87,7 @@ bool FileViewModel::insertRows(int row, int count, const QModelIndex &parent)
     beginInsertRows(parent, row, row + count -1);
     rc+= count;
     endInsertRows();
-    if (rc == 1)
+    if (rc >= 1)
         emit modelIsEmpty(false);
 
     // The following signal is used by the Main Window to display the number of items.
