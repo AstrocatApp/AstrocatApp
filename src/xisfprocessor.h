@@ -45,7 +45,7 @@ class XisfProcessor : public FileProcessor
 {
 public:
     ~XisfProcessor() noexcept;
-    void loadFile(const AstroFileImage &astroFileImage);
+    void loadFile(const AstroFile &astroFile);
     void extractTags();
     void extractThumbnail();
     QMap<QString, QString> getTags();

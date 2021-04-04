@@ -79,10 +79,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::loadModelFromDb,                       fileRepositoryWorker,   &FileRepository::loadModel);
     connect(this,                   &MainWindow::loadModelIntoViewModel,                fileViewModel,          &FileViewModel::setInitialModel);
     connect(this,                   &MainWindow::resetModel,                            fileViewModel,          &FileViewModel::clearModel);
-    connect(this,                   &MainWindow::dbAddOrUpdateAstroFileImage,           fileRepositoryWorker,   &FileRepository::insertAstrofileImage);
+    connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,           fileRepositoryWorker,   &FileRepository::insertAstrofile);
     connect(this,                   &MainWindow::dbAddTags,                             fileRepositoryWorker,   &FileRepository::addTags);
     connect(this,                   &MainWindow::dbAddThumbnail,                        fileRepositoryWorker,   &FileRepository::addThumbnail);
-    connect(this,                   &MainWindow::insertAstrofileImage,                  fileRepositoryWorker,   &FileRepository::insertAstrofileImage);
+    connect(this,                   &MainWindow::insertAstrofile,                  fileRepositoryWorker,   &FileRepository::insertAstrofile);
     connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
     connect(this,                   &MainWindow::dbGetDuplicates,                        fileRepositoryWorker, &FileRepository::getDuplicateFiles);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          this,                   &MainWindow::newFileFound);
@@ -175,7 +175,6 @@ void MainWindow::cleanUpWorker(QThread* thread)
 void MainWindow::newFileFound(const QFileInfo fileInfo)
 {
     AstroFile astroFile(fileInfo);
-    AstroFileImage afi(astroFile, QImage());
 
     if (fileViewModel->astroFileExists(fileInfo.absoluteFilePath()))
     {
@@ -307,7 +306,7 @@ void MainWindow::handleSelectionChanged(QItemSelection selection)
     ui->imagesizeLabel->setText(xSize+"x"+ySize);
 }
 
-void MainWindow::modelLoadedFromDb(const QList<AstroFileImage> &files)
+void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
 {
     _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
     setWatermark(true);
@@ -316,12 +315,12 @@ void MainWindow::modelLoadedFromDb(const QList<AstroFileImage> &files)
     crawlAllSearchFolders();
 }
 
-void MainWindow::astroFileProcessed(const AstroFileImage &astroFileImage)
+void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 {
-    emit dbAddOrUpdateAstroFileImage(astroFileImage);
-    emit dbAddTags(astroFileImage);
-    emit dbAddThumbnail(astroFileImage, astroFileImage.image);
-    fileViewModel->addAstroFile(astroFileImage);
+    emit dbAddOrUpdateAstroFile(astroFile);
+    emit dbAddTags(astroFile);
+    emit dbAddThumbnail(astroFile, astroFile.image);
+    fileViewModel->addAstroFile(astroFile);
     numberOfActiveJobs--;
 //    this->numberOfActiveJobsLabel.setText(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
     ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));

@@ -40,7 +40,7 @@ public:
     void cancel();
 
 signals:
-    void astrofileProcessed(const AstroFileImage& astroFileImage);
+    void astrofileProcessed(const AstroFile& astroFile);
     void processingCancelled(const QFileInfo& fileInfo);
 
 private:

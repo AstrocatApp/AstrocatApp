@@ -31,7 +31,7 @@
 class FitsProcessor : public FileProcessor
 {
 public:
-    void loadFile(const AstroFileImage &astroFileImage);
+    void loadFile(const AstroFile &astroFile);
     void extractTags();
     void extractThumbnail();
     QByteArray getImageHash();
