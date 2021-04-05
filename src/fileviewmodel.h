@@ -47,7 +47,8 @@ enum AstroFileRoles
     BayerModeRole,
     OffsetRole,
     FileTypeRole,
-    FileExtensionRole
+    FileExtensionRole,
+    FileHashRole
 };
 
 class FileViewModel : public QAbstractItemModel

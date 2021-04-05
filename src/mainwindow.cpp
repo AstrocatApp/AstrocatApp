@@ -511,3 +511,16 @@ void MainWindow::createActions()
     removeAct->setStatusTip(tr("Removes the image from the catalog. Does not delete the file."));
     connect(removeAct, &QAction::triggered, this, &MainWindow::remove);
 }
+
+void MainWindow::on_duplicatesButton_clicked()
+{
+    QItemSelectionModel *select = ui->astroListView->selectionModel();
+    auto items = select->selectedRows();
+    if (items.count() != 1)
+        return;
+
+    auto hash = sortFilterProxyModel->data(items[0], AstroFileRoles::FileHashRole).toString();
+    this->sortFilterProxyModel->setDuplicatesFilter(hash);
+    this->sortFilterProxyModel->activateDuplicatesFilter(true);
+
+}

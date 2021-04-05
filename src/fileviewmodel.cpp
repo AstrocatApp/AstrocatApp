@@ -256,6 +256,10 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         {
             return a.FileExtension;
         }
+        case AstroFileRoles::FileHashRole:
+        {
+            return a.FileHash;
+        }
     }
 
     return QVariant();

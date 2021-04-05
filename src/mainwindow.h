@@ -99,6 +99,8 @@ private slots:
 
     void reveal();
     void remove();
+    void on_duplicatesButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     bool isInitialized;

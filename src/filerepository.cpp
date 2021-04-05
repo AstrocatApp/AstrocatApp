@@ -129,7 +129,8 @@ void FileRepository::createTables()
             "ThumbnailStatus INTEGER, "
             "ProcessStatus INTEGER,"
             "FileHash TEXT,"
-            "ImageHash TEXT)");
+            "ImageHash TEXT,"
+            "IsHidden INTEGER)");
 
     if(!fitsquery.isActive())
         qWarning() << "ERROR: " << fitsquery.lastError().text();
@@ -243,6 +244,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
         int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
         int idFileHash = query.record().indexOf("FileHash");
         int idImageHash = query.record().indexOf("ImageHash");
+        int idIsHidden = query.record().indexOf("IsHidden");
         AstroFile astro;
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
@@ -253,6 +255,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
         astro.FileHash = query.value(idFileHash).toString();
         astro.ImageHash = query.value(idImageHash).toString();
+        astro.IsHidden = query.value(idIsHidden).toInt();
 
         int astroFileId = query.value(idId).toInt();
         if (includeTags)
@@ -276,8 +279,8 @@ void FileRepository::insertAstrofile(const AstroFile& astroFile)
 
     QSqlQuery queryAdd;
 
-    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime, TagStatus, ThumbnailStatus, ProcessStatus, FileHash, ImageHash) "
-                        "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime, :TagStatus, :ThumbnailStatus, :ProcessStatus, :FileHash, :ImageHash)");
+    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime,TagStatus,ThumbnailStatus,ProcessStatus,FileHash,ImageHash,IsHidden) "
+                        "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime,:TagStatus,:ThumbnailStatus,:ProcessStatus,:FileHash,:ImageHash,:IsHidden)");
     queryAdd.bindValue(":FileName", astroFile.FileName);
     queryAdd.bindValue(":FullPath", astroFile.FullPath);
     queryAdd.bindValue(":DirectoryPath", astroFile.DirectoryPath);
@@ -290,6 +293,7 @@ void FileRepository::insertAstrofile(const AstroFile& astroFile)
     queryAdd.bindValue(":TagStatus", astroFile.tagStatus);
     queryAdd.bindValue(":ThumbnailStatus", astroFile.thumbnailStatus);
     queryAdd.bindValue(":ProcessStatus", astroFile.processStatus);
+    queryAdd.bindValue(":IsHidden", astroFile.IsHidden);
 
     if(queryAdd.exec())
     {
@@ -461,6 +465,7 @@ QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
     int idTagStatus = query.record().indexOf("TagStatus");
     int idThumbnailStatus = query.record().indexOf("ThumbnailStatus");
     int idProcessStatus = query.record().indexOf("ProcessStatus");
+    int idIsHidden = query.record().indexOf("IsHidden");
 
     QMap<int, AstroFile> files;
     while (query.next())
@@ -479,6 +484,7 @@ QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
         astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
         astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
         astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
+        astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
 
         files.insert(astroFileId, astro);
     }
