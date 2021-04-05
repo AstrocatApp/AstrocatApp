@@ -179,7 +179,6 @@ void MainWindow::newFileFound(const QFileInfo fileInfo)
     if (fileViewModel->astroFileExists(fileInfo.absoluteFilePath()))
     {
         // TODO: Only do this if the timestamp is the same.
-        qDebug() << "File already in model";
     }
     else
     {
@@ -385,14 +384,12 @@ void MainWindow::modelReset()
 
 void MainWindow::itemAddedToSortFilterView(int numberAdded)
 {
-    qDebug() << "Added to Sort filter View : " << numberAdded;
     this->numberOfVisibleItems+= numberAdded;
     this->numberOfVisibleItemsLabel.setText(QString("Shown Items: %1").arg(numberOfVisibleItems));
 }
 
 void MainWindow::itemRemovedFromSortFilterView(int numberRemoved)
 {
-    qDebug() << "Removed from Sort filter View : " << numberRemoved;
     this->numberOfVisibleItems-=numberRemoved;
     this->numberOfVisibleItemsLabel.setText(QString("Shown Items: %1").arg(numberOfVisibleItems));
 }
@@ -405,11 +402,6 @@ void MainWindow::itemContextMenuRequested(const QPoint &pos)
 
     QItemSelectionModel *select = ui->astroListView->selectionModel();
     auto items = select->selectedRows();
-
-    for (auto item: items)
-    {
-        qDebug()<<"Context Menu Requested: " << item;
-    }
 
     QMenu menu(this);
     menu.addAction(revealAct);
@@ -470,8 +462,6 @@ void revealFile(QWidget* parent, const QString &pathToReveal) {
     const QString app = Utils::UnixUtils::fileBrowser(Core::ICore::instance()->settings());
     QProcess browserProc;
     const QString browserArgs = Utils::UnixUtils::substituteFileBrowserParameters(app, folder);
-    if (debug)
-        qDebug() <<  browserArgs;
     bool success = browserProc.startDetached(browserArgs);
     const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
     success = success && error.isEmpty();
@@ -489,7 +479,6 @@ void MainWindow::reveal()
     for (auto item: items)
     {
         auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::FullPathRole).toString();
-        qDebug()<<"Revealing: " << QUrl::fromLocalFile( fullPath );
         revealFile(this, fullPath);
     }
 }
@@ -502,7 +491,6 @@ void MainWindow::remove()
     for (auto item: items)
     {
         auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::FullPathRole).toString();
-        qDebug()<<"Removing: " << QUrl::fromLocalFile( fullPath );
         // TODO: Remove it here
     }
 }
@@ -528,5 +516,4 @@ void MainWindow::on_duplicatesButton_clicked()
     auto hash = sortFilterProxyModel->data(items[0], AstroFileRoles::FileHashRole).toString();
     this->sortFilterProxyModel->setDuplicatesFilter(hash);
     this->sortFilterProxyModel->activateDuplicatesFilter(true);
-
 }

@@ -273,7 +273,6 @@ void FileRepository::insertAstrofile(const AstroFile& astroFile)
 {
     if (cancelSignaled)
     {
-        qDebug() << "Cancel signaled. Draining DB Queue.";
         return;
     }
 
@@ -295,22 +294,12 @@ void FileRepository::insertAstrofile(const AstroFile& astroFile)
     queryAdd.bindValue(":ProcessStatus", astroFile.processStatus);
     queryAdd.bindValue(":IsHidden", astroFile.IsHidden);
 
-    if(queryAdd.exec())
-    {
-        qDebug() << "record added " << astroFile.FullPath;
-    }
-    else
+    if(!queryAdd.exec())
         qDebug() << "record could not add: " << queryAdd.lastError();
 }
 
 void FileRepository::deleteAstrofilesInFolder(const QString fullPath)
 {
-//    if (cancelSignaled)
-//    {
-//        qDebug() << "Cancel signaled. Draining DB Queue.";
-//        return;
-//    }
-
     auto files = getAstrofilesInFolder(fullPath, false);
     QSqlQuery query;
     QString paddedFullPath;
@@ -338,7 +327,6 @@ void FileRepository::addTags(const AstroFile& astroFile)
 {
     if (cancelSignaled)
     {
-        qDebug() << "Cancel signaled. Draining DB Queue.";
         return;
     }
 
@@ -369,7 +357,6 @@ void FileRepository::addThumbnail(const AstroFile &astroFile, const QImage& thum
 {
     if (cancelSignaled)
     {
-        qDebug() << "Cancel signaled. Draining DB Queue.";
         return;
     }
 
@@ -399,7 +386,6 @@ void FileRepository::saveStatus(const AstroFile& astroFile)
 {
     if (cancelSignaled)
     {
-        qDebug() << "Cancel signaled. Draining DB Queue.";
         return;
     }
 
@@ -413,9 +399,7 @@ void FileRepository::saveStatus(const AstroFile& astroFile)
 
 void FileRepository::getDuplicateFiles()
 {
-    qDebug()<<"By File Hash:";
     getDuplicateFilesByFileHash();
-    qDebug()<<"By Image Hash:";
     getDuplicateFilesByImageHash();
 }
 void FileRepository::getDuplicateFilesByFileHash()
@@ -429,10 +413,9 @@ void FileRepository::getDuplicateFilesByFileHash()
     {
         int count = query.value(idCount).toInt();
         QString fullPath = query.value(idFullPath).toString();
-
-        qDebug()<<"Duplicate: " << fullPath << " Count: " << count;
     }
 }
+
 void FileRepository::getDuplicateFilesByImageHash()
 {
     QSqlQuery query("SELECT FullPath, COUNT(*) c FROM fits GROUP BY ImageHash HAVING c > 1");
@@ -444,10 +427,9 @@ void FileRepository::getDuplicateFilesByImageHash()
     {
         int count = query.value(idCount).toInt();
         QString fullPath = query.value(idFullPath).toString();
-
-        qDebug()<<"Duplicate: " << fullPath << " Count: " << count;
     }
 }
+
 QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
 {
     QSqlQuery query("SELECT * FROM fits");

@@ -112,7 +112,7 @@ void FitsFile::extractImage()
 
     if (naxis < 2)
     {
-        qDebug() << "Not a 2D image";
+        // Not a 2D Image
         return;
     }
 
