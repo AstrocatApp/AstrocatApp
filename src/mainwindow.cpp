@@ -205,12 +205,18 @@ void MainWindow::on_imageSizeSlider_valueChanged(int value)
     if (!currentIndex.isValid())
         currentIndex = ui->astroListView->indexAt(QPoint(0,0));
 
+    QPersistentModelIndex pIndex(currentIndex);
+
+    // TODO: This call causes filterAcceptsRow() to be called in the sortFilterProxyModel. Investigate and see if we need to fix.
     fileViewModel->setCellSize(value);
 
     // TODO: This call causes filterAcceptsRow() to be called in the sortFilterProxyModel. Investigate and see if we need to fix.
-    auto scrollToIndex = sortFilterProxyModel->index(currentIndex.row(), currentIndex.column(), QModelIndex());
+//    auto scrollToIndex = sortFilterProxyModel->index(currentIndex.row(), currentIndex.column(), QModelIndex());
+//    auto scrollToIndex = sortFilterProxyModel->mapFromSource(currentIndex);
 
-    ui->astroListView->scrollTo(scrollToIndex, QAbstractItemView::ScrollHint::PositionAtTop);
+    ui->astroListView->scrollTo(pIndex, QAbstractItemView::ScrollHint::EnsureVisible);
+//    ui->astroListView->scrollTo(currentIndex, QAbstractItemView::ScrollHint::PositionAtTop);
+//    ui->astroListView->scrollTo(currentIndex);
 }
 
 QImage MainWindow::makeThumbnail(const QImage &image)
