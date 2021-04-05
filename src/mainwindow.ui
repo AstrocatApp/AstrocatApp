@@ -96,7 +96,7 @@
        <widget class="QFrame" name="detailsFrame">
         <property name="minimumSize">
          <size>
-          <width>200</width>
+          <width>250</width>
           <height>0</height>
          </size>
         </property>
@@ -317,6 +317,13 @@
            </property>
            <property name="wordWrap">
             <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="0">
+          <widget class="QPushButton" name="duplicatesButton">
+           <property name="text">
+            <string>Find Duplicates</string>
            </property>
           </widget>
          </item>

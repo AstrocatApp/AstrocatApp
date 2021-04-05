@@ -43,6 +43,8 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension);
 //    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags.value("OBJECT")) && instrumentAccepted(astroFile->Tags.value("INSTRUME")) && filterAccepted(astroFile->Tags.value("FILTER"));
 
+    if (isDuplicatedFilterActive)
+        shouldAccept = shouldAccept && isDuplicateOf(astroFile->FileHash);
     return shouldAccept;
 }
 
@@ -84,6 +86,11 @@ bool SortFilterProxyModel::filterAccepted(QString filter) const
 bool SortFilterProxyModel::extensionAccepted(QString extension) const
 {
     return acceptedExtensions.empty() || acceptedExtensions.contains(extension) || (acceptedExtensions.contains("None") && extension.isEmpty());
+}
+
+bool SortFilterProxyModel::isDuplicateOf(QString hash) const
+{
+    return hash == this->duplicatesFilter;
 }
 
 void SortFilterProxyModel::setFilterMinimumDate(QDate date)
@@ -174,6 +181,17 @@ void SortFilterProxyModel::removeAcceptedExtension(QString extensionName)
         emit filterReset();
         invalidateFilter();
     }
+}
+
+void SortFilterProxyModel::activateDuplicatesFilter(bool shouldActivate)
+{
+    isDuplicatedFilterActive = shouldActivate;
+    invalidateFilter();
+}
+
+void SortFilterProxyModel::setDuplicatesFilter(QString filter)
+{
+    this->duplicatesFilter = filter;
 }
 
 

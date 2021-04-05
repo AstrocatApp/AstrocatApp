@@ -76,15 +76,16 @@ struct AstroFile
     ThumbnailLoadStatus thumbnailStatus;
     TagExtractStatus tagStatus;
     AstroFileProcessStatus processStatus;
+    bool IsHidden;
 
     AstroFile()
     {
     }
 
     AstroFile(const AstroFile& other)
-        : FileName(other.FileName), FullPath(other.FullPath),  DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
+        : FileName(other.FileName), FullPath(other.FullPath), DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
           CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
-          thumbnail(other.thumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus)
+          thumbnail(other.thumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus), IsHidden(other.IsHidden)
     {
     }
 
@@ -96,6 +97,8 @@ struct AstroFile
         DirectoryPath = fileInfo.canonicalPath();
         FileName = fileInfo.baseName();
         FileExtension = fileInfo.suffix();
+
+        IsHidden = false;
 
         QString suffix = FileExtension.toLower();
         if ( suffix == "fits")
@@ -115,6 +118,8 @@ struct AstroFile
         else if (suffix == "tif")
             FileType = AstroFileType::Image;
         else if (suffix == "tiff")
+            FileType = AstroFileType::Image;
+        else if (suffix == "bmp")
             FileType = AstroFileType::Image;
         else FileType = AstroFileType::Unknown;
     }

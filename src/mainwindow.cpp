@@ -205,12 +205,18 @@ void MainWindow::on_imageSizeSlider_valueChanged(int value)
     if (!currentIndex.isValid())
         currentIndex = ui->astroListView->indexAt(QPoint(0,0));
 
+    QPersistentModelIndex pIndex(currentIndex);
+
+    // TODO: This call causes filterAcceptsRow() to be called in the sortFilterProxyModel. Investigate and see if we need to fix.
     fileViewModel->setCellSize(value);
 
     // TODO: This call causes filterAcceptsRow() to be called in the sortFilterProxyModel. Investigate and see if we need to fix.
-    auto scrollToIndex = sortFilterProxyModel->index(currentIndex.row(), currentIndex.column(), QModelIndex());
+//    auto scrollToIndex = sortFilterProxyModel->index(currentIndex.row(), currentIndex.column(), QModelIndex());
+//    auto scrollToIndex = sortFilterProxyModel->mapFromSource(currentIndex);
 
-    ui->astroListView->scrollTo(scrollToIndex, QAbstractItemView::ScrollHint::PositionAtTop);
+    ui->astroListView->scrollTo(pIndex, QAbstractItemView::ScrollHint::EnsureVisible);
+//    ui->astroListView->scrollTo(currentIndex, QAbstractItemView::ScrollHint::PositionAtTop);
+//    ui->astroListView->scrollTo(currentIndex);
 }
 
 QImage MainWindow::makeThumbnail(const QImage &image)
@@ -510,4 +516,17 @@ void MainWindow::createActions()
     removeAct = new QAction(tr("Remove"), this);
     removeAct->setStatusTip(tr("Removes the image from the catalog. Does not delete the file."));
     connect(removeAct, &QAction::triggered, this, &MainWindow::remove);
+}
+
+void MainWindow::on_duplicatesButton_clicked()
+{
+    QItemSelectionModel *select = ui->astroListView->selectionModel();
+    auto items = select->selectedRows();
+    if (items.count() != 1)
+        return;
+
+    auto hash = sortFilterProxyModel->data(items[0], AstroFileRoles::FileHashRole).toString();
+    this->sortFilterProxyModel->setDuplicatesFilter(hash);
+    this->sortFilterProxyModel->activateDuplicatesFilter(true);
+
 }
