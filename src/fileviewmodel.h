@@ -73,8 +73,8 @@ public slots:
     void setCellSize(const int newSize);
     void removeAstroFile(AstroFile astroFile);
     void clearModel();
-    void setInitialModel(const QList<AstroFileImage>& files);
-    void addAstroFile(const AstroFileImage& astroFileImage);
+    void setInitialModel(const QList<AstroFile>& files);
+    void addAstroFile(const AstroFile& astroFile);
 
 signals:
     void modelIsEmpty(bool isEmpty);
@@ -84,8 +84,8 @@ signals:
 private:
     int rc;
     int cc;
-    QList<AstroFileImage> fileList;
-    QMap<QString, AstroFileImage> fileMap;
+    QList<AstroFile> fileList;
+    QMap<QString, AstroFile> fileMap;
     int getRowForAstroFile(const AstroFile& astroFile);
     QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
     QSize cellSize = QSize(200, 200);

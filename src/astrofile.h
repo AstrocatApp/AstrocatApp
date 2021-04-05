@@ -72,7 +72,19 @@ struct AstroFile
     QString ImageHash;
     QMap<QString, QString> Tags;
 
+    QImage thumbnail;
+    ThumbnailLoadStatus thumbnailStatus;
+    TagExtractStatus tagStatus;
+    AstroFileProcessStatus processStatus;
+
     AstroFile()
+    {
+    }
+
+    AstroFile(const AstroFile& other)
+        : FileName(other.FileName), FullPath(other.FullPath),  DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
+          CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
+          thumbnail(other.thumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus)
     {
     }
 
@@ -104,28 +116,8 @@ struct AstroFile
             FileType = AstroFileType::Image;
         else if (suffix == "tiff")
             FileType = AstroFileType::Image;
+        else FileType = AstroFileType::Unknown;
     }
-};
-
-struct AstroFileImage
-{
-    AstroFileImage() {}
-    AstroFileImage(const AstroFileImage& other)
-        :astroFile(other.astroFile), image(other.image), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus)
-    {}
-    AstroFileImage(AstroFile file,
-                   QImage img,
-                   ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus::NotProcessedYet,
-                   TagExtractStatus tagStatus = TagExtractStatus::TagNotProcessedYet,
-                   AstroFileProcessStatus processStatus = AstroFileProcessStatus::NeedsToBeProcessed)
-        :astroFile(file), image(img), thumbnailStatus(thumbnailStatus), tagStatus(tagStatus), processStatus(processStatus)
-    {
-    }
-    AstroFile astroFile;
-    QImage image;
-    ThumbnailLoadStatus thumbnailStatus;
-    TagExtractStatus tagStatus;
-    AstroFileProcessStatus processStatus;
 };
 
 #endif // ASTROFILE_H

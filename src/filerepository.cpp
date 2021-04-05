@@ -266,7 +266,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
     return files;
 }
 
-void FileRepository::insertAstrofileImage(const AstroFileImage& astroFileImage)
+void FileRepository::insertAstrofile(const AstroFile& astroFile)
 {
     if (cancelSignaled)
     {
@@ -275,7 +275,6 @@ void FileRepository::insertAstrofileImage(const AstroFileImage& astroFileImage)
     }
 
     QSqlQuery queryAdd;
-    auto& astroFile = astroFileImage.astroFile;
 
     queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime, TagStatus, ThumbnailStatus, ProcessStatus, FileHash, ImageHash) "
                         "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime, :TagStatus, :ThumbnailStatus, :ProcessStatus, :FileHash, :ImageHash)");
@@ -288,9 +287,9 @@ void FileRepository::insertAstrofileImage(const AstroFileImage& astroFileImage)
     queryAdd.bindValue(":LastModifiedTime", astroFile.LastModifiedTime);
     queryAdd.bindValue(":FileHash", astroFile.FileHash);
     queryAdd.bindValue(":ImageHash", astroFile.ImageHash);
-    queryAdd.bindValue(":TagStatus", astroFileImage.tagStatus);
-    queryAdd.bindValue(":ThumbnailStatus", astroFileImage.thumbnailStatus);
-    queryAdd.bindValue(":ProcessStatus", astroFileImage.processStatus);
+    queryAdd.bindValue(":TagStatus", astroFile.tagStatus);
+    queryAdd.bindValue(":ThumbnailStatus", astroFile.thumbnailStatus);
+    queryAdd.bindValue(":ProcessStatus", astroFile.processStatus);
 
     if(queryAdd.exec())
     {
@@ -331,7 +330,7 @@ void FileRepository::deleteAstrofilesInFolder(const QString fullPath)
     }
 }
 
-void FileRepository::addTags(const AstroFileImage& astroFileImage)
+void FileRepository::addTags(const AstroFile& astroFile)
 {
     if (cancelSignaled)
     {
@@ -339,7 +338,6 @@ void FileRepository::addTags(const AstroFileImage& astroFileImage)
         return;
     }
 
-    auto& astroFile = astroFileImage.astroFile;
     int id = GetAstroFileId(astroFile.FullPath);
     for (auto iter = astroFile.Tags.constBegin(); iter != astroFile.Tags.constEnd(); ++iter)
     {
@@ -357,13 +355,13 @@ void FileRepository::addTags(const AstroFileImage& astroFileImage)
 
     QSqlQuery tagStatusQuery;
     tagStatusQuery.prepare("UPDATE fits set TagStatus = :tagStatus WHERE FullPath = :fullPath");
-    tagStatusQuery.bindValue(":tagStatus", astroFileImage.tagStatus);
+    tagStatusQuery.bindValue(":tagStatus", astroFile.tagStatus);
     tagStatusQuery.bindValue(":fullPath", astroFile.FullPath);
     if (!tagStatusQuery.exec())
         qDebug() << "FAILED to execute UPDATE TAG Status query: " <<tagStatusQuery.lastError() ;
 }
 
-void FileRepository::addThumbnail(const AstroFileImage &astroFileImage, const QImage& thumbnail)
+void FileRepository::addThumbnail(const AstroFile &astroFile, const QImage& thumbnail)
 {
     if (cancelSignaled)
     {
@@ -371,7 +369,6 @@ void FileRepository::addThumbnail(const AstroFileImage &astroFileImage, const QI
         return;
     }
 
-    auto& astroFile = astroFileImage.astroFile;
     int id = GetAstroFileId(astroFile.FullPath);
 
     QByteArray inByteArray;
@@ -388,13 +385,13 @@ void FileRepository::addThumbnail(const AstroFileImage &astroFileImage, const QI
 
     QSqlQuery tagStatusQuery;
     tagStatusQuery.prepare("UPDATE fits set ThumbnailStatus = :thumbnailStatus WHERE FullPath = :fullPath");
-    tagStatusQuery.bindValue(":thumbnailStatus", astroFileImage.thumbnailStatus);
+    tagStatusQuery.bindValue(":thumbnailStatus", astroFile.thumbnailStatus);
     tagStatusQuery.bindValue(":fullPath", astroFile.FullPath);
     if (!tagStatusQuery.exec())
         qDebug() << "FAILED to execute UPDATE Thumbnail Status query" << tagStatusQuery.lastError();
 }
 
-void FileRepository::saveStatus(const AstroFileImage& astroFileImage)
+void FileRepository::saveStatus(const AstroFile& astroFile)
 {
     if (cancelSignaled)
     {
@@ -402,11 +399,9 @@ void FileRepository::saveStatus(const AstroFileImage& astroFileImage)
         return;
     }
 
-    auto& astroFile = astroFileImage.astroFile;
-
     QSqlQuery processStatusQuery;
     processStatusQuery.prepare("UPDATE fits set ProcessStatus = :processStatus WHERE FullPath = :fullPath");
-    processStatusQuery.bindValue(":processStatus", astroFileImage.processStatus);
+    processStatusQuery.bindValue(":processStatus", astroFile.processStatus);
     processStatusQuery.bindValue(":fullPath", astroFile.FullPath);
     if (!processStatusQuery.exec())
         qDebug() << "FAILED to execute UPDATE TAG Status query: " <<processStatusQuery.lastError() ;
@@ -449,7 +444,7 @@ void FileRepository::getDuplicateFilesByImageHash()
         qDebug()<<"Duplicate: " << fullPath << " Count: " << count;
     }
 }
-QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
+QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
 {
     QSqlQuery query("SELECT * FROM fits");
     query.exec();
@@ -467,7 +462,7 @@ QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
     int idThumbnailStatus = query.record().indexOf("ThumbnailStatus");
     int idProcessStatus = query.record().indexOf("ProcessStatus");
 
-    QMap<int, AstroFileImage> files;
+    QMap<int, AstroFile> files;
     while (query.next())
     {
         AstroFile astro;
@@ -481,12 +476,11 @@ QMap<int, AstroFileImage> FileRepository::_getAllAstrofiles()
         astro.ImageHash = query.value(idImageHash).toString();
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
         astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
-        ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
-        TagExtractStatus tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
-        AstroFileProcessStatus processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
-        AstroFileImage afi(astro, QImage(), thumbnailStatus, tagStatus, processStatus);
+        astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
+        astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
+        astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
 
-        files.insert(astroFileId, afi);
+        files.insert(astroFileId, astro);
     }
 
     return files;
@@ -556,7 +550,7 @@ void FileRepository::loadModel()
         iter.next();
         auto fitsId = iter.key();
         auto& tagsList = iter.value();
-        fitsmap[fitsId].astroFile.Tags.insert(tagsList);
+        fitsmap[fitsId].Tags.insert(tagsList);
     }
 
     // 4. Get the entire thumbnails into memory
@@ -573,11 +567,11 @@ void FileRepository::loadModel()
         thumbiter.next();
         auto fitsId = thumbiter.key();
         auto& image = thumbiter.value();
-        fitsmap[fitsId].image = image;
+        fitsmap[fitsId].thumbnail = image;
         fitsmap[fitsId].thumbnailStatus = Loaded;
     }
 
-    // 6. convert map's `values` into a list of astrofileimage, and emit the list
+    // 6. convert map's `values` into a list of astroFile, and emit the list
 
     auto list = fitsmap.values();
 

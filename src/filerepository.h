@@ -40,11 +40,11 @@ public:
 public slots:
     void deleteAstrofilesInFolder(const QString fullPath);
     void initialize();
-    void addTags(const AstroFileImage& astroFileImage);
-    void addThumbnail(const AstroFileImage& astroFileImage, const QImage& thumbnail);
+    void addTags(const AstroFile& astroFile);
+    void addThumbnail(const AstroFile& astroFile, const QImage& thumbnail);
     void loadModel();
-    void insertAstrofileImage(const AstroFileImage& afi);
-    void saveStatus(const AstroFileImage& astroFileImage);
+    void insertAstrofile(const AstroFile& afi);
+    void saveStatus(const AstroFile& astroFile);
     void getDuplicateFiles();
     void getDuplicateFilesByFileHash();
     void getDuplicateFilesByImageHash();
@@ -53,7 +53,7 @@ signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
     void getTagsFinished(const QMap<QString, QSet<QString>>& tags);
     void astroFileDeleted(const AstroFile& astroFile);
-    void modelLoaded(const QList<AstroFileImage>& astroFileImages);
+    void modelLoaded(const QList<AstroFile>& astroFile);
 
 private:
     QSqlDatabase db;
@@ -62,7 +62,7 @@ private:
     void migrateDatabase();
     void migrateFromVersion(int oldVersion);
     QList<AstroFile> getAstrofilesInFolder(const QString fullPath, bool includeTags);
-    QMap<int, AstroFileImage> _getAllAstrofiles();
+    QMap<int, AstroFile> _getAllAstrofiles();
     QMap<int, QImage> _getAllThumbnails();
 
     volatile bool cancelSignaled = false;

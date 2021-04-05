@@ -62,29 +62,29 @@ public slots:
 signals:
     void crawl(QString rootFolder);
     void deleteAstrofilesInFolder(const QString fullPath);
-    void dbAddOrUpdateAstroFileImage(const AstroFileImage& astroFileImage);
-    void dbAddTags(const AstroFileImage& astroFileImage);
-    void dbAddThumbnail(const AstroFileImage& astroFileImage, const QImage& image);
-    void dbUpdateProcessStatus(const AstroFileImage& astroFileImage);
+    void dbAddOrUpdateAstroFile(const AstroFile& astroFile);
+    void dbAddTags(const AstroFile& astroFile);
+    void dbAddThumbnail(const AstroFile& astroFile, const QImage& image);
+    void dbUpdateProcessStatus(const AstroFile& astroFile);
     void initializeFileRepository();
     void loadModelFromDb();
-    void loadModelIntoViewModel(const QList<AstroFileImage> &files);
+    void loadModelIntoViewModel(const QList<AstroFile> &files);
     void resetModel();
     void dbGetDuplicates();
 
-    void extractTags(const AstroFileImage& astroFileImage);
-    void extractThumbnail(const AstroFileImage& astroFileImage);
+    void extractTags(const AstroFile& astroFile);
+    void extractThumbnail(const AstroFile& astroFile);
     void processNewFile(const QFileInfo& fileInfo);
 
-    void insertAstrofileImage(const AstroFileImage& afi);
+    void insertAstrofile(const AstroFile& afi);
 
 private slots:
     void on_imageSizeSlider_valueChanged(int value);
     void on_actionFolders_triggered();
     void handleSelectionChanged(QItemSelection selection);
-    void modelLoadedFromDb(const QList<AstroFileImage> &files);
+    void modelLoadedFromDb(const QList<AstroFile> &files);
 
-    void astroFileProcessed(const AstroFileImage& astroFileImage);
+    void astroFileProcessed(const AstroFile& astroFile);
     void processingCancelled(const QFileInfo& fileInfo);
 
     void on_actionAbout_triggered();

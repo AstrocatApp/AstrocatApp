@@ -34,13 +34,13 @@ SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyMo
 bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
     QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
-    const AstroFileImage* astroFileImage = static_cast<AstroFileImage*>(index.internalPointer());
-    Q_ASSERT(astroFileImage != NULL);
+    const AstroFile* astroFile = static_cast<AstroFile*>(index.internalPointer());
+    Q_ASSERT(astroFile != NULL);
 
-    QString dateString = astroFileImage->astroFile.Tags["DATE-OBS"];
+    QString dateString = astroFile->Tags["DATE-OBS"];
     QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-    bool shouldAccept = dateInRange(d) && objectAccepted(astroFileImage->astroFile.Tags["OBJECT"]) && instrumentAccepted(astroFileImage->astroFile.Tags["INSTRUME"]) && filterAccepted(astroFileImage->astroFile.Tags["FILTER"]) && extensionAccepted(astroFileImage->astroFile.FileExtension);
+    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension);
 //    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags.value("OBJECT")) && instrumentAccepted(astroFile->Tags.value("INSTRUME")) && filterAccepted(astroFile->Tags.value("FILTER"));
 
     return shouldAccept;

@@ -46,9 +46,9 @@ void FitsProcessor::extractThumbnail()
     _imageHash = fits.getImageHash();
 }
 
-void FitsProcessor::loadFile(const AstroFileImage &astroFileImage)
+void FitsProcessor::loadFile(const AstroFile &astroFile)
 {
-    auto ret = fits.loadFile(astroFileImage.astroFile.FullPath);
+    auto ret = fits.loadFile(astroFile.FullPath);
     if (!ret)
         // TODO: Return an astroimage with failed extraction status
         return;

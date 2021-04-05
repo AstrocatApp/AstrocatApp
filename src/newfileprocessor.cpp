@@ -44,36 +44,35 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
     }
 
     AstroFile astroFile(fileInfo);
-    AstroFileImage afi(astroFile, QImage());
 
 //    afi = extractTags(afi);
 //    afi = extractThumbnail(afi);
 
-    FileProcessor* processor = getProcessorForFile(afi.astroFile);
+    FileProcessor* processor = getProcessorForFile(astroFile);
 
-    processor->loadFile(afi);
+    processor->loadFile(astroFile);
     processor->extractTags();
 
     auto tags = processor->getTags();
-    afi.astroFile.Tags.swap(tags);
-    afi.tagStatus = TagExtracted;
+    astroFile.Tags.swap(tags);
+    astroFile.tagStatus = TagExtracted;
 
     processor->extractThumbnail();
     auto thumbnail = processor->getThumbnail();
-    afi.image = thumbnail;
-    afi.thumbnailStatus = Loaded;
+    astroFile.thumbnail = thumbnail;
+    astroFile.thumbnailStatus = Loaded;
 
     qDebug()<<"File: "<<astroFile.FullPath;
     QString hash = getFileHash(fileInfo).toHex();
-    afi.astroFile.FileHash = hash;
+    astroFile.FileHash = hash;
     qDebug()<<"Hash: "<<hash;
 
     QString imageHash = processor->getImageHash().toHex();
-    afi.astroFile.ImageHash = imageHash;
+    astroFile.ImageHash = imageHash;
     qDebug()<<"Image Hash: "<<imageHash;
     delete processor;
-    afi.processStatus = Processed;
-    emit astrofileProcessed(afi);
+    astroFile.processStatus = Processed;
+    emit astrofileProcessed(astroFile);
 }
 
 QByteArray fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)

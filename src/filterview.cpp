@@ -169,7 +169,6 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
     resetGroups();
 }
 
-
 void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
 {
     for (int i = start; i <= end; i++)
