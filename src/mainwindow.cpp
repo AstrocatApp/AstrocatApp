@@ -79,16 +79,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::loadModelFromDb,                       fileRepositoryWorker,   &FileRepository::loadModel);
     connect(this,                   &MainWindow::loadModelIntoViewModel,                fileViewModel,          &FileViewModel::setInitialModel);
     connect(this,                   &MainWindow::resetModel,                            fileViewModel,          &FileViewModel::clearModel);
-    connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,           fileRepositoryWorker,   &FileRepository::insertAstrofile);
-    connect(this,                   &MainWindow::dbAddTags,                             fileRepositoryWorker,   &FileRepository::addTags);
-    connect(this,                   &MainWindow::dbAddThumbnail,                        fileRepositoryWorker,   &FileRepository::addThumbnail);
-    connect(this,                   &MainWindow::insertAstrofile,                  fileRepositoryWorker,   &FileRepository::insertAstrofile);
+    connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,                fileRepositoryWorker,   &FileRepository::addOrUpdateAstrofile);
     connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
-    connect(this,                   &MainWindow::dbGetDuplicates,                        fileRepositoryWorker, &FileRepository::getDuplicateFiles);
+    connect(this,                   &MainWindow::dbGetDuplicates,                       fileRepositoryWorker,   &FileRepository::getDuplicateFiles);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          this,                   &MainWindow::newFileFound);
     connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
+    connect(fileRepositoryWorker,   &FileRepository::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::removeAstroFile);
     connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
+    connect(fileRepositoryWorker,   &FileRepository::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);
     connect(fileRepositoryThread,   &QThread::finished,                                 fileRepositoryWorker,   &QObject::deleteLater);
     connect(newFileProcessorWorker, &NewFileProcessor::astrofileProcessed,              this,                   &MainWindow::astroFileProcessed);
     connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
@@ -99,8 +98,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterView,             &FilterView::setFilterMaximumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterReset,                 filterView,             &FilterView::searchFilterReset);
     connect(fileViewModel,          &FileViewModel::modelIsEmpty,                       this,                   &MainWindow::setWatermark);
-    connect(fileViewModel,          &FileViewModel::itemsAdded,                          this,                   &MainWindow::itemAddedToModel);
-    connect(fileViewModel,          &FileViewModel::itemsRemoved,                        this,                   &MainWindow::itemRemovedFromModel);
+    connect(fileViewModel,          &FileViewModel::itemsAdded,                         this,                   &MainWindow::itemAddedToModel);
+    connect(fileViewModel,          &FileViewModel::itemsRemoved,                       this,                   &MainWindow::itemRemovedFromModel);
     connect(fileViewModel,          &FileViewModel::modelReset,                         this,                   &MainWindow::modelReset);
     connect(filterView,             &FilterView::minimumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterView,             &FilterView::maximumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMaximumDate);
@@ -114,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterView,             &FilterView::removeAcceptedExtension,               sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedExtension);
     connect(filterView,             &FilterView::astroFileAdded,                        this,                   &MainWindow::itemAddedToSortFilterView);
     connect(filterView,             &FilterView::astroFileRemoved,                      this,                   &MainWindow::itemRemovedFromSortFilterView);
-    connect(ui->astroListView,      &QWidget::customContextMenuRequested,             this,                   &MainWindow::itemContextMenuRequested);
+    connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
 
     // Enable the tester during development and debugging. Disble before committing
@@ -162,7 +161,6 @@ void MainWindow::initialize()
     emit loadModelFromDb();
     isInitialized = true;
     emit dbGetDuplicates();
-
 }
 
 void MainWindow::cleanUpWorker(QThread* thread)
@@ -175,15 +173,25 @@ void MainWindow::cleanUpWorker(QThread* thread)
 void MainWindow::newFileFound(const QFileInfo fileInfo)
 {
     AstroFile astroFile(fileInfo);
+    bool shouldProcess = false;
 
     if (fileViewModel->astroFileExists(fileInfo.absoluteFilePath()))
     {
-        // TODO: Only do this if the timestamp is the same.
+        int fileId = fileViewModel->getAstroFileIdByPath(fileInfo.absoluteFilePath());
+        auto file = fileViewModel->getAstroFileById(fileId);
+        if (fileInfo.lastModified() > file.LastModifiedTime)
+        {
+            shouldProcess = true;
+        }
     }
     else
     {
+        shouldProcess = true;
+    }
+
+    if (shouldProcess)
+    {
         numberOfActiveJobs++;
-//        this->numberOfActiveJobsLabel.setText(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
         ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
 
         emit processNewFile(fileInfo);
@@ -323,12 +331,6 @@ void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
 void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 {
     emit dbAddOrUpdateAstroFile(astroFile);
-    emit dbAddTags(astroFile);
-    emit dbAddThumbnail(astroFile, astroFile.thumbnail);
-    fileViewModel->addAstroFile(astroFile);
-    numberOfActiveJobs--;
-//    this->numberOfActiveJobsLabel.setText(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
-    ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
 }
 
 void MainWindow::processingCancelled(const QFileInfo &fileInfo)
@@ -516,4 +518,21 @@ void MainWindow::on_duplicatesButton_clicked()
     auto hash = sortFilterProxyModel->data(items[0], AstroFileRoles::FileHashRole).toString();
     this->sortFilterProxyModel->setDuplicatesFilter(hash);
     this->sortFilterProxyModel->activateDuplicatesFilter(true);
+}
+
+void MainWindow::dbFailedToOpen(const QString message)
+{
+    QMessageBox msgBox;
+    msgBox.setText(tr("Failed to open catalog database"));
+    msgBox.setInformativeText(tr("If this error keeps happening, try deleting and re-creating the database. Error Message: ") + message);
+    msgBox.setStandardButtons(QMessageBox::Close);
+    msgBox.exec();
+    QApplication::quit();
+}
+
+void MainWindow::dbAstroFileUpdated(const AstroFile &astroFile)
+{
+    fileViewModel->addAstroFile(astroFile);
+    numberOfActiveJobs--;
+    ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
 }

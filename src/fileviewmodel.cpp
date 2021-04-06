@@ -43,7 +43,8 @@ void FileViewModel::setInitialModel(const QList<AstroFile> &files)
     for (auto& i : files)
     {
         fileList.append(i);
-        fileMap.insert(i.FullPath, i);
+        filePathToIdMap.insert(i.FullPath, i.Id);
+        fileIdMap[i.Id] = i;
         count++;
     }
     insertRows(0, count, QModelIndex());
@@ -103,8 +104,10 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
 
     beginRemoveRows(parent, row, row);
     rc-= count;
-    auto astroFile = fileList.at(row);
-    fileMap.remove(astroFile.FullPath);
+    auto astroFile = fileList.at(row);    
+    auto astroFileId = fileList.at(row);
+    filePathToIdMap.remove(astroFile.FullPath);
+    fileIdMap.remove(astroFile.Id);
     fileList.removeAt(row);
     endRemoveRows();
     if (rc == 0)
@@ -130,7 +133,17 @@ bool FileViewModel::hasChildren(const QModelIndex &parent) const
 
 bool FileViewModel::astroFileExists(const QString fullPath)
 {
-    return fileMap.contains(fullPath);
+    return filePathToIdMap.contains(fullPath);
+}
+
+AstroFile FileViewModel::getAstroFileById(int id)
+{
+    return fileIdMap[id];
+}
+
+int FileViewModel::getAstroFileIdByPath(const QString &fullPath)
+{
+    return filePathToIdMap[fullPath];
 }
 
 void FileViewModel::setCellSize(const int newSize)
@@ -280,7 +293,8 @@ void FileViewModel::removeAstroFile(AstroFile astroFile)
 void FileViewModel::clearModel()
 {
     emit beginResetModel();
-    fileMap.clear();
+    filePathToIdMap.clear();
+    fileIdMap.clear();
 
     fileList.clear();
     rc=0;
@@ -289,19 +303,22 @@ void FileViewModel::clearModel()
 
 void FileViewModel::addAstroFile(const AstroFile &astroFile)
 {
-    bool afiExists = fileMap.contains(astroFile.FullPath);
+    bool afiExists = filePathToIdMap.contains(astroFile.FullPath);
     if (!afiExists)
     {
         // This is a new file
         fileList.append(astroFile);
-        fileMap[astroFile.FullPath] = astroFile;
+        filePathToIdMap[astroFile.FullPath] = astroFile.Id;
+//        fileIdMap[astroFile.Id] = astroFile;
+        fileIdMap.insert(astroFile.Id, astroFile);
         insertRow(rc);
     }
     else
     {
         QModelIndex index = getIndexForAstroFile(astroFile);
         fileList[index.row()] = astroFile;
-        fileMap[astroFile.FullPath] = astroFile;
+        filePathToIdMap[astroFile.FullPath] = astroFile.Id;
+        fileIdMap[astroFile.Id] = astroFile;
         emit dataChanged(index, index);
     }
 }

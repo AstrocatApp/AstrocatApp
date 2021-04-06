@@ -46,21 +46,42 @@ void FileRepository::cancel()
     cancelSignaled = true;
 }
 
+/*!
+ * \brief FileRepository::initialize
+ * Creates the Catalog Database if it does not exist, otherwise opens it.
+ * If the database schema is from a previous version that needs to be updated,
+ * then it performs the database migration.
+ *
+ * If the database cannot be creaetd, opened, or migrated, the dbFailedToOpen
+ * signal will be emitted.
+ *
+ * Databse file location:
+ *  MacOS:      /Users/<username>/Library/Application Support/Astrocat/Astrocat/astrocat.db
+ *  Windows:
+ *  Linux:
+ */
 void FileRepository::initialize()
 {
     qDebug() << "Initializing File Repository";
     createDatabase();
     migrateDatabase();
-
     qDebug() << "Done Initializing File Repository";
 }
 
+/*!
+ * \brief FileRepository::createDatabase
+ * This is a private function.
+ * Creates the Database.
+ * Sets Foreign keys policy at the database level, so we don't have to
+ * set it for individual tables.
+ * Tables are not created here. They will be handled by the migrateDatabase function
+ */
 void FileRepository::createDatabase()
 {
     const QString DRIVER("QSQLITE");
     if(!QSqlDatabase::isDriverAvailable(DRIVER))
     {
-        qDebug()<<"SQLite Driver not available";
+        emit dbFailedToInitialize("SQLite Driver not available");
         return;
     }
 
@@ -71,10 +92,21 @@ void FileRepository::createDatabase()
     db = QSqlDatabase::addDatabase(DRIVER);
     db.setDatabaseName(location + "/astrocat.db");
     if(!db.open())
-        qWarning() << "ERROR: " << db.lastError();
+    {
+        auto message = QString("db.open() failed: %1").arg(db.lastError().text());
+        emit dbFailedToInitialize(message);
+        return;
+    }
     db.exec("PRAGMA foreign_keys = ON");
 }
 
+/*!
+ * \brief FileRepository::migrateDatabase
+ * This is a private function.
+ * If a database from a previous version already exists on this machine,
+ * and if the schema has changed, then migrates the old database to the
+ * new schema.
+ */
 void FileRepository::migrateDatabase()
 {
     // Check DB Schema version
@@ -96,6 +128,14 @@ void FileRepository::migrateDatabase()
     QSqlDatabase::database().commit();
 }
 
+/*!
+ * \brief FileRepository::migrateFromVersion
+ * \param oldVersion
+ *
+ * Migrates the Catalog database which was created by schema version oldVersion
+ * If there was not databse found at all (if this is the first time we are running
+ * on this machine), then oldVersion should be set to 0 for new tables to be created.
+ */
 void FileRepository::migrateFromVersion(int oldVersion)
 {
     switch (oldVersion)
@@ -113,6 +153,14 @@ void FileRepository::migrateFromVersion(int oldVersion)
     db.exec(QString("PRAGMA user_version = %1").arg(DB_SCHEMA_VERSION));
 }
 
+/*!
+ * \brief FileRepository::createTables
+ * Creates all tables for the Database.
+ * We are using three tables: FITS, TAGS, and THUMBNAILS
+ *
+ * Application settings are not stored in the Database.
+ * If this function fails, we will emit the dbFailedToInitialize signal
+ */
 void FileRepository::createTables()
 {
     QSqlQuery fitsquery(
@@ -133,11 +181,17 @@ void FileRepository::createTables()
             "IsHidden INTEGER)");
 
     if(!fitsquery.isActive())
-        qWarning() << "ERROR: " << fitsquery.lastError().text();
+    {
+        emit dbFailedToInitialize(fitsquery.lastError().text());
+        return;
+    }
 
     QSqlQuery fitsFileNameIndexQuery("CREATE UNIQUE INDEX idx_fits_fullpath ON fits (FullPath);");
     if(!fitsFileNameIndexQuery.isActive())
-        qWarning() << "ERROR: " << fitsFileNameIndexQuery.lastError().text();
+    {
+        emit dbFailedToInitialize(fitsFileNameIndexQuery.lastError().text());
+        return;
+    }
 
     QSqlQuery tagsquery(
         "CREATE TABLE tags ("
@@ -148,7 +202,10 @@ void FileRepository::createTables()
             "FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
 
     if(!tagsquery.isActive())
-        qWarning() << "ERROR: " << tagsquery.lastError().text();
+    {
+        emit dbFailedToInitialize(tagsquery.lastError().text());
+        return;
+    }
 
     QSqlQuery thumbnailsquery(
         "CREATE TABLE thumbnails ("
@@ -158,10 +215,13 @@ void FileRepository::createTables()
             "FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
 
     if(!thumbnailsquery.isActive())
-        qWarning() << "ERROR: " << thumbnailsquery.lastError().text();
+    {
+        emit dbFailedToInitialize(thumbnailsquery.lastError().text());
+        return;
+    }
 }
 
-int GetAstroFileId(const QString fullPath)
+int FileRepository::GetAstroFileId(const QString& fullPath)
 {
     int id = 0;
     QSqlQuery query("SELECT id FROM fits WHERE FullPath = ?");
@@ -174,7 +234,7 @@ int GetAstroFileId(const QString fullPath)
     return id;
 }
 
-QMap<QString, QString> GetAstrofileTags(int astroFileId)
+QMap<QString, QString> FileRepository::GetAstrofileTags(int astroFileId)
 {
     QMap<QString, QString> map;
     QSqlQuery query("SELECT * FROM tags WHERE fits_id = ?");
@@ -191,25 +251,25 @@ QMap<QString, QString> GetAstrofileTags(int astroFileId)
     return map;
 }
 
-QMap<QString, QSet<QString>> GetAllAstrofileTags()
-{
-    QMap<QString, QSet<QString>> map;
-    QSqlQuery query("SELECT tags.tagKey, tags.tagValue FROM tags");
-    query.exec();
-    while (query.next())
-    {
-        auto a1 = query.value(0).toString();
-        auto a2 = query.value(1).toString();
+//QMap<QString, QSet<QString>> GetAllAstrofileTags()
+//{
+//    QMap<QString, QSet<QString>> map;
+//    QSqlQuery query("SELECT tags.tagKey, tags.tagValue FROM tags");
+//    query.exec();
+//    while (query.next())
+//    {
+//        auto a1 = query.value(0).toString();
+//        auto a2 = query.value(1).toString();
 
-        if (map.contains(a1))
-            map[a1].insert(a2);
-        else
-            map.insert(a1, QSet<QString>({a2}));
-    }
-    return map;
-}
+//        if (map.contains(a1))
+//            map[a1].insert(a2);
+//        else
+//            map.insert(a1, QSet<QString>({a2}));
+//    }
+//    return map;
+//}
 
-QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, bool includeTags)
+QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath, bool includeTags)
 {
     QList<AstroFile> files;
     QSqlQuery query;
@@ -269,13 +329,24 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString fullPath, b
     return files;
 }
 
-void FileRepository::insertAstrofile(const AstroFile& astroFile)
+void FileRepository::addOrUpdateAstrofile(const AstroFile& astroFile)
 {
-    if (cancelSignaled)
-    {
-        return;
-    }
+    QSqlDatabase::database().transaction();
 
+    int id = insertAstrofile(astroFile);
+    AstroFile insertedAstroFile(astroFile);
+    insertedAstroFile.Id = id;
+
+    addTags(insertedAstroFile);
+    addThumbnail(insertedAstroFile);
+
+    QSqlDatabase::database().commit();
+
+    emit astroFileUpdated(insertedAstroFile);
+}
+
+int FileRepository::insertAstrofile(const AstroFile& astroFile)
+{
     QSqlQuery queryAdd;
 
     queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime,TagStatus,ThumbnailStatus,ProcessStatus,FileHash,ImageHash,IsHidden) "
@@ -295,10 +366,15 @@ void FileRepository::insertAstrofile(const AstroFile& astroFile)
     queryAdd.bindValue(":IsHidden", astroFile.IsHidden);
 
     if(!queryAdd.exec())
+    {
+        // TODO: Handle failures
         qDebug() << "record could not add: " << queryAdd.lastError();
+    }
+
+    return queryAdd.lastInsertId().toInt();
 }
 
-void FileRepository::deleteAstrofilesInFolder(const QString fullPath)
+void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
 {
     auto files = getAstrofilesInFolder(fullPath, false);
     QSqlQuery query;
@@ -325,12 +401,9 @@ void FileRepository::deleteAstrofilesInFolder(const QString fullPath)
 
 void FileRepository::addTags(const AstroFile& astroFile)
 {
-    if (cancelSignaled)
-    {
-        return;
-    }
+    int id = astroFile.Id;
+    Q_ASSERT(id != 0);
 
-    int id = GetAstroFileId(astroFile.FullPath);
     for (auto iter = astroFile.Tags.constBegin(); iter != astroFile.Tags.constEnd(); ++iter)
     {
         auto& key = iter.key();
@@ -353,19 +426,15 @@ void FileRepository::addTags(const AstroFile& astroFile)
         qDebug() << "FAILED to execute UPDATE TAG Status query: " <<tagStatusQuery.lastError() ;
 }
 
-void FileRepository::addThumbnail(const AstroFile &astroFile, const QImage& thumbnail)
+void FileRepository::addThumbnail(const AstroFile &astroFile)
 {
-    if (cancelSignaled)
-    {
-        return;
-    }
-
-    int id = GetAstroFileId(astroFile.FullPath);
+    int id = astroFile.Id;
+    Q_ASSERT(id != 0);
 
     QByteArray inByteArray;
     QBuffer inBuffer( &inByteArray );
     inBuffer.open( QIODevice::WriteOnly );
-    thumbnail.save( &inBuffer, "PNG" );
+    astroFile.thumbnail.save( &inBuffer, "PNG" );
 
     QSqlQuery insertThumbnailQuery;
     insertThumbnailQuery.prepare("INSERT INTO thumbnails (fits_id, thumbnail) VALUES (:fits_id, :bytedata)");
@@ -382,26 +451,27 @@ void FileRepository::addThumbnail(const AstroFile &astroFile, const QImage& thum
         qDebug() << "FAILED to execute UPDATE Thumbnail Status query" << tagStatusQuery.lastError();
 }
 
-void FileRepository::saveStatus(const AstroFile& astroFile)
-{
-    if (cancelSignaled)
-    {
-        return;
-    }
+//void FileRepository::saveStatus(const AstroFile& astroFile)
+//{
+//    if (cancelSignaled)
+//    {
+//        return;
+//    }
 
-    QSqlQuery processStatusQuery;
-    processStatusQuery.prepare("UPDATE fits set ProcessStatus = :processStatus WHERE FullPath = :fullPath");
-    processStatusQuery.bindValue(":processStatus", astroFile.processStatus);
-    processStatusQuery.bindValue(":fullPath", astroFile.FullPath);
-    if (!processStatusQuery.exec())
-        qDebug() << "FAILED to execute UPDATE TAG Status query: " <<processStatusQuery.lastError() ;
-}
+//    QSqlQuery processStatusQuery;
+//    processStatusQuery.prepare("UPDATE fits set ProcessStatus = :processStatus WHERE FullPath = :fullPath");
+//    processStatusQuery.bindValue(":processStatus", astroFile.processStatus);
+//    processStatusQuery.bindValue(":fullPath", astroFile.FullPath);
+//    if (!processStatusQuery.exec())
+//        qDebug() << "FAILED to execute UPDATE TAG Status query: " <<processStatusQuery.lastError() ;
+//}
 
 void FileRepository::getDuplicateFiles()
 {
     getDuplicateFilesByFileHash();
     getDuplicateFilesByImageHash();
 }
+
 void FileRepository::getDuplicateFilesByFileHash()
 {
     QSqlQuery query("SELECT FullPath, COUNT(*) c FROM fits GROUP BY FileHash HAVING c > 1");
@@ -454,6 +524,7 @@ QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
     {
         AstroFile astro;
         int astroFileId = query.value(idId).toInt();
+        astro.Id = astroFileId;
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();

@@ -61,6 +61,7 @@ enum AstroFileType
 
 struct AstroFile
 {
+    int Id; // Id is created only by the Database
     QString FileName;
     QString FullPath;
     QString DirectoryPath;
@@ -83,7 +84,7 @@ struct AstroFile
     }
 
     AstroFile(const AstroFile& other)
-        : FileName(other.FileName), FullPath(other.FullPath), DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
+        : Id(other.Id), FileName(other.FileName), FullPath(other.FullPath), DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
           CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
           thumbnail(other.thumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus), IsHidden(other.IsHidden)
     {

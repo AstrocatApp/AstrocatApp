@@ -58,6 +58,8 @@ public:
     FileViewModel(QObject* parent = nullptr);
     ~FileViewModel();
     bool astroFileExists(const QString fullPath);
+    AstroFile getAstroFileById(int id);
+    int getAstroFileIdByPath(const QString& fullPath);
 
     // QAbstractItemModel interface
     QModelIndex index(int row, int column, const QModelIndex &parent) const override;
@@ -85,8 +87,11 @@ signals:
 private:
     int rc;
     int cc;
+
+    // We should try to get rid of the doulbe collection of AstroFiles here.
     QList<AstroFile> fileList;
-    QMap<QString, AstroFile> fileMap;
+    QMap<QString, int> filePathToIdMap;
+    QMap<int, AstroFile> fileIdMap;
     int getRowForAstroFile(const AstroFile& astroFile);
     QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
     QSize cellSize = QSize(200, 200);

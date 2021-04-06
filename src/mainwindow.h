@@ -76,8 +76,6 @@ signals:
     void extractThumbnail(const AstroFile& astroFile);
     void processNewFile(const QFileInfo& fileInfo);
 
-    void insertAstrofile(const AstroFile& afi);
-
 private slots:
     void on_imageSizeSlider_valueChanged(int value);
     void on_actionFolders_triggered();
@@ -100,6 +98,9 @@ private slots:
     void reveal();
     void remove();
     void on_duplicatesButton_clicked();
+
+    void dbFailedToOpen(const QString message);
+    void dbAstroFileUpdated(const AstroFile& astroFile);
 
 private:
     Ui::MainWindow *ui;
