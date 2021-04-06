@@ -32,7 +32,7 @@
 class ImageProcessor : public FileProcessor
 {
 public:
-    void loadFile(const AstroFile &astroFile);
+    bool loadFile(const AstroFile &astroFile);
     void extractTags();
     void extractThumbnail();
     QMap<QString, QString> getTags();

@@ -32,7 +32,7 @@ class FileProcessor
 public:
     virtual ~FileProcessor() {};
 
-    virtual void loadFile(const AstroFile& astroFile) = 0;
+    virtual bool loadFile(const AstroFile& astroFile) = 0;
     virtual void extractTags() = 0;
     virtual void extractThumbnail() = 0;
     virtual QMap<QString, QString> getTags() = 0;

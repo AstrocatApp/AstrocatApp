@@ -52,10 +52,14 @@ QByteArray ImageProcessor::fileChecksum(const QString &fileName, QCryptographicH
     return QByteArray();
 }
 
-void ImageProcessor::loadFile(const AstroFile &astroFile)
+bool ImageProcessor::loadFile(const AstroFile &astroFile)
 {
-    image.load(astroFile.FullPath);
+    if (!image.load(astroFile.FullPath))
+    {
+        return false;
+    }
     _imageHash = fileChecksum(astroFile.FullPath, QCryptographicHash::Sha1);
+    return true;
 }
 
 void ImageProcessor::extractTags()

@@ -49,7 +49,13 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 
     FileProcessor* processor = getProcessorForFile(astroFile);
 
-    processor->loadFile(astroFile);
+    if (!processor->loadFile(astroFile))
+    {
+        // This is an invalid file.
+        astroFile.processStatus = FailedToProcess;
+        emit astrofileProcessed(astroFile);
+        return;
+    }
     processor->extractTags();
 
     auto tags = processor->getTags();

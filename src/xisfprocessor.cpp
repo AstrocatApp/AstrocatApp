@@ -35,9 +35,17 @@ XisfProcessor::~XisfProcessor() noexcept
     xisf.Close();
 }
 
-void XisfProcessor::loadFile(const AstroFile &astroFile)
+bool XisfProcessor::loadFile(const AstroFile &astroFile)
 {
-    xisf.Open(astroFile.FullPath.toStdWString().c_str());
+    try
+    {
+        xisf.Open(astroFile.FullPath.toStdWString().c_str());
+    }
+    catch (pcl::Error)
+    {
+        return false;
+    }
+    return true;
 }
 
 QImage makeImage(int _width, int _height, float* _data, QImage::Format _qImageFormat, int _numberOfChannels)

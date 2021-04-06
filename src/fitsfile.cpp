@@ -31,7 +31,7 @@
 
 FitsFile::FitsFile()
 {
-
+    _fptr = 0;
 }
 
 FitsFile::~FitsFile()
