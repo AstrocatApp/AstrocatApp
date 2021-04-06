@@ -38,7 +38,6 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 {
     if (cancelSignaled)
     {
-        qDebug() << "Cancel signaled. Draining Fits Tag Queue.";
         emit processingCancelled(fileInfo);
         return;
     }
@@ -62,14 +61,11 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
     astroFile.thumbnail = thumbnail;
     astroFile.thumbnailStatus = Loaded;
 
-    qDebug()<<"File: "<<astroFile.FullPath;
     QString hash = getFileHash(fileInfo).toHex();
     astroFile.FileHash = hash;
-    qDebug()<<"Hash: "<<hash;
 
     QString imageHash = processor->getImageHash().toHex();
     astroFile.ImageHash = imageHash;
-    qDebug()<<"Image Hash: "<<imageHash;
     delete processor;
     astroFile.processStatus = Processed;
     emit astrofileProcessed(astroFile);

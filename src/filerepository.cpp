@@ -52,7 +52,7 @@ void FileRepository::initialize()
     createDatabase();
     migrateDatabase();
 
-     qDebug() << "Done Initializing File Repository";
+    qDebug() << "Done Initializing File Repository";
 }
 
 void FileRepository::createDatabase()
