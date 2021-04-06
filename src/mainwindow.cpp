@@ -98,8 +98,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterView,             &FilterView::setFilterMaximumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterReset,                 filterView,             &FilterView::searchFilterReset);
     connect(fileViewModel,          &FileViewModel::modelIsEmpty,                       this,                   &MainWindow::setWatermark);
-    connect(fileViewModel,          &FileViewModel::itemsAdded,                         this,                   &MainWindow::itemAddedToModel);
-    connect(fileViewModel,          &FileViewModel::itemsRemoved,                       this,                   &MainWindow::itemRemovedFromModel);
+    connect(fileViewModel,          &FileViewModel::rowsInserted,                       this,                   &MainWindow::rowsAddedToModel);
+    connect(fileViewModel,          &FileViewModel::rowsRemoved,                        this,                   &MainWindow::rowsRemovedFromModel);
     connect(fileViewModel,          &FileViewModel::modelReset,                         this,                   &MainWindow::modelReset);
     connect(filterView,             &FilterView::minimumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterView,             &FilterView::maximumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMaximumDate);
@@ -366,14 +366,16 @@ void MainWindow::setWatermark(bool shouldSet)
     }
 }
 
-void MainWindow::itemAddedToModel(int numberAdded)
+void MainWindow::rowsAddedToModel(const QModelIndex &parent, int first, int last)
 {
+    int numberAdded = last-first+1;
     this->numberOfItems += numberAdded;
     this->numberOfItemsLabel.setText(QString("Items: %1").arg(numberOfItems));
 }
 
-void MainWindow::itemRemovedFromModel(int numberRemoved)
+void MainWindow::rowsRemovedFromModel(const QModelIndex &parent, int first, int last)
 {
+    int numberRemoved = last-first+1;
     this->numberOfItems -= numberRemoved;
     this->numberOfItemsLabel.setText(QString("Items: %1").arg(numberOfItems));
 }

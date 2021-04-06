@@ -91,9 +91,6 @@ bool FileViewModel::insertRows(int row, int count, const QModelIndex &parent)
     if (rc >= 1)
         emit modelIsEmpty(false);
 
-    // The following signal is used by the Main Window to display the number of items.
-    emit itemsAdded(count);
-
     return true;
 }
 
@@ -284,9 +281,6 @@ void FileViewModel::removeAstroFile(AstroFile astroFile)
     if (row>=0)
     {
         removeRow(row);
-
-        // The following signal is used by the Main Window to display the number of items.
-        emit itemsRemoved(1);
     }
 }
 

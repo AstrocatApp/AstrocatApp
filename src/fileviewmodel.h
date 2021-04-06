@@ -81,8 +81,6 @@ public slots:
 
 signals:
     void modelIsEmpty(bool isEmpty);
-    void itemsAdded(int numberAdded);
-    void itemsRemoved(int nnumberRemoved);
 
 private:
     int rc;

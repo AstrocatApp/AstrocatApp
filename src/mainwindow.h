@@ -88,8 +88,8 @@ private slots:
     void on_actionAbout_triggered();
     void setWatermark(bool shoudSet);
 
-    void itemAddedToModel(int numberAdded);
-    void itemRemovedFromModel(int numberRemoved);
+    void rowsAddedToModel(const QModelIndex &parent, int first, int last);
+    void rowsRemovedFromModel(const QModelIndex &parent, int first, int last);
     void modelReset();
     void itemAddedToSortFilterView(int numberAdded);
     void itemRemovedFromSortFilterView(int numberRemoved);
