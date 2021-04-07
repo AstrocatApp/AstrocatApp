@@ -306,6 +306,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath, 
         int idImageHash = query.record().indexOf("ImageHash");
         int idIsHidden = query.record().indexOf("IsHidden");
         AstroFile astro;
+        astro.Id = query.value(idId).toInt();
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();

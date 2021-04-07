@@ -156,6 +156,7 @@ void FileViewModel::setCellSize(const int newSize)
 
 int FileViewModel::getRowForAstroFile(const AstroFile& astroFile)
 {
+    Q_ASSERT(astroFile.Id != 0);
     int index = 0;
     for (auto& af : fileList)
     {
