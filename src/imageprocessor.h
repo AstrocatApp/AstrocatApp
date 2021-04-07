@@ -37,6 +37,7 @@ public:
     void extractThumbnail();
     QMap<QString, QString> getTags();
     QImage getThumbnail();
+    QImage getTinyThumbnail();
     QByteArray getImageHash();
 
 private:

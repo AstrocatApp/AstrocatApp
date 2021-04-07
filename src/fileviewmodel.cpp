@@ -198,23 +198,14 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
             if (!QPixmapCache::find(QString::number(a.Id), &pixmap))
             {
                 emit loadThumbnailFromDb(a);
-                auto img = QImage(20, 20, QImage::Format::Format_RGB32);
+                auto img = a.tinyThumbnail.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 return img;
             }
             else
-//            if (a.thumbnailStatus == NotLoadedYet)
-//            {
-//                emit loadThumbnailFromDb(a);
-//            }
-//            if (a.thumbnail.isNull())
-//            {
-//                auto img = QImage(":Icons/resources/loading.png");
-//                return img;
-//            }
             {
-            QImage image = pixmap.toImage();
-            QImage small = image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            return small;
+                QImage image = pixmap.toImage();
+                QImage small = image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                return small;
             }
         }
         case Qt::SizeHintRole:

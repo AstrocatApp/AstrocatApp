@@ -74,6 +74,7 @@ struct AstroFile
     QMap<QString, QString> Tags;
 
     QImage thumbnail;
+    QImage tinyThumbnail;
     ThumbnailLoadStatus thumbnailStatus;
     TagExtractStatus tagStatus;
     AstroFileProcessStatus processStatus;
@@ -86,7 +87,7 @@ struct AstroFile
     AstroFile(const AstroFile& other)
         : Id(other.Id), FileName(other.FileName), FullPath(other.FullPath), DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
           CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
-          thumbnail(other.thumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus), IsHidden(other.IsHidden)
+          thumbnail(other.thumbnail), tinyThumbnail(other.tinyThumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus), IsHidden(other.IsHidden)
     {
     }
 

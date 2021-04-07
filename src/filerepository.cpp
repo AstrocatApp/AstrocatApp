@@ -212,6 +212,7 @@ void FileRepository::createTables()
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "fits_id INTEGER, "
             "thumbnail BLOB, "
+            "tiny_thumbnail BLOB, "
             "FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
 
     if(!thumbnailsquery.isActive())
@@ -437,10 +438,17 @@ void FileRepository::addThumbnail(const AstroFile &astroFile)
     inBuffer.open( QIODevice::WriteOnly );
     astroFile.thumbnail.save( &inBuffer, "PNG" );
 
+    QByteArray inByteArrayTiny;
+    QBuffer inBufferTiny( &inByteArrayTiny );
+    inBufferTiny.open( QIODevice::WriteOnly );
+    astroFile.tinyThumbnail.save( &inBufferTiny, "PNG" );
+
+
     QSqlQuery insertThumbnailQuery;
-    insertThumbnailQuery.prepare("INSERT INTO thumbnails (fits_id, thumbnail) VALUES (:fits_id, :bytedata)");
+    insertThumbnailQuery.prepare("INSERT INTO thumbnails (fits_id, thumbnail, tiny_thumbnail) VALUES (:fits_id, :bytedata, :tinyThumbnail)");
     insertThumbnailQuery.bindValue(":fits_id", id);
     insertThumbnailQuery.bindValue(":bytedata", inByteArray);
+    insertThumbnailQuery.bindValue(":tinyThumbnail", inByteArrayTiny);
     if (!insertThumbnailQuery.exec())
         qDebug() << "DB: Failed in insert Thubmanailfor " << astroFile.FullPath << insertThumbnailQuery.lastError();
 
@@ -510,6 +518,7 @@ void FileRepository::loadThumbnal(const AstroFile &afi)
 
     int fits_idId = query.record().indexOf("fits_id");
     int idThumbnail = query.record().indexOf("thumbnail");
+    int idTinyThumbnail = query.record().indexOf("tiny_thumbnail");
 
     AstroFile astroFile;
     int id = 0;
@@ -520,6 +529,12 @@ void FileRepository::loadThumbnal(const AstroFile &afi)
         QImage image;
         image.loadFromData(inByteArray, "PNG");
         astroFile.thumbnail = image;
+        astroFile.Id = afi.Id;
+
+        QByteArray inByteArrayTiny = query.value(idTinyThumbnail).toByteArray();
+        QImage imageTiny;
+        imageTiny.loadFromData(inByteArrayTiny, "PNG");
+        astroFile.tinyThumbnail = imageTiny;
         astroFile.Id = afi.Id;
     }
     emit thumbnailLoaded(astroFile);
@@ -592,19 +607,21 @@ QMap<int, QMap<QString, QString>> _getAllAstrofileTags()
 
 QMap<int, QImage> FileRepository::_getAllThumbnails()
 {
-    QSqlQuery query("SELECT * FROM thumbnails");
+    QSqlQuery query("SELECT fits_id, tiny_thumbnail FROM thumbnails");
     query.exec();
     int fits_idId = query.record().indexOf("fits_id");
-    int idThumbnail = query.record().indexOf("thumbnail");
+//    int idThumbnail = query.record().indexOf("thumbnail");
+    int idThumbnailTiny = query.record().indexOf("tiny_thumbnail");
 
     QMap<int, QImage> images;
     while (query.next())
     {
         AstroFile astro;
         int fitsId = query.value(fits_idId).toInt();
-        QByteArray inByteArray = query.value(idThumbnail).toByteArray();
+//        QByteArray inByteArray = query.value(idThumbnail).toByteArray();
+        QByteArray inByteArrayTiny = query.value(idThumbnailTiny).toByteArray();
 
-        images[fitsId].loadFromData(inByteArray, "PNG");
+        images[fitsId].loadFromData(inByteArrayTiny, "PNG");
     }
 
     return images;
@@ -635,26 +652,26 @@ void FileRepository::loadModel()
         auto fitsId = iter.key();
         auto& tagsList = iter.value();
         fitsmap[fitsId].Tags.insert(tagsList);
-        fitsmap[fitsId].thumbnail = QImage(20, 20, QImage::Format::Format_RGB32);
+//        fitsmap[fitsId].thumbnail = QImage(20, 20, QImage::Format::Format_RGB32);
     }
 
-//    // 4. Get the entire thumbnails into memory
-//    // select * from thumbnails
+    // 4. Get the entire thumbnails into memory
+    // select * from thumbnails
 
-//    auto thumbnails = _getAllThumbnails();
+    auto thumbnails = _getAllThumbnails();
 
-//    // 5. Add thumbnails to their fits files
-//    // insert all thumbnails from #4 into map by fits_id
+    // 5. Add thumbnails to their fits files
+    // insert all thumbnails from #4 into map by fits_id
 
-//    QMapIterator<int, QImage> thumbiter(thumbnails);
-//    while (thumbiter.hasNext())
-//    {
-//        thumbiter.next();
-//        auto fitsId = thumbiter.key();
-//        auto& image = thumbiter.value();
-//        fitsmap[fitsId].thumbnail = image;
-//        fitsmap[fitsId].thumbnailStatus = Loaded;
-//    }
+    QMapIterator<int, QImage> thumbiter(thumbnails);
+    while (thumbiter.hasNext())
+    {
+        thumbiter.next();
+        auto fitsId = thumbiter.key();
+        auto& image = thumbiter.value();
+        fitsmap[fitsId].tinyThumbnail = image;
+        fitsmap[fitsId].thumbnailStatus = Loaded;
+    }
 
     // 6. convert map's `values` into a list of astroFile, and emit the list
 

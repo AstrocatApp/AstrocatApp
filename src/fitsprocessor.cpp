@@ -62,6 +62,11 @@ QImage FitsProcessor::getThumbnail()
     return _thumbnail;
 }
 
+QImage FitsProcessor::getTinyThumbnail()
+{
+    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
+
 QByteArray FitsProcessor::getImageHash()
 {
     return _imageHash;

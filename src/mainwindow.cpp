@@ -32,6 +32,7 @@
 #include <QPainter>
 #include <QDesktopServices>
 #include <QProcess>
+#include <QPixmapCache>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -72,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->astroListView->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
     createActions();
+    QPixmapCache::setCacheLimit(100*1024);
 
     connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
     connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);

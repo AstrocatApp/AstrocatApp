@@ -37,6 +37,7 @@ public:
     virtual void extractThumbnail() = 0;
     virtual QMap<QString, QString> getTags() = 0;
     virtual QImage getThumbnail() = 0;
+    virtual QImage getTinyThumbnail() = 0;
     virtual QByteArray getImageHash() = 0;
 };
 
