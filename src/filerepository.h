@@ -46,6 +46,7 @@ public slots:
     void getDuplicateFiles();
     void getDuplicateFilesByFileHash();
     void getDuplicateFilesByImageHash();
+    void loadThumbnal(const AstroFile& afi);
 
 signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
@@ -54,6 +55,7 @@ signals:
     void modelLoaded(const QList<AstroFile>& astroFile);
     void dbFailedToInitialize(const QString& message);
     void astroFileUpdated(const AstroFile& astroFile);
+    void thumbnailLoaded(const AstroFile& astrofile);
 
 private:
     QSqlDatabase db;

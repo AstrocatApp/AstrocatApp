@@ -500,6 +500,30 @@ void FileRepository::getDuplicateFilesByImageHash()
     }
 }
 
+void FileRepository::loadThumbnal(const AstroFile &afi)
+{
+    QSqlQuery query;
+    query.prepare("SELECT * FROM thumbnails where fits_id = :fitsId");
+    query.bindValue(":fitsId", afi.Id);
+    query.exec();
+
+    int fits_idId = query.record().indexOf("fits_id");
+    int idThumbnail = query.record().indexOf("thumbnail");
+
+    AstroFile astroFile;
+    int id = 0;
+    if (query.first())
+    {
+        id = query.record().value(fits_idId).toInt();
+        QByteArray inByteArray = query.value(idThumbnail).toByteArray();
+        QImage image;
+        image.loadFromData(inByteArray, "PNG");
+        astroFile.thumbnail = image;
+        astroFile.Id = afi.Id;
+    }
+    emit thumbnailLoaded(astroFile);
+}
+
 QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
 {
     QSqlQuery query("SELECT * FROM fits");
@@ -520,26 +544,51 @@ QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
     int idIsHidden = query.record().indexOf("IsHidden");
 
     QMap<int, AstroFile> files;
+//    while (query.next())
+//    {
+//        AstroFile astro;
+//        int astroFileId = query.value(idId).toInt();
+//        astro.Id = astroFileId;
+//        astro.FileName = query.value(idFileName).toString();
+//        astro.FullPath = query.value(idFullPath).toString();
+//        astro.DirectoryPath = query.value(idDirectoryPath).toString();
+//        astro.FileType = AstroFileType(query.value(idFileType).toInt());
+//        astro.FileExtension = query.value(idFileExtension).toString();
+//        astro.FileHash = query.value(idFileHash).toString();
+//        astro.ImageHash = query.value(idImageHash).toString();
+//        astro.CreatedTime = query.value(idCreatedTime).toDateTime();
+//        astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
+//        astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
+//        astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
+//        astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
+//        astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
+
+//        files.insert(astroFileId, astro);
+//    }
+
     while (query.next())
     {
-        AstroFile astro;
-        int astroFileId = query.value(idId).toInt();
-        astro.Id = astroFileId;
-        astro.FileName = query.value(idFileName).toString();
-        astro.FullPath = query.value(idFullPath).toString();
-        astro.DirectoryPath = query.value(idDirectoryPath).toString();
-        astro.FileType = AstroFileType(query.value(idFileType).toInt());
-        astro.FileExtension = query.value(idFileExtension).toString();
-        astro.FileHash = query.value(idFileHash).toString();
-        astro.ImageHash = query.value(idImageHash).toString();
-        astro.CreatedTime = query.value(idCreatedTime).toDateTime();
-        astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
-        astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
-        astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
-        astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
-        astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
+        for (int i = 0; i < 150; i++)
+        {
+            AstroFile astro;
+            int astroFileId = query.value(idId).toInt();
+            astro.Id = astroFileId + i * 10000;
+            astro.FileName = query.value(idFileName).toString();
+            astro.FullPath = query.value(idFullPath).toString() + QString::number(i);
+            astro.DirectoryPath = query.value(idDirectoryPath).toString();
+            astro.FileType = AstroFileType(query.value(idFileType).toInt());
+            astro.FileExtension = query.value(idFileExtension).toString();
+            astro.FileHash = query.value(idFileHash).toString();
+            astro.ImageHash = query.value(idImageHash).toString();
+            astro.CreatedTime = query.value(idCreatedTime).toDateTime();
+            astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
+            astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
+            astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
+            astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
+            astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
 
-        files.insert(astroFileId, astro);
+            files.insert(astro.Id, astro);
+        }
     }
 
     return files;
@@ -610,25 +659,26 @@ void FileRepository::loadModel()
         auto fitsId = iter.key();
         auto& tagsList = iter.value();
         fitsmap[fitsId].Tags.insert(tagsList);
+        fitsmap[fitsId].thumbnail = QImage(20, 20, QImage::Format::Format_RGB32);
     }
 
-    // 4. Get the entire thumbnails into memory
-    // select * from thumbnails
+//    // 4. Get the entire thumbnails into memory
+//    // select * from thumbnails
 
-    auto thumbnails = _getAllThumbnails();
+//    auto thumbnails = _getAllThumbnails();
 
-    // 5. Add thumbnails to their fits files
-    // insert all thumbnails from #4 into map by fits_id
+//    // 5. Add thumbnails to their fits files
+//    // insert all thumbnails from #4 into map by fits_id
 
-    QMapIterator<int, QImage> thumbiter(thumbnails);
-    while (thumbiter.hasNext())
-    {
-        thumbiter.next();
-        auto fitsId = thumbiter.key();
-        auto& image = thumbiter.value();
-        fitsmap[fitsId].thumbnail = image;
-        fitsmap[fitsId].thumbnailStatus = Loaded;
-    }
+//    QMapIterator<int, QImage> thumbiter(thumbnails);
+//    while (thumbiter.hasNext())
+//    {
+//        thumbiter.next();
+//        auto fitsId = thumbiter.key();
+//        auto& image = thumbiter.value();
+//        fitsmap[fitsId].thumbnail = image;
+//        fitsmap[fitsId].thumbnailStatus = Loaded;
+//    }
 
     // 6. convert map's `values` into a list of astroFile, and emit the list
 

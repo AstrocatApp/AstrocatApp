@@ -25,6 +25,7 @@
 #include "fileviewmodel.h"
 
 #include <QPixmap>
+#include <QPixmapCache>
 
 FileViewModel::FileViewModel(QObject* parent) : QAbstractItemModel(parent)
 {
@@ -47,7 +48,9 @@ void FileViewModel::setInitialModel(const QList<AstroFile> &files)
         fileIdMap[i.Id] = i;
         count++;
     }
+    qDebug()<<"Done setting initial model";
     insertRows(0, count, QModelIndex());
+    qDebug()<<"Done inserting roles";
 }
 
 int FileViewModel::rowCount(const QModelIndex &parent) const
@@ -156,7 +159,7 @@ int FileViewModel::getRowForAstroFile(const AstroFile& astroFile)
     int index = 0;
     for (auto& af : fileList)
     {
-        if (af.FullPath == astroFile.FullPath)
+        if (af.Id == astroFile.Id)
         {
             return index;
         }
@@ -190,13 +193,28 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         }
         case Qt::DecorationRole:
         {
-            if (a.thumbnail.isNull())
+            QPixmap pixmap;
+            if (!QPixmapCache::find(QString::number(a.Id), &pixmap))
             {
-                auto img = QImage(":Icons/resources/loading.png");
+                emit loadThumbnailFromDb(a);
+                auto img = QImage(20, 20, QImage::Format::Format_RGB32);
                 return img;
             }
-            QImage small = a.thumbnail.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            else
+//            if (a.thumbnailStatus == NotLoadedYet)
+//            {
+//                emit loadThumbnailFromDb(a);
+//            }
+//            if (a.thumbnail.isNull())
+//            {
+//                auto img = QImage(":Icons/resources/loading.png");
+//                return img;
+//            }
+            {
+            QImage image = pixmap.toImage();
+            QImage small = image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             return small;
+            }
         }
         case Qt::SizeHintRole:
         {
@@ -315,4 +333,11 @@ void FileViewModel::addAstroFile(const AstroFile &astroFile)
         fileIdMap[astroFile.Id] = astroFile;
         emit dataChanged(index, index);
     }
+}
+
+void FileViewModel::addThumbnail(const AstroFile &astroFile)
+{
+    QModelIndex index = getIndexForAstroFile(astroFile);
+    QPixmapCache::insert(QString::number(astroFile.Id), QPixmap::fromImage(astroFile.thumbnail));
+    emit dataChanged(index, index, {Qt::DecorationRole});
 }

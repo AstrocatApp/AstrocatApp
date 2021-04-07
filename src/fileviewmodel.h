@@ -78,9 +78,11 @@ public slots:
     void clearModel();
     void setInitialModel(const QList<AstroFile>& files);
     void addAstroFile(const AstroFile& astroFile);
+    void addThumbnail(const AstroFile& astroFile);
 
 signals:
     void modelIsEmpty(bool isEmpty);
+    void loadThumbnailFromDb(const AstroFile& astroFile) const;
 
 private:
     int rc;
