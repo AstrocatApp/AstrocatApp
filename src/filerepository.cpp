@@ -544,51 +544,26 @@ QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
     int idIsHidden = query.record().indexOf("IsHidden");
 
     QMap<int, AstroFile> files;
-//    while (query.next())
-//    {
-//        AstroFile astro;
-//        int astroFileId = query.value(idId).toInt();
-//        astro.Id = astroFileId;
-//        astro.FileName = query.value(idFileName).toString();
-//        astro.FullPath = query.value(idFullPath).toString();
-//        astro.DirectoryPath = query.value(idDirectoryPath).toString();
-//        astro.FileType = AstroFileType(query.value(idFileType).toInt());
-//        astro.FileExtension = query.value(idFileExtension).toString();
-//        astro.FileHash = query.value(idFileHash).toString();
-//        astro.ImageHash = query.value(idImageHash).toString();
-//        astro.CreatedTime = query.value(idCreatedTime).toDateTime();
-//        astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
-//        astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
-//        astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
-//        astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
-//        astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
-
-//        files.insert(astroFileId, astro);
-//    }
-
     while (query.next())
     {
-        for (int i = 0; i < 150; i++)
-        {
-            AstroFile astro;
-            int astroFileId = query.value(idId).toInt();
-            astro.Id = astroFileId + i * 10000;
-            astro.FileName = query.value(idFileName).toString();
-            astro.FullPath = query.value(idFullPath).toString() + QString::number(i);
-            astro.DirectoryPath = query.value(idDirectoryPath).toString();
-            astro.FileType = AstroFileType(query.value(idFileType).toInt());
-            astro.FileExtension = query.value(idFileExtension).toString();
-            astro.FileHash = query.value(idFileHash).toString();
-            astro.ImageHash = query.value(idImageHash).toString();
-            astro.CreatedTime = query.value(idCreatedTime).toDateTime();
-            astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
-            astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
-            astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
-            astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
-            astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
+        AstroFile astro;
+        int astroFileId = query.value(idId).toInt();
+        astro.Id = astroFileId;
+        astro.FileName = query.value(idFileName).toString();
+        astro.FullPath = query.value(idFullPath).toString();
+        astro.DirectoryPath = query.value(idDirectoryPath).toString();
+        astro.FileType = AstroFileType(query.value(idFileType).toInt());
+        astro.FileExtension = query.value(idFileExtension).toString();
+        astro.FileHash = query.value(idFileHash).toString();
+        astro.ImageHash = query.value(idImageHash).toString();
+        astro.CreatedTime = query.value(idCreatedTime).toDateTime();
+        astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
+        astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
+        astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
+        astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
+        astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
 
-            files.insert(astro.Id, astro);
-        }
+        files.insert(astroFileId, astro);
     }
 
     return files;
