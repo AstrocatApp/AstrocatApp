@@ -73,7 +73,7 @@ private:
     QWidget* createInstrumentsBox();
     QWidget* createFiltersBox();
     QWidget* createFileExtensionsBox();
-    QSet<QString> acceptedAstroFiles;
+    QSet<int> acceptedAstroFiles;
     QMap<QString, QMap<QString,int>> fileTags;
     QSet<QString> checkedTags;
     void addObjects();

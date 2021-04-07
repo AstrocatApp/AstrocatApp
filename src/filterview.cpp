@@ -136,6 +136,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
     {
         QModelIndex index = model()->index(i, 0, parent);
         auto data = model()->data(index);
+        auto id = model()->data(index, AstroFileRoles::IdRole).toInt();
         auto object = model()->data(index, AstroFileRoles::ObjectRole).toString();
         auto instrument = model()->data(index, AstroFileRoles::InstrumentRole).toString();
         auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
@@ -143,7 +144,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
         auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
 
-        if (acceptedAstroFiles.contains(fullPath))
+        if (acceptedAstroFiles.contains(id))
         {
             // The astrofile has already been added. Let's add it again
         }
@@ -159,7 +160,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
                 fileTags["DATE-OBS"][date]++;
             if (!fileExtension.isEmpty())
                 fileTags["FILEEXT"][fileExtension]++;
-            acceptedAstroFiles.insert(fullPath);
+            acceptedAstroFiles.insert(id);
         }
 
 
@@ -175,6 +176,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
     {
         QModelIndex index = model()->index(i, 0, parent);
         auto data = model()->data(index);
+        auto id = model()->data(index, AstroFileRoles::IdRole).toInt();
         auto object = model()->data(index, AstroFileRoles::ObjectRole).toString();
         auto instrument = model()->data(index, AstroFileRoles::InstrumentRole).toString();
         auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
@@ -182,7 +184,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
         auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
 
-        if (acceptedAstroFiles.contains(fullPath))
+        if (acceptedAstroFiles.contains(id))
         {
             if (!object.isEmpty())
                 fileTags["OBJECT"][object]--;
@@ -194,7 +196,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
                 fileTags["DATE-OBS"][date]--;
             if (!fileExtension.isEmpty())
                 fileTags["FILEEXT"][fileExtension]--;
-            acceptedAstroFiles.remove(fullPath);
+            acceptedAstroFiles.remove(id);
         }
     }
     emit astroFileRemoved(end-start+1);

@@ -220,6 +220,10 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         {
             return cellSize;
         }
+        case AstroFileRoles::IdRole:
+        {
+            return a.Id;
+        }
         case AstroFileRoles::ObjectRole:
         {
             return a.Tags["OBJECT"];
