@@ -222,19 +222,6 @@ void FileRepository::createTables()
     }
 }
 
-int FileRepository::GetAstroFileId(const QString& fullPath)
-{
-    int id = 0;
-    QSqlQuery query("SELECT id FROM fits WHERE FullPath = ?");
-    query.bindValue(0, fullPath);
-    query.exec();
-    if (query.first())
-    {
-        id = query.record().value(0).toInt();
-    }
-    return id;
-}
-
 QMap<QString, QString> FileRepository::GetAstrofileTags(int astroFileId)
 {
     QMap<QString, QString> map;

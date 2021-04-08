@@ -69,7 +69,6 @@ private:
     QList<AstroFile> getAstrofilesInFolder(const QString& fullPath, bool includeTags);
     QMap<int, AstroFile> _getAllAstrofiles();
     QMap<int, QImage> _getAllThumbnails();
-    int GetAstroFileId(const QString& fullPath);
     QMap<QString, QString> GetAstrofileTags(int astroFileId);
 
     volatile bool cancelSignaled = false;

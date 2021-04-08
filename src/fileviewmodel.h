@@ -76,7 +76,6 @@ public:
 public slots:
     void setCellSize(const int newSize);
     void removeAstroFile(AstroFile astroFile);
-    void clearModel();
     void setInitialModel(const QList<AstroFile>& files);
     void addAstroFile(const AstroFile& astroFile);
     void addThumbnail(const AstroFile& astroFile);

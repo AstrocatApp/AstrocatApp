@@ -138,12 +138,12 @@ bool FileViewModel::astroFileExists(const QString fullPath)
 
 AstroFile FileViewModel::getAstroFileById(int id)
 {
-    return fileIdMap[id];
+    return fileIdMap.value(id);
 }
 
 int FileViewModel::getAstroFileIdByPath(const QString &fullPath)
 {
-    return filePathToIdMap[fullPath];
+    return filePathToIdMap.value(fullPath);
 }
 
 void FileViewModel::setCellSize(const int newSize)
@@ -298,17 +298,6 @@ void FileViewModel::removeAstroFile(AstroFile astroFile)
     }
 }
 
-void FileViewModel::clearModel()
-{
-    emit beginResetModel();
-    filePathToIdMap.clear();
-    fileIdMap.clear();
-
-    fileList.clear();
-    rc=0;
-    emit endResetModel();
-}
-
 void FileViewModel::addAstroFile(const AstroFile &astroFile)
 {
     bool afiExists = filePathToIdMap.contains(astroFile.FullPath);
@@ -317,7 +306,6 @@ void FileViewModel::addAstroFile(const AstroFile &astroFile)
         // This is a new file
         fileList.append(astroFile);
         filePathToIdMap[astroFile.FullPath] = astroFile.Id;
-//        fileIdMap[astroFile.Id] = astroFile;
         fileIdMap.insert(astroFile.Id, astroFile);
         insertRow(rc);
     }

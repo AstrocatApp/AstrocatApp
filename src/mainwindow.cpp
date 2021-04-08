@@ -81,7 +81,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::deleteAstrofilesInFolder,              fileRepositoryWorker,   &FileRepository::deleteAstrofilesInFolder);
     connect(this,                   &MainWindow::loadModelFromDb,                       fileRepositoryWorker,   &FileRepository::loadModel);
     connect(this,                   &MainWindow::loadModelIntoViewModel,                fileViewModel,          &FileViewModel::setInitialModel);
-    connect(this,                   &MainWindow::resetModel,                            fileViewModel,          &FileViewModel::clearModel);
     connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,                fileRepositoryWorker,   &FileRepository::addOrUpdateAstrofile);
     connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
     connect(this,                   &MainWindow::dbGetDuplicates,                       fileRepositoryWorker,   &FileRepository::getDuplicateFiles);
@@ -91,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::removeAstroFile);
     connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
     connect(fileRepositoryWorker,   &FileRepository::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);
-    connect(fileRepositoryWorker,   &FileRepository::thumbnailLoaded,              fileViewModel,                   &FileViewModel::addThumbnail);
+    connect(fileRepositoryWorker,   &FileRepository::thumbnailLoaded,                   fileViewModel,          &FileViewModel::addThumbnail);
     connect(fileRepositoryThread,   &QThread::finished,                                 fileRepositoryWorker,   &QObject::deleteLater);
     connect(newFileProcessorWorker, &NewFileProcessor::astrofileProcessed,              this,                   &MainWindow::astroFileProcessed);
     connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
@@ -105,7 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(fileViewModel,          &FileViewModel::rowsInserted,                       this,                   &MainWindow::rowsAddedToModel);
     connect(fileViewModel,          &FileViewModel::rowsRemoved,                        this,                   &MainWindow::rowsRemovedFromModel);
     connect(fileViewModel,          &FileViewModel::modelReset,                         this,                   &MainWindow::modelReset);
-    connect(fileViewModel,          &FileViewModel::loadThumbnailFromDb,                       fileRepositoryWorker,                   &FileRepository::loadThumbnal);
+    connect(fileViewModel,          &FileViewModel::loadThumbnailFromDb,                fileRepositoryWorker,   &FileRepository::loadThumbnal);
     connect(filterView,             &FilterView::minimumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterView,             &FilterView::maximumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMaximumDate);
     connect(filterView,             &FilterView::addAcceptedFilter,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFilter);
@@ -176,6 +175,10 @@ void MainWindow::cleanUpWorker(QThread* thread)
     delete thread;
 }
 
+/* This file may be called in a burts from the folder crawler
+ * In that case, the UI will be unresponsive for a brief amount
+ * of time.
+ */
 void MainWindow::newFileFound(const QFileInfo fileInfo)
 {
     AstroFile astroFile(fileInfo);
