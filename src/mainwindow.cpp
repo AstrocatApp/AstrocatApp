@@ -39,9 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
       ui(new Ui::MainWindow),
       isInitialized(false)
 {
-    QCoreApplication::setApplicationName("Astrocat");
-//    QCoreApplication::setOrganizationName();
-    QCoreApplication::setOrganizationDomain("astrocat.app");
     ui->setupUi(this);
 
     folderCrawlerThread = new QThread(this);
