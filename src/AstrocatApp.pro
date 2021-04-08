@@ -23,6 +23,7 @@ SOURCES += \
     imageprocessor.cpp \
     main.cpp \
     mainwindow.cpp \
+    mock_newfileprocessor.cpp \
     newfileprocessor.cpp \
     searchfolderdialog.cpp \
     sortfilterproxymodel.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     foldercrawler.h \
     imageprocessor.h \
     mainwindow.h \
+    mock_newfileprocessor.h \
     newfileprocessor.h \
     searchfolderdialog.h \
     sortfilterproxymodel.h \

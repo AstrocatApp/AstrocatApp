@@ -26,6 +26,7 @@
 #include "ui_mainwindow.h"
 #include "searchfolderdialog.h"
 #include "aboutwindow.h"
+#include "mock_newfileprocessor.h"
 
 #include <QContextMenuEvent>
 #include <QMessageBox>
@@ -50,7 +51,10 @@ MainWindow::MainWindow(QWidget *parent)
     fileRepositoryWorker->moveToThread(fileRepositoryThread);
 
     newFileProcessorThread = new QThread(this);
+
+    //    newFileProcessorWorker = new Mock_NewFileProcessor;
     newFileProcessorWorker = new NewFileProcessor;
+
     newFileProcessorWorker->moveToThread(newFileProcessorThread);
 
     fileViewModel = new FileViewModel(ui->astroListView);

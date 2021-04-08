@@ -22,35 +22,22 @@
     SOFTWARE.
 */
 
-#ifndef NEWFILEPROCESSOR_H
-#define NEWFILEPROCESSOR_H
+#ifndef MOCK_NEWFILEPROCESSOR_H
+#define MOCK_NEWFILEPROCESSOR_H
 
-#include "astrofile.h"
-#include "fileprocessor.h"
+#include "newfileprocessor.h"
 
-#include <QFileInfo>
 #include <QObject>
 
-class NewFileProcessor : public QObject
+class Mock_NewFileProcessor : public NewFileProcessor
 {
     Q_OBJECT
 public:
-    explicit NewFileProcessor(QObject *parent = nullptr);
-    virtual void processNewFile(const QFileInfo& fileInfo);
-    virtual void cancel();
 
 signals:
-    void astrofileProcessed(const AstroFile& astroFile);
-    void processingCancelled(const QFileInfo& fileInfo);
 
-protected:
-    volatile bool cancelSignaled = false;
-
-private:
-    FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);
-    FileProcessor* getProcessorForFile(const AstroFile& astroFile);
-
-    QByteArray getFileHash(const QFileInfo& fileInfo);
+public:
+    void processNewFile(const QFileInfo &fileInfo);
 };
 
-#endif // NEWFILEPROCESSOR_H
+#endif // MOCK_NEWFILEPROCESSOR_H
