@@ -146,6 +146,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::cancelPendingOperations()
 {
+    folderCrawlerWorker->cancel();
     newFileProcessorWorker->cancel();
     fileRepositoryWorker->cancel();
 }

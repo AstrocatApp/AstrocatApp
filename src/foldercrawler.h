@@ -33,12 +33,16 @@ class FolderCrawler : public QObject
     Q_OBJECT
 public:
     explicit FolderCrawler(QObject *parent = nullptr);
+    void cancel();
 
 public slots:
     void crawl(QString rootFolder);
 
 signals:
     void fileFound(QFileInfo filePath);
+
+protected:
+    volatile bool cancelSignaled = false;
 };
 
 #endif // FOLDERCRAWLER_H

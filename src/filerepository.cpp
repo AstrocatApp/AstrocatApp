@@ -511,6 +511,8 @@ void FileRepository::getDuplicateFilesByImageHash()
 
 void FileRepository::loadThumbnal(const AstroFile &afi)
 {
+    if (cancelSignaled)
+        return;
     QSqlQuery query;
     query.prepare("SELECT * FROM thumbnails where fits_id = :fitsId");
     query.bindValue(":fitsId", afi.Id);
