@@ -57,8 +57,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     newFileProcessorThread = new QThread(this);
 
-    newFileProcessorWorker = new Mock_NewFileProcessor;
-//    newFileProcessorWorker = new NewFileProcessor;
+//    newFileProcessorWorker = new Mock_NewFileProcessor;
+    newFileProcessorWorker = new NewFileProcessor;
 
     newFileProcessorWorker->moveToThread(newFileProcessorThread);
 
@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(catalog,                &Catalog::AstroFilesAdded,                          fileViewModel,          &FileViewModel::AddAstroFiles);
     connect(catalog,                &Catalog::AstroFileUpdated,                         fileViewModel,          &FileViewModel::UpdateAstroFile);
-    connect(catalog,                &Catalog::AstroFileRemoved,                         fileViewModel,          &FileViewModel::RemoveAstroFile);
+//    connect(catalog,                &Catalog::AstroFileRemoved,                         fileViewModel,          &FileViewModel::RemoveAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFile,                   catalog,                &Catalog::addAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFiles,                  catalog,                &Catalog::addAstroFiles);
 //    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          this,                   &MainWindow::newFileFound);
@@ -112,7 +112,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this, &MainWindow::processQueued);
 
     connect(fileRepositoryWorker,   &FileRepository::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
-    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  catalog,          &Catalog::deleteAstroFile);
+
+//    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  catalog,          &Catalog::deleteAstroFile);
+    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
+    connect(fileViewModel,   &FileViewModel::astroFileDeleted,                          catalog,                &Catalog::deleteAstroFileRow);
+
+
 //    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  this,          &MainWindow::dbAstroFileDeleted);
     connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
     connect(fileRepositoryWorker,   &FileRepository::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);

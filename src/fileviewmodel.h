@@ -83,11 +83,12 @@ public slots:
     void addThumbnail(const AstroFile& astroFile);
     void AddAstroFiles(int numberAdded);
     void UpdateAstroFile(AstroFile astroFile, int row);
-    void RemoveAstroFile(AstroFile astroFile, int row);
+    void RemoveAstroFile(const AstroFile& astroFile);
 
 signals:
     void modelIsEmpty(bool isEmpty);
     void loadThumbnailFromDb(const AstroFile& astroFile) const;
+    void astroFileDeleted(int row);
 
 private:
     int rc;

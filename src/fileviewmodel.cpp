@@ -93,19 +93,20 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
     if (parent.isValid())
         return false;
 
-    beginRemoveRows(parent, row, row);
+    beginRemoveRows(parent, row, row + count - 1);
     rc-= count;
     endRemoveRows();
     if (rc == 0)
         emit modelIsEmpty(true);
+    emit astroFileDeleted(row);
     return true;
 }
 
 bool FileViewModel::insertColumns(int column, int count, const QModelIndex &parent)
 {
     Q_UNUSED(count);
-    beginInsertColumns(parent,column, column);
-    cc++;
+    beginInsertColumns(parent,column, column + count -1);
+    cc += count;
     endInsertColumns();
     return true;
 }
@@ -188,6 +189,7 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
             QPixmap pixmap;
             if (!QPixmapCache::find(QString::number(a.Id), &pixmap))
             {
+                qDebug()<<"Requesting thumb from db";
                 emit loadThumbnailFromDb(a);
                 auto img = a.tinyThumbnail.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 return img;
@@ -291,9 +293,9 @@ void FileViewModel::UpdateAstroFile(AstroFile astroFile, int row)
     emit dataChanged(index, index);
 }
 
-void FileViewModel::RemoveAstroFile(AstroFile astroFile, int row)
+void FileViewModel::RemoveAstroFile(const AstroFile& astroFile)
 {
-    qDebug()<<"Model removing row: " <<row;
+    int row = catalog->astroFileIndex(astroFile);
     removeRow(row);
 }
 

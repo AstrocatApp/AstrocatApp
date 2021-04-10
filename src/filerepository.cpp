@@ -187,7 +187,7 @@ void FileRepository::createTables()
         return;
     }
 
-    QSqlQuery fitsFileNameIndexQuery("CREATE UNIQUE INDEX idx_fits_fullpath ON fits (FullPath);");
+    QSqlQuery fitsFileNameIndexQuery("CREATE UNIQUE INDEX idx_fits_fullpath ON fits(FullPath);");
     if(!fitsFileNameIndexQuery.isActive())
     {
         emit dbFailedToInitialize(fitsFileNameIndexQuery.lastError().text());
@@ -378,15 +378,19 @@ void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
         paddedFullPath = fullPath + '/';
 
     query.prepare("DELETE FROM fits WHERE FullPath LIKE :fullPathString");
-    query.bindValue(":fullPathString", QString("%%1%").arg(paddedFullPath));
+    auto queryPath = QString("%1%").arg(paddedFullPath);
+    qDebug()<<queryPath;
+    query.bindValue(":fullPathString", queryPath);
     bool ret = query.exec();
     if (!ret)
         qDebug() << "could not delete: " << query.lastError();
 
+    qDebug()<<"Done deleting from table";
     for(auto& file : files)
     {
         emit astroFileDeleted(file);
     }
+    qDebug()<<"Done deleting";
 }
 
 void FileRepository::addTags(const AstroFile& astroFile)

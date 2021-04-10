@@ -65,6 +65,7 @@ public slots:
 
     void deleteAstroFile(const AstroFile& astroFile);
     void deleteAstroFiles(const QList<AstroFile>& files);
+    void deleteAstroFileRow(int row);
 
 signals:
 //    void AstroFileAdded(AstroFile astroFile, int row);
