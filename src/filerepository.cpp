@@ -98,6 +98,7 @@ void FileRepository::createDatabase()
         return;
     }
     db.exec("PRAGMA foreign_keys = ON");
+    db.exec("PRAGMA cache_size = -100000");
 }
 
 /*!
