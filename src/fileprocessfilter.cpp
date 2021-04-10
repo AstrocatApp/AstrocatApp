@@ -22,36 +22,31 @@
     SOFTWARE.
 */
 
-#ifndef NEWFILEPROCESSOR_H
-#define NEWFILEPROCESSOR_H
+#include "fileprocessfilter.h"
 
-#include "astrofile.h"
-#include "catalog.h"
-#include "fileprocessor.h"
-
-#include <QFileInfo>
-#include <QObject>
-
-class NewFileProcessor : public QObject
+FileProcessFilter::FileProcessFilter(QObject *parent) : QObject(parent)
 {
-    Q_OBJECT
-public:
-    explicit NewFileProcessor(QObject *parent = nullptr);
-    virtual void processNewFile(const QFileInfo& fileInfo);
-    virtual void cancel();
+}
 
-signals:
-    void astrofileProcessed(const AstroFile& astroFile);
-    void processingCancelled(const QFileInfo& fileInfo);
+void FileProcessFilter::setCatalog(Catalog *cat)
+{
+    this->catalog = cat;
+}
 
-protected:
-    volatile bool cancelSignaled = false;
+void FileProcessFilter::cancel()
+{
+    cancelSignaled = true;
+}
 
-private:
-    FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);
-    FileProcessor* getProcessorForFile(const AstroFile& astroFile);
+void FileProcessFilter::filterFile(QFileInfo fileInfo)
+{
+    if (cancelSignaled)
+        return;
+    if (!catalog->shouldProcessFile(fileInfo))
+        return;
+    if (cancelSignaled)
+        return;
+    emit shouldProcess(fileInfo);
+}
 
-    QByteArray getFileHash(const QFileInfo& fileInfo);
-};
 
-#endif // NEWFILEPROCESSOR_H

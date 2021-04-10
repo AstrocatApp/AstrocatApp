@@ -34,6 +34,8 @@
 #include "searchfolderdialog.h"
 #include "sortfilterproxymodel.h"
 #include "filterview.h"
+#include "catalog.h"
+#include "fileprocessfilter.h"
 
 #include <QAbstractItemModelTester>
 #include <QFileInfo>
@@ -56,7 +58,7 @@ public:
     void cancelPendingOperations();
 
 public slots:
-    void newFileFound(const QFileInfo fileInfo);
+//    void newFileFound(const QFileInfo fileInfo);
     void searchFolderRemoved(const QString folder);
 
 signals:
@@ -76,6 +78,9 @@ signals:
     void extractThumbnail(const AstroFile& astroFile);
     void processNewFile(const QFileInfo& fileInfo);
 
+    void catalogAddAstroFile(const AstroFile &file);
+    void catalogAddAstroFiles(const QList<AstroFile> &files);
+
 private slots:
     void on_imageSizeSlider_valueChanged(int value);
     void on_actionFolders_triggered();
@@ -84,6 +89,7 @@ private slots:
 
     void astroFileProcessed(const AstroFile& astroFile);
     void processingCancelled(const QFileInfo& fileInfo);
+    void processQueued(const QFileInfo &fileInfo);
 
     void on_actionAbout_triggered();
     void setWatermark(bool shoudSet);
@@ -101,6 +107,7 @@ private slots:
 
     void dbFailedToOpen(const QString message);
     void dbAstroFileUpdated(const AstroFile& astroFile);
+//    void dbAstroFileDeleted(const AstroFile& astroFile);
 
 private:
     Ui::MainWindow *ui;
@@ -144,6 +151,10 @@ private:
     QAction *revealAct;
     QAction *removeAct;
     void createActions();
+
+    QThread* catalogThread;
+    Catalog* catalog;
+    FileProcessFilter* fileFilter;
 
 protected:
     void resizeEvent(QResizeEvent *event);

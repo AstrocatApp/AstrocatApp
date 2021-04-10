@@ -14,6 +14,8 @@ DEFINES += CURRENT_APP_VERSION=\"\\\"$${VERSION}\\\"\"
 SOURCES += \
     aboutwindow.cpp \
     autostretcher.cpp \
+    catalog.cpp \
+    fileprocessfilter.cpp \
     filerepository.cpp \
     fileviewmodel.cpp \
     filterview.cpp \
@@ -33,6 +35,8 @@ HEADERS += \
     aboutwindow.h \
     astrofile.h \
     autostretcher.h \
+    catalog.h \
+    fileprocessfilter.h \
     fileprocessor.h \
     filerepository.h \
     fileviewmodel.h \

@@ -82,6 +82,7 @@ struct AstroFile
 
     AstroFile()
     {
+//        qDebug()<<"AstroFile default constructor";
     }
 
     AstroFile(const AstroFile& other)
@@ -89,6 +90,7 @@ struct AstroFile
           CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
           thumbnail(other.thumbnail), tinyThumbnail(other.tinyThumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus), IsHidden(other.IsHidden)
     {
+//        qDebug()<<"AstroFile copy constructor";
     }
 
     AstroFile(const QFileInfo& fileInfo)

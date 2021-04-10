@@ -26,6 +26,7 @@
 #define FILEVIEWMODEL_H
 
 #include "astrofile.h"
+#include "catalog.h"
 
 #include <QAbstractItemModel>
 #include <QImage>
@@ -58,9 +59,9 @@ class FileViewModel : public QAbstractItemModel
 public:
     FileViewModel(QObject* parent = nullptr);
     ~FileViewModel();
-    bool astroFileExists(const QString fullPath);
-    AstroFile getAstroFileById(int id);
-    int getAstroFileIdByPath(const QString& fullPath);
+//    bool astroFileExists(const QString fullPath);
+//    AstroFile getAstroFileById(int id);
+//    int getAstroFileIdByPath(const QString& fullPath);
 
     // QAbstractItemModel interface
     QModelIndex index(int row, int column, const QModelIndex &parent) const override;
@@ -72,13 +73,17 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex parent(const QModelIndex &child) const override;
     bool hasChildren(const QModelIndex &parent) const override;
+    void setCatalog(Catalog* cat);
 
 public slots:
     void setCellSize(const int newSize);
-    void removeAstroFile(AstroFile astroFile);
-    void setInitialModel(const QList<AstroFile>& files);
-    void addAstroFile(const AstroFile& astroFile);
+//    void removeAstroFile(AstroFile astroFile);
+    void setInitialModel(int count);
+//    void addAstroFile(const AstroFile& astroFile);
     void addThumbnail(const AstroFile& astroFile);
+    void AddAstroFiles(int numberAdded);
+    void UpdateAstroFile(AstroFile astroFile, int row);
+    void RemoveAstroFile(AstroFile astroFile, int row);
 
 signals:
     void modelIsEmpty(bool isEmpty);
@@ -89,12 +94,11 @@ private:
     int cc;
 
     // We should try to get rid of the doulbe collection of AstroFiles here.
-    QList<AstroFile> fileList;
-    QMap<QString, int> filePathToIdMap;
-    QMap<int, AstroFile> fileIdMap;
-    int getRowForAstroFile(const AstroFile& astroFile);
-    QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
+//    int getRowForAstroFile(const AstroFile& astroFile);
+//    QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
     QSize cellSize = QSize(200, 200);
+
+    Catalog* catalog;
 };
 
 #endif // FILEVIEWMODEL_H

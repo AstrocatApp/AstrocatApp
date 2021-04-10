@@ -162,9 +162,8 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
                 fileTags["FILEEXT"][fileExtension]++;
             acceptedAstroFiles.insert(id);
         }
-
-
     }
+
     emit astroFileAdded(end-start+1);
     // We should not nuke all groups
     resetGroups();
