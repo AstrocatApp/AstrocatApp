@@ -189,13 +189,14 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
             QPixmap pixmap;
             if (!QPixmapCache::find(QString::number(a.Id), &pixmap))
             {
-                qDebug()<<"Requesting thumb from db";
+                qDebug()<<"Requesting thumb from db for: " << a.Id;
                 emit loadThumbnailFromDb(a);
                 auto img = a.tinyThumbnail.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 return img;
             }
             else
             {
+                qDebug()<<"Showing thumb for: " << a.Id;
                 QImage image = pixmap.toImage();
                 QImage small = image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 return small;
@@ -334,6 +335,7 @@ void FileViewModel::addThumbnail(const AstroFile &astroFile)
 {
     int row = catalog->astroFileIndex(astroFile);
     auto index = createIndex(row, 0);
+    qDebug()<<"Inserting into PixmapCache: " << astroFile.Id << " row: " << row;
     QPixmapCache::insert(QString::number(astroFile.Id), QPixmap::fromImage(astroFile.thumbnail));
     emit dataChanged(index, index, {Qt::DecorationRole});
 }

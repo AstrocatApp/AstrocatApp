@@ -36,6 +36,7 @@
 #include "filterview.h"
 #include "catalog.h"
 #include "fileprocessfilter.h"
+#include "thumbnailcache.h"
 
 #include <QAbstractItemModelTester>
 #include <QFileInfo>
@@ -155,6 +156,8 @@ private:
     QThread* catalogThread;
     Catalog* catalog;
     FileProcessFilter* fileFilter;
+
+    ThumbnailCache thumbnailCache;
 
 protected:
     void resizeEvent(QResizeEvent *event);

@@ -29,6 +29,7 @@ SOURCES += \
     newfileprocessor.cpp \
     searchfolderdialog.cpp \
     sortfilterproxymodel.cpp \
+    thumbnailcache.cpp \
     xisfprocessor.cpp
 
 HEADERS += \
@@ -50,6 +51,7 @@ HEADERS += \
     newfileprocessor.h \
     searchfolderdialog.h \
     sortfilterproxymodel.h \
+    thumbnailcache.h \
     xisfprocessor.h
 
 FORMS += \

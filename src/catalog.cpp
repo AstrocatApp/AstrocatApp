@@ -132,7 +132,10 @@ int Catalog::astroFileIndex(const AstroFile &astroFile)
     for (auto& a : astroFiles)
     {
         if (a->Id == astroFile.Id)
+        {
             return index;
+        }
+        index++;
     }
     return -1;
 }

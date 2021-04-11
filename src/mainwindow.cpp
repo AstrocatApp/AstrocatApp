@@ -73,12 +73,16 @@ MainWindow::MainWindow(QWidget *parent)
     ui->astroListView->setViewMode(QListView::IconMode);
     ui->astroListView->setResizeMode(QListView::Adjust);
     ui->astroListView->setModel(sortFilterProxyModel);
-    auto b = ui->astroListView->uniformItemSizes();
-    qDebug() << "Uniform item sizes: " <<b;
+    ui->astroListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->astroListView->setUniformItemSizes(true);
+
     QItemSelectionModel *selectionModel = ui->astroListView->selectionModel();
     filterView = new FilterView(ui->scrollAreaWidgetContents_2);
     filterView->setModel(sortFilterProxyModel);
+
+//    thumbnailCache = new ThumbnailCache();
+    thumbnailCache.moveToThread(fileRepositoryThread);
+    thumbnailCache.start();
 
     ui->statusbar->addPermanentWidget(&numberOfItemsLabel);
     ui->statusbar->addPermanentWidget(&numberOfVisibleItemsLabel);
@@ -109,13 +113,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          fileFilter,             &FileProcessFilter::filterFile);
     connect(fileFilter,             &FileProcessFilter::shouldProcess,                  newFileProcessorWorker, &NewFileProcessor::processNewFile);
-    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this, &MainWindow::processQueued);
+    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this,                   &MainWindow::processQueued);
 
     connect(fileRepositoryWorker,   &FileRepository::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
 
 //    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  catalog,          &Catalog::deleteAstroFile);
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
-    connect(fileViewModel,   &FileViewModel::astroFileDeleted,                          catalog,                &Catalog::deleteAstroFileRow);
+    connect(fileViewModel,          &FileViewModel::astroFileDeleted,                   catalog,                &Catalog::deleteAstroFileRow);
 
 
 //    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  this,          &MainWindow::dbAstroFileDeleted);
@@ -135,7 +139,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(fileViewModel,          &FileViewModel::rowsInserted,                       this,                   &MainWindow::rowsAddedToModel);
     connect(fileViewModel,          &FileViewModel::rowsRemoved,                        this,                   &MainWindow::rowsRemovedFromModel);
     connect(fileViewModel,          &FileViewModel::modelReset,                         this,                   &MainWindow::modelReset);
-    connect(fileViewModel,          &FileViewModel::loadThumbnailFromDb,                fileRepositoryWorker,   &FileRepository::loadThumbnal);
+    connect(fileViewModel,          &FileViewModel::loadThumbnailFromDb,                &thumbnailCache,        &ThumbnailCache::enqueueLoadThumbnail);
+    connect(&thumbnailCache,        &ThumbnailCache::dbLoadThumbnail,                   fileRepositoryWorker,   &FileRepository::loadThumbnal);
     connect(filterView,             &FilterView::minimumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterView,             &FilterView::maximumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMaximumDate);
     connect(filterView,             &FilterView::addAcceptedFilter,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFilter);
@@ -181,6 +186,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::cancelPendingOperations()
 {
+    thumbnailCache.cancel();
     fileFilter->cancel();
     folderCrawlerWorker->cancel();
     newFileProcessorWorker->cancel();
