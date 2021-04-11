@@ -119,7 +119,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 //    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  catalog,          &Catalog::deleteAstroFile);
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
-    connect(fileViewModel,          &FileViewModel::astroFileDeleted,                   catalog,                &Catalog::deleteAstroFileRow);
+//    connect(fileViewModel,          &FileViewModel::astroFileDeleted,                   catalog,                &Catalog::deleteAstroFileRow);
 
 
 //    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  this,          &MainWindow::dbAstroFileDeleted);
@@ -220,7 +220,9 @@ void MainWindow::cleanUpWorker(QThread* thread)
 
 void MainWindow::searchFolderRemoved(const QString folder)
 {
-    cancelPendingOperations();
+    // TODO: Don't cancel pending operations for all. Cancel pending operations only for the
+    // Removed folder.
+//    cancelPendingOperations();
     // The source folder was removed by the user. We will need to remove all images in this source folder from the db.
     emit deleteAstrofilesInFolder(folder);
 }

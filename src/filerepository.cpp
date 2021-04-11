@@ -379,7 +379,7 @@ void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
 
     query.prepare("DELETE FROM fits WHERE FullPath LIKE :fullPathString");
     auto queryPath = QString("%1%").arg(paddedFullPath);
-    qDebug()<<queryPath;
+//    qDebug()<<queryPath;
     query.bindValue(":fullPathString", queryPath);
     bool ret = query.exec();
     if (!ret)

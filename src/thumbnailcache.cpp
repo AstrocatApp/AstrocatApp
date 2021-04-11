@@ -79,7 +79,6 @@ void ThumbnailCache::enqueueLoadThumbnail(const AstroFile &astroFile)
         mutex.unlock();
         return;
     }
-    qDebug() << requestsSize;
     if (requestsSize >= MAX_REQUEST)
     {
         requests.removeLast();
