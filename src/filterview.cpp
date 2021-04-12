@@ -236,9 +236,27 @@ void FilterView::addDates()
     }
 }
 
+QCheckBox *FilterView::findCheckBox(QGroupBox *group, QList<QCheckBox *> &checkBoxes, QString titleProperty, void (FilterView::*func)(QString, int))
+{
+    for (auto& a: checkBoxes)
+    {
+        auto prop = a->property("for_name");
+        if (prop == titleProperty)
+        {
+            return a;
+        }
+    }
+    QCheckBox* checkBox = new QCheckBox();
+    checkBox->setProperty("for_name", titleProperty);
+    checkBox->setEnabled(true);
+    checkBoxes.append(checkBox);
+    group->layout()->addWidget(checkBox);
+    connect(checkBox, &QCheckBox::stateChanged, this, [=]() {(this->*func)(titleProperty, checkBox->checkState());});
+    return checkBox;
+}
+
 void FilterView::addObjects()
 {
-    clearLayout(objectsGroup->layout());
     auto& o = fileTags["OBJECT"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -247,18 +265,18 @@ void FilterView::addObjects()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(objectsGroup, objectsCheckBoxes, name, &FilterView::selectedObjectsChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("OBJ_"+name))
             checkBox->setChecked(true);
-        objectsGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedObjectsChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 
 void FilterView::addInstruments()
 {
-    clearLayout(instrumentsGroup->layout());
     auto& o = fileTags["INSTRUME"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -267,18 +285,18 @@ void FilterView::addInstruments()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(instrumentsGroup, instrumentsCheckBoxes, name, &FilterView::selectedInstrumentsChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("INS_"+name))
             checkBox->setChecked(true);
-        instrumentsGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedInstrumentsChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 
 void FilterView::addFilters()
 {
-    clearLayout(filtersGroup->layout());
     auto& o = fileTags["FILTER"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -287,18 +305,18 @@ void FilterView::addFilters()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(filtersGroup, filtersCheckBoxes, name, &FilterView::selectedFiltersChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("FIL_"+name))
             checkBox->setChecked(true);
-        filtersGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedFiltersChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 
 void FilterView::addFileExtensions()
 {
-    clearLayout(extensionsGroup->layout());
     auto& o = fileTags["FILEEXT"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -307,12 +325,13 @@ void FilterView::addFileExtensions()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(extensionsGroup, extensionsCheckBoxes, name, &FilterView::selectedFileExtensionsChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("EXT_"+name))
             checkBox->setChecked(true);
-        extensionsGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedFileExtensionsChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 

@@ -28,6 +28,7 @@
 #include "astrofile.h"
 
 #include <QAbstractItemView>
+#include <QCheckBox>
 #include <QDateEdit>
 #include <QGroupBox>
 #include <QObject>
@@ -68,6 +69,13 @@ private:
     QGroupBox* datesGroup;
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
+
+    QList<QCheckBox*> objectsCheckBoxes;
+    QList<QCheckBox*> instrumentsCheckBoxes;
+    QList<QCheckBox*> filtersCheckBoxes;
+    QList<QCheckBox*> extensionsCheckBoxes;
+    QCheckBox* findCheckBox(QGroupBox* group, QList<QCheckBox*>& checkBoxes, QString titleProperty, void (FilterView::* func)(QString,int));
+
     QWidget* createDateBox();
     QWidget* createObjectsBox();
     QWidget* createInstrumentsBox();
