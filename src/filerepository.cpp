@@ -58,7 +58,7 @@ void FileRepository::cancel()
  * Databse file location:
  *  MacOS:      /Users/<username>/Library/Application Support/Astrocat/Astrocat/astrocat.db
  *  Windows:
- *  Linux:
+ *  Linux:      /home/<username>/.local/share/Astrocat/Astrocat/astrocat.db
  */
 void FileRepository::initialize()
 {

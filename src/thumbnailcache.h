@@ -31,6 +31,7 @@
 #include <QStack>
 #include <QThread>
 #include <QWaitCondition>
+#include <QMutex>
 
 class ThumbnailCache : public QThread
 {

@@ -29,6 +29,7 @@
 
 #include <QObject>
 #include <QFileInfo>
+#include <QRecursiveMutex>
 
 class Catalog : public QObject
 {

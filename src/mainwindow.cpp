@@ -477,16 +477,16 @@ void revealFile(QWidget* parent, const QString &pathToReveal) {
     QProcess::execute("/usr/bin/osascript", scriptArgs);
 #else
     // we cannot select a file here, because no file browser really supports it...
-    const QFileInfo fileInfo(pathIn);
-    const QString folder = fileInfo.absoluteFilePath();
-    const QString app = Utils::UnixUtils::fileBrowser(Core::ICore::instance()->settings());
-    QProcess browserProc;
-    const QString browserArgs = Utils::UnixUtils::substituteFileBrowserParameters(app, folder);
-    bool success = browserProc.startDetached(browserArgs);
-    const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
-    success = success && error.isEmpty();
-    if (!success)
-        showGraphicalShellError(parent, app, error);
+//    const QFileInfo fileInfo(pathIn);
+//    const QString folder = fileInfo.absoluteFilePath();
+//    const QString app = Utils::UnixUtils::fileBrowser(Core::ICore::instance()->settings());
+//    QProcess browserProc;
+//    const QString browserArgs = Utils::UnixUtils::substituteFileBrowserParameters(app, folder);
+//    bool success = browserProc.startDetached(browserArgs);
+//    const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
+//    success = success && error.isEmpty();
+//    if (!success)
+//        showGraphicalShellError(parent, app, error);
 #endif
 
 }
