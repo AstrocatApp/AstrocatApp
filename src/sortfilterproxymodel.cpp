@@ -95,15 +95,15 @@ bool SortFilterProxyModel::isDuplicateOf(QString hash) const
 void SortFilterProxyModel::setFilterMinimumDate(QDate date)
 {
     minDate = date;
-    emit filterReset();
     invalidateFilter();
+//    emit filterReset();
 }
 
 void SortFilterProxyModel::setFilterMaximumDate(QDate date)
 {
     maxDate = date;
-    emit filterReset();
     invalidateFilter();
+//    emit filterReset();
 }
 
 void SortFilterProxyModel::addAcceptedFilter(QString filterName)
@@ -111,7 +111,7 @@ void SortFilterProxyModel::addAcceptedFilter(QString filterName)
     if (!acceptedFilters.contains(filterName))
     {
         acceptedFilters.append(filterName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -120,7 +120,7 @@ void SortFilterProxyModel::removeAcceptedFilter(QString filterName)
 {
     if (acceptedFilters.removeOne(filterName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -130,7 +130,7 @@ void SortFilterProxyModel::addAcceptedInstrument(QString instrumentName)
     if (!acceptedInstruments.contains(instrumentName))
     {
         acceptedInstruments.append(instrumentName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -139,7 +139,7 @@ void SortFilterProxyModel::removeAcceptedInstrument(QString instrumentName)
 {
     if (acceptedInstruments.removeOne(instrumentName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -149,7 +149,7 @@ void SortFilterProxyModel::addAcceptedObject(QString objectName)
     if (!acceptedObjects.contains(objectName))
     {
         acceptedObjects.append(objectName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -158,7 +158,7 @@ void SortFilterProxyModel::removeAcceptedObject(QString objectName)
 {
     if (acceptedObjects.removeOne(objectName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -168,7 +168,7 @@ void SortFilterProxyModel::addAcceptedExtension(QString extensionName)
     if (!acceptedExtensions.contains(extensionName))
     {
         acceptedExtensions.append(extensionName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -177,7 +177,7 @@ void SortFilterProxyModel::removeAcceptedExtension(QString extensionName)
 {
     if (acceptedExtensions.removeOne(extensionName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }

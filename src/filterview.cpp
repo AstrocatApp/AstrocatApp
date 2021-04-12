@@ -60,6 +60,8 @@ void FilterView::searchFilterReset()
 
 void FilterView::resetGroups()
 {
+    minDateEdit->setDate(QDate());
+    maxDateEdit->setDate(QDate());
     addObjects();
     addDates();
     addInstruments();
@@ -215,25 +217,30 @@ void FilterView::clearLayout(QLayout* layout)
 
 void FilterView::addDates()
 {
+    QDate minDate, maxDate;
+
     auto& o = fileTags["DATE-OBS"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
     {
         QString n = setiter.next().key();
         QDate d = QDate::fromString(n, Qt::ISODate);
-        if (d < minDateEdit->date())
-        {
-            minDateEdit->blockSignals(true);
-            minDateEdit->setDate(d);
-            minDateEdit->blockSignals(false);
-        }
-        if (d > maxDateEdit->date())
-        {
-            maxDateEdit->blockSignals(true);
-            maxDateEdit->setDate(d);
-            maxDateEdit->blockSignals(false);
-        }
+        if (d < minDate) minDate = d;
+        if (d > maxDate) maxDate = d;
     }
+
+    // Disable the date pickers until we fix them.
+    minDateEdit->blockSignals(true);
+    minDateEdit->setDate(minDate);
+    minDateEdit->setReadOnly(true);
+    minDateEdit->setEnabled(false);
+    minDateEdit->blockSignals(false);
+
+    maxDateEdit->blockSignals(true);
+    maxDateEdit->setDate(maxDate);
+    maxDateEdit->setReadOnly(true);
+    maxDateEdit->setEnabled(false);
+    maxDateEdit->blockSignals(false);
 }
 
 QCheckBox *FilterView::findCheckBox(QGroupBox *group, QList<QCheckBox *> &checkBoxes, QString titleProperty, void (FilterView::*func)(QString, int))
