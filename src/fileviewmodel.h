@@ -59,9 +59,6 @@ class FileViewModel : public QAbstractItemModel
 public:
     FileViewModel(QObject* parent = nullptr);
     ~FileViewModel();
-//    bool astroFileExists(const QString fullPath);
-//    AstroFile getAstroFileById(int id);
-//    int getAstroFileIdByPath(const QString& fullPath);
 
     // QAbstractItemModel interface
     QModelIndex index(int row, int column, const QModelIndex &parent) const override;
@@ -77,9 +74,7 @@ public:
 
 public slots:
     void setCellSize(const int newSize);
-//    void removeAstroFile(AstroFile astroFile);
     void setInitialModel(int count);
-//    void addAstroFile(const AstroFile& astroFile);
     void addThumbnail(const AstroFile& astroFile);
     void AddAstroFiles(int numberAdded);
     void UpdateAstroFile(AstroFile astroFile, int row);
@@ -94,9 +89,6 @@ private:
     int rc;
     int cc;
 
-    // We should try to get rid of the doulbe collection of AstroFiles here.
-//    int getRowForAstroFile(const AstroFile& astroFile);
-//    QModelIndex getIndexForAstroFile(const AstroFile& astroFile);
     QSize cellSize = QSize(200, 200);
 
     Catalog* catalog;

@@ -97,32 +97,20 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);
     connect(this,                   &MainWindow::deleteAstrofilesInFolder,              fileRepositoryWorker,   &FileRepository::deleteAstrofilesInFolder);
     connect(this,                   &MainWindow::loadModelFromDb,                       fileRepositoryWorker,   &FileRepository::loadModel);
-//    connect(this,                   &MainWindow::loadModelIntoViewModel,                fileViewModel,          &FileViewModel::setInitialModel);
     connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,                fileRepositoryWorker,   &FileRepository::addOrUpdateAstrofile);
     connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
     connect(this,                   &MainWindow::dbGetDuplicates,                       fileRepositoryWorker,   &FileRepository::getDuplicateFiles);
     connect(catalogThread,          &QThread::finished,                                 catalog,                &QObject::deleteLater);
-
     connect(catalog,                &Catalog::AstroFilesAdded,                          fileViewModel,          &FileViewModel::AddAstroFiles);
     connect(catalog,                &Catalog::AstroFileUpdated,                         fileViewModel,          &FileViewModel::UpdateAstroFile);
-//    connect(catalog,                &Catalog::AstroFileRemoved,                         fileViewModel,          &FileViewModel::RemoveAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFile,                   catalog,                &Catalog::addAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFiles,                  catalog,                &Catalog::addAstroFiles);
-//    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          this,                   &MainWindow::newFileFound);
-//    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          newFileProcessorWorker, &NewFileProcessor::processNewFile);
     connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          fileFilter,             &FileProcessFilter::filterFile);
     connect(fileFilter,             &FileProcessFilter::shouldProcess,                  newFileProcessorWorker, &NewFileProcessor::processNewFile);
     connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this,                   &MainWindow::processQueued);
-
     connect(fileRepositoryWorker,   &FileRepository::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
-
-//    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  catalog,          &Catalog::deleteAstroFile);
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
-//    connect(fileViewModel,          &FileViewModel::astroFileDeleted,                   catalog,                &Catalog::deleteAstroFileRow);
-
-
-//    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  this,          &MainWindow::dbAstroFileDeleted);
     connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
     connect(fileRepositoryWorker,   &FileRepository::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);
     connect(fileRepositoryWorker,   &FileRepository::thumbnailLoaded,                   fileViewModel,          &FileViewModel::addThumbnail);
@@ -220,9 +208,9 @@ void MainWindow::cleanUpWorker(QThread* thread)
 
 void MainWindow::searchFolderRemoved(const QString folder)
 {
-    // TODO: Don't cancel pending operations for all. Cancel pending operations only for the
-    // Removed folder.
+    // TODO: Don't cancel pending operations for all. Cancel pending operations only for the Removed folder.
 //    cancelPendingOperations();
+
     // The source folder was removed by the user. We will need to remove all images in this source folder from the db.
     emit deleteAstrofilesInFolder(folder);
 }
@@ -346,7 +334,6 @@ void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
     _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
     setWatermark(true);
     emit catalogAddAstroFiles(files);
-//    emit loadModelIntoViewModel(files);
 
     crawlAllSearchFolders();
 }
@@ -433,8 +420,8 @@ void MainWindow::itemContextMenuRequested(const QPoint &pos)
     if (!index.isValid())
         return;
 
-    QItemSelectionModel *select = ui->astroListView->selectionModel();
-    auto items = select->selectedRows();
+//    QItemSelectionModel *select = ui->astroListView->selectionModel();
+//    auto items = select->selectedRows();
 
     QMenu menu(this);
     menu.addAction(revealAct);

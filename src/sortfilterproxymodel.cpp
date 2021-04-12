@@ -41,7 +41,6 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     QDate d = QDate::fromString(dateString, Qt::ISODate);
 
     bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension);
-//    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags.value("OBJECT")) && instrumentAccepted(astroFile->Tags.value("INSTRUME")) && filterAccepted(astroFile->Tags.value("FILTER"));
 
     if (isDuplicatedFilterActive)
         shouldAccept = shouldAccept && isDuplicateOf(astroFile->FileHash);

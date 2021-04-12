@@ -24,16 +24,12 @@
 
 #include "thumbnailcache.h"
 
-#include <QThread>
-#include <QWaitCondition>
-
 #define MAX_REQUEST 5
 
-QStack<int> requests;
-QWaitCondition bufferNotEmpty;
-QMutex mutex;
-volatile bool isCanceled = false;
+ThumbnailCache::ThumbnailCache(QObject *parent) : QThread(parent)
+{
 
+}
 
 void ThumbnailCache::run()
 {
@@ -54,12 +50,6 @@ void ThumbnailCache::run()
         emit dbLoadThumbnail(a);
         mutex.unlock();
     }
-
-}
-
-ThumbnailCache::ThumbnailCache(QObject *parent) : QThread(parent)
-{
-
 }
 
 void ThumbnailCache::cancel()
@@ -85,6 +75,6 @@ void ThumbnailCache::enqueueLoadThumbnail(const AstroFile &astroFile)
         qDebug()<<"Dropping one request";
     }
     requests.push(astroFile.Id);
-    bufferNotEmpty.wakeAll();
+    bufferNotEmpty.wakeOne();
     mutex.unlock();
 }

@@ -127,21 +127,6 @@ void FileViewModel::setCatalog(Catalog *cat)
     this->catalog = cat;
 }
 
-//bool FileViewModel::astroFileExists(const QString fullPath)
-//{
-//    return filePathToIdMap.contains(fullPath);
-//}
-
-//AstroFile FileViewModel::getAstroFileById(int id)
-//{
-//    return fileIdMap.value(id);
-//}
-
-//int FileViewModel::getAstroFileIdByPath(const QString &fullPath)
-//{
-//    return filePathToIdMap.value(fullPath);
-//}
-
 void FileViewModel::setCellSize(const int newSize)
 {
     emit layoutAboutToBeChanged();
@@ -149,30 +134,6 @@ void FileViewModel::setCellSize(const int newSize)
     cellSize = QSize(size,size);
     emit layoutChanged();
 }
-
-//int FileViewModel::getRowForAstroFile(const AstroFile& astroFile)
-//{
-//    Q_ASSERT(astroFile.Id != 0);
-//    int index = 0;
-//    for (auto& af : fileList)
-//    {
-//        if (af.Id == astroFile.Id)
-//        {
-//            return index;
-//        }
-//        index++;
-//    }
-//    return -1;
-//}
-
-//QModelIndex FileViewModel::getIndexForAstroFile(const AstroFile& astroFile)
-//{
-//    int row = getRowForAstroFile(astroFile);
-//    if (row == -1)
-//        return QModelIndex();
-
-//    return createIndex(row, 0, &astroFile); // we probably should not pass the astrofile pointer to this index
-//}
 
 QVariant FileViewModel::data(const QModelIndex &index, int role) const
 {
@@ -303,37 +264,6 @@ void FileViewModel::RemoveAstroFile(const AstroFile& astroFile)
     int row = catalog->astroFileIndex(astroFile);
     removeRow(row);
 }
-
-
-//void FileViewModel::removeAstroFile(AstroFile astroFile)
-//{
-//    int row = getRowForAstroFile(astroFile);
-//    if (row>=0)
-//    {
-//        removeRow(row);
-//    }
-//}
-
-//void FileViewModel::addAstroFile(const AstroFile &astroFile)
-//{
-//    bool afiExists = filePathToIdMap.contains(astroFile.FullPath);
-//    if (!afiExists)
-//    {
-//        // This is a new file
-//        fileList.append(astroFile);
-//        filePathToIdMap[astroFile.FullPath] = astroFile.Id;
-//        fileIdMap.insert(astroFile.Id, astroFile);
-//        insertRow(rc);
-//    }
-//    else
-//    {
-//        QModelIndex index = getIndexForAstroFile(astroFile);
-//        fileList[index.row()] = astroFile;
-//        filePathToIdMap[astroFile.FullPath] = astroFile.Id;
-//        fileIdMap[astroFile.Id] = astroFile;
-//        emit dataChanged(index, index);
-//    }
-//}
 
 void FileViewModel::addThumbnail(const AstroFile &astroFile)
 {

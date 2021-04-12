@@ -44,9 +44,6 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 
     AstroFile astroFile(fileInfo);
 
-//    afi = extractTags(afi);
-//    afi = extractThumbnail(afi);
-
     FileProcessor* processor = getProcessorForFile(astroFile);
 
     if (!processor->loadFile(astroFile))

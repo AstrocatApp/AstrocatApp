@@ -81,7 +81,6 @@ private:
 
 protected slots:
     virtual void resetInternalData();
-
 };
 
 #endif // SORTFILTERPROXYMODEL_H

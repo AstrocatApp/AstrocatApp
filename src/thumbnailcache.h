@@ -30,6 +30,7 @@
 #include <QObject>
 #include <QStack>
 #include <QThread>
+#include <QWaitCondition>
 
 class ThumbnailCache : public QThread
 {
@@ -41,11 +42,13 @@ public:
 //public slots:
     void enqueueLoadThumbnail(const AstroFile& astroFile);
 signals:
-//    void thumbnailLoaded(const AstroFile& astroFile, QImage thumbnail);
     void dbLoadThumbnail(const AstroFile& astroFile);
 
 private:
-
+    QStack<int> requests;
+    QWaitCondition bufferNotEmpty;
+    QMutex mutex;
+    volatile bool isCanceled = false;
 
     // QThread interface
 protected:

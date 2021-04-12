@@ -47,8 +47,8 @@ public:
 //    void removeAstroFilesInFolder(const QString& folder);
 
 //    /*
-//     * The Folder Crawler will ask for this.
-//     * There might be a large number of incoming requests for this
+//     * The FileProcessFilter will call this.
+//     * There might be a large number of incoming requests for this from the FileProcessFilter
 //     * while there is also a large number of requests for "addAstroFile"
 //     * coming from the db.
 //     */
@@ -82,7 +82,6 @@ private:
 
     AstroFile* getAstroFileByPath(QString path);
     void impAddAstroFile(const AstroFile& astroFile, bool shouldEmit = true);
-
 };
 
 #endif // CATALOG_H
