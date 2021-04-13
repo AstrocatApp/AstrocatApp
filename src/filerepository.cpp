@@ -208,6 +208,13 @@ void FileRepository::createTables()
         return;
     }
 
+    QSqlQuery tagsFitsIdIndexQuery("CREATE INDEX idx_ftags_fitsid ON tags(fits_id);");
+    if(!tagsFitsIdIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(tagsFitsIdIndexQuery.lastError().text());
+        return;
+    }
+
     QSqlQuery thumbnailsquery(
         "CREATE TABLE thumbnails ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -219,6 +226,13 @@ void FileRepository::createTables()
     if(!thumbnailsquery.isActive())
     {
         emit dbFailedToInitialize(thumbnailsquery.lastError().text());
+        return;
+    }
+
+    QSqlQuery thumbnailsFitsIdIndexQuery("CREATE UNIQUE INDEX idx_thumbnails_fitsid ON thumbnails(fits_id);");
+    if(!thumbnailsFitsIdIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(thumbnailsFitsIdIndexQuery.lastError().text());
         return;
     }
 }
@@ -359,6 +373,7 @@ int FileRepository::insertAstrofile(const AstroFile& astroFile)
     {
         // TODO: Handle failures
         qDebug() << "record could not add: " << queryAdd.lastError();
+        return 0;
     }
 
     return queryAdd.lastInsertId().toInt();
@@ -409,7 +424,7 @@ void FileRepository::addTags(const AstroFile& astroFile)
         tagAddQuery.bindValue(":tagKey", key);
         tagAddQuery.bindValue(":tagValue", value);
         if (!tagAddQuery.exec())
-            qDebug() << "FAILED to execute INSERT TAG query";
+            qDebug() << "FAILED to execute INSERT TAG query: " << tagAddQuery.lastError();
     }
 
     QSqlQuery tagStatusQuery;
