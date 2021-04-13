@@ -86,6 +86,9 @@ QWidget* FilterView::createDateBox()
     minDateEdit = new QDateEdit();
     maxDateEdit = new QDateEdit();
 
+    minDateEdit->setToolTip("Feature Coming Soon");
+    maxDateEdit->setToolTip("Feature Coming Soon");
+
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addWidget(minDateEdit);
     vbox->addWidget(maxDateEdit);
