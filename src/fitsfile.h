@@ -74,6 +74,11 @@ public:
         return _tags;
     }
 
+    QByteArray getImageHash()
+    {
+        return _imageHash;
+    }
+
     void extractTags();
     void extractImage();
 
@@ -84,6 +89,7 @@ private:
     QImage _qImage;
     QImage::Format _qImageFormat;
     QMap<QString, QString> _tags;
+    QByteArray _imageHash;
     fitsfile* _fptr;
     unsigned char* _data;
     int _imageEquivType;

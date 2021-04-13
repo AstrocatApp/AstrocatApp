@@ -59,7 +59,7 @@ add_compile_definitions(HAVE_LONGLONG)
 add_compile_definitions(HAVE_UNION_SEMUN)
 add_compile_definitions(HAVE_FMEMOPEN)
 add_compile_definitions(HAVE_NET_SERVICES)
-#ENDIF()
+ENDIF()
 
 include_directories(
     .
@@ -94,11 +94,16 @@ ENDIF (BUILD_SHARED_LIBS)
 
 FILE(GLOB H_FILES "*.h")
 
-IF (NOT MSVC)
-    IF (USE_PTHREADS)
+IF (USE_PTHREADS)
+    IF (APPLE)
         FIND_PACKAGE(pthreads REQUIRED PATH ${CMAKE_SOURCE_DIR}/pthread)
         INCLUDE_DIRECTORIES(${PTHREADS_INCLUDE_DIR})
         ADD_DEFINITIONS(-D_REENTRANT)
+    ELSEIF (LINUX)
+        FIND_PACKAGE(pthreads REQUIRED)
+        INCLUDE_DIRECTORIES(${PTHREADS_INCLUDE_DIR})
+        ADD_DEFINITIONS(-D_REENTRANT)
+    ELSEIF (MSVC)
     ENDIF()
 ENDIF()
 

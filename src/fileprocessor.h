@@ -32,13 +32,13 @@ class FileProcessor
 public:
     virtual ~FileProcessor() {};
 
-    virtual void extractTags(const AstroFileImage& astroFileImage) = 0;
-    virtual void extractThumbnail(const AstroFileImage& astroFileImage) = 0;
-    virtual QMap<QString, QString> getTags() {return _tags;}
-    virtual QImage getThumbnail() {return _thumbnail;}
-protected:
-    QMap<QString, QString> _tags;
-    QImage _thumbnail;
+    virtual bool loadFile(const AstroFile& astroFile) = 0;
+    virtual void extractTags() = 0;
+    virtual void extractThumbnail() = 0;
+    virtual QMap<QString, QString> getTags() = 0;
+    virtual QImage getThumbnail() = 0;
+    virtual QImage getTinyThumbnail() = 0;
+    virtual QByteArray getImageHash() = 0;
 };
 
 #endif // FILEPROCESSOR_H

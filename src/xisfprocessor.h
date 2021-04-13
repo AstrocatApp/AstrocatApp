@@ -32,8 +32,8 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-#include <pcl/XISF.h>
 #include <pcl/StandardStatus.h>
+#include <pcl/XISF.h>
 
 #ifdef __llvm__
 #pragma GCC diagnostic pop
@@ -44,8 +44,22 @@
 class XisfProcessor : public FileProcessor
 {
 public:
-    void extractTags(const AstroFileImage &astroFileImage);
-    void extractThumbnail(const AstroFileImage &astroFileImage);
+    ~XisfProcessor() noexcept;
+    bool loadFile(const AstroFile &astroFile);
+    void extractTags();
+    void extractThumbnail();
+    QMap<QString, QString> getTags();
+    QImage getThumbnail();
+    QImage getTinyThumbnail();
+    QByteArray getImageHash();
+
+private:
+    QMap<QString, QString> _tags;
+    QImage _thumbnail;
+    QByteArray _imageHash;
+
+    pcl::XISFReader xisf;
+    QByteArray calculateHash(QByteArray &array);
 };
 
 #endif // XISFPROCESSOR_H

@@ -27,11 +27,26 @@
 
 #include "fileprocessor.h"
 
+#include <QCryptographicHash>
+
 class ImageProcessor : public FileProcessor
 {
 public:
-    void extractTags(const AstroFileImage &astroFileImage);
-    void extractThumbnail(const AstroFileImage &astroFileImage);
+    bool loadFile(const AstroFile &astroFile);
+    void extractTags();
+    void extractThumbnail();
+    QMap<QString, QString> getTags();
+    QImage getThumbnail();
+    QImage getTinyThumbnail();
+    QByteArray getImageHash();
+
+private:
+    QMap<QString, QString> _tags;
+    QImage _thumbnail;
+    QByteArray _imageHash;
+
+    QImage image;
+    QByteArray fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm);
 };
 
 #endif // IMAGEPROCESSOR_H

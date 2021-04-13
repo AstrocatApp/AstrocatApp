@@ -34,6 +34,9 @@
 #include "searchfolderdialog.h"
 #include "sortfilterproxymodel.h"
 #include "filterview.h"
+#include "catalog.h"
+#include "fileprocessfilter.h"
+#include "thumbnailcache.h"
 
 #include <QAbstractItemModelTester>
 #include <QFileInfo>
@@ -56,44 +59,56 @@ public:
     void cancelPendingOperations();
 
 public slots:
-    void newFileFound(const QFileInfo fileInfo);
+//    void newFileFound(const QFileInfo fileInfo);
     void searchFolderRemoved(const QString folder);
 
 signals:
     void crawl(QString rootFolder);
     void deleteAstrofilesInFolder(const QString fullPath);
-    void dbAddOrUpdateAstroFileImage(const AstroFileImage& astroFileImage);
-    void dbAddTags(const AstroFileImage& astroFileImage);
-    void dbAddThumbnail(const AstroFileImage& astroFileImage, const QImage& image);
-    void dbUpdateProcessStatus(const AstroFileImage& astroFileImage);
+    void dbAddOrUpdateAstroFile(const AstroFile& astroFile);
+    void dbAddTags(const AstroFile& astroFile);
+    void dbAddThumbnail(const AstroFile& astroFile, const QImage& image);
+    void dbUpdateProcessStatus(const AstroFile& astroFile);
     void initializeFileRepository();
     void loadModelFromDb();
-    void loadModelIntoViewModel(const QList<AstroFileImage> &files);
+    void loadModelIntoViewModel(const QList<AstroFile> &files);
     void resetModel();
+    void dbGetDuplicates();
 
-    void extractTags(const AstroFileImage& astroFileImage);
-    void extractThumbnail(const AstroFileImage& astroFileImage);
+    void extractTags(const AstroFile& astroFile);
+    void extractThumbnail(const AstroFile& astroFile);
     void processNewFile(const QFileInfo& fileInfo);
 
-    void insertAstrofileImage(const AstroFileImage& afi);
+    void catalogAddAstroFile(const AstroFile &file);
+    void catalogAddAstroFiles(const QList<AstroFile> &files);
 
 private slots:
     void on_imageSizeSlider_valueChanged(int value);
     void on_actionFolders_triggered();
     void handleSelectionChanged(QItemSelection selection);
-    void modelLoadedFromDb(const QList<AstroFileImage> &files);
+    void modelLoadedFromDb(const QList<AstroFile> &files);
 
-    void astroFileProcessed(const AstroFileImage& astroFileImage);
+    void astroFileProcessed(const AstroFile& astroFile);
     void processingCancelled(const QFileInfo& fileInfo);
+    void processQueued(const QFileInfo &fileInfo);
 
     void on_actionAbout_triggered();
     void setWatermark(bool shoudSet);
 
-    void itemAddedToModel(int numberAdded);
-    void itemRemovedFromModel(int numberRemoved);
+    void rowsAddedToModel(const QModelIndex &parent, int first, int last);
+    void rowsRemovedFromModel(const QModelIndex &parent, int first, int last);
     void modelReset();
     void itemAddedToSortFilterView(int numberAdded);
     void itemRemovedFromSortFilterView(int numberRemoved);
+    void itemContextMenuRequested(const QPoint &pos);
+
+    void reveal();
+    void remove();
+    void on_duplicatesButton_clicked();
+
+    void dbFailedToOpen(const QString message);
+    void dbAstroFileUpdated(const AstroFile& astroFile);
+//    void dbAstroFileDeleted(const AstroFile& astroFile);
 
 private:
     Ui::MainWindow *ui;
@@ -134,12 +149,18 @@ private:
     QLabel numberOfSelectedItemsLabel;
     QLabel numberOfActiveJobsLabel;
 
-    // QWidget interface
+    QAction *revealAct;
+    QAction *removeAct;
+    void createActions();
+
+    QThread* catalogThread;
+    Catalog* catalog;
+    FileProcessFilter* fileFilter;
+
+    ThumbnailCache thumbnailCache;
+
 protected:
     void resizeEvent(QResizeEvent *event);
-
-    // QWidget interface
-protected:
     void showEvent(QShowEvent *event);
 };
 #endif // MAINWINDOW_H

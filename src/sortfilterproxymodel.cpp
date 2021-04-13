@@ -34,21 +34,16 @@ SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyMo
 bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
     QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
-    const AstroFileImage* astroFileImage = static_cast<AstroFileImage*>(index.internalPointer());
-    Q_ASSERT(astroFileImage != NULL);
+    const AstroFile* astroFile = static_cast<AstroFile*>(index.internalPointer());
+    Q_ASSERT(astroFile != NULL);
 
-    QString dateString = astroFileImage->astroFile.Tags["DATE-OBS"];
+    QString dateString = astroFile->Tags["DATE-OBS"];
     QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-    bool shouldAccept = dateInRange(d) && objectAccepted(astroFileImage->astroFile.Tags["OBJECT"]) && instrumentAccepted(astroFileImage->astroFile.Tags["INSTRUME"]) && filterAccepted(astroFileImage->astroFile.Tags["FILTER"]) && extensionAccepted(astroFileImage->astroFile.FileExtension);
-//    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags.value("OBJECT")) && instrumentAccepted(astroFile->Tags.value("INSTRUME")) && filterAccepted(astroFile->Tags.value("FILTER"));
+    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension);
 
-    if (shouldAccept && shouldAcceptTagsForFilters(astroFileImage))
-    {
-        qDebug() << "Accepting: " << astroFileImage->astroFile.FileName;
-        emit astroFileAccepted(astroFileImage->astroFile);
-    }
-
+    if (isDuplicatedFilterActive)
+        shouldAccept = shouldAccept && isDuplicateOf(astroFile->FileHash);
     return shouldAccept;
 }
 
@@ -65,11 +60,6 @@ bool SortFilterProxyModel::dateInRange(QDate date) const
 {
     return (!minDate.isValid() || date >= minDate) &&
            (!maxDate.isValid() || date <= maxDate);
-}
-
-bool SortFilterProxyModel::shouldAcceptTagsForFilters(const AstroFileImage* astroFileImage) const
-{
-    return astroFileImage->tagStatus == TagExtracted;
 }
 
 void SortFilterProxyModel::resetInternalData()
@@ -97,18 +87,23 @@ bool SortFilterProxyModel::extensionAccepted(QString extension) const
     return acceptedExtensions.empty() || acceptedExtensions.contains(extension) || (acceptedExtensions.contains("None") && extension.isEmpty());
 }
 
+bool SortFilterProxyModel::isDuplicateOf(QString hash) const
+{
+    return hash == this->duplicatesFilter;
+}
+
 void SortFilterProxyModel::setFilterMinimumDate(QDate date)
 {
     minDate = date;
-    emit filterReset();
     invalidateFilter();
+//    emit filterReset();
 }
 
 void SortFilterProxyModel::setFilterMaximumDate(QDate date)
 {
     maxDate = date;
-    emit filterReset();
     invalidateFilter();
+//    emit filterReset();
 }
 
 void SortFilterProxyModel::addAcceptedFilter(QString filterName)
@@ -116,7 +111,7 @@ void SortFilterProxyModel::addAcceptedFilter(QString filterName)
     if (!acceptedFilters.contains(filterName))
     {
         acceptedFilters.append(filterName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -125,7 +120,7 @@ void SortFilterProxyModel::removeAcceptedFilter(QString filterName)
 {
     if (acceptedFilters.removeOne(filterName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -135,7 +130,7 @@ void SortFilterProxyModel::addAcceptedInstrument(QString instrumentName)
     if (!acceptedInstruments.contains(instrumentName))
     {
         acceptedInstruments.append(instrumentName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -144,7 +139,7 @@ void SortFilterProxyModel::removeAcceptedInstrument(QString instrumentName)
 {
     if (acceptedInstruments.removeOne(instrumentName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -154,7 +149,7 @@ void SortFilterProxyModel::addAcceptedObject(QString objectName)
     if (!acceptedObjects.contains(objectName))
     {
         acceptedObjects.append(objectName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -163,7 +158,7 @@ void SortFilterProxyModel::removeAcceptedObject(QString objectName)
 {
     if (acceptedObjects.removeOne(objectName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -173,7 +168,7 @@ void SortFilterProxyModel::addAcceptedExtension(QString extensionName)
     if (!acceptedExtensions.contains(extensionName))
     {
         acceptedExtensions.append(extensionName);
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
 }
@@ -182,9 +177,20 @@ void SortFilterProxyModel::removeAcceptedExtension(QString extensionName)
 {
     if (acceptedExtensions.removeOne(extensionName))
     {
-        emit filterReset();
+//        emit filterReset();
         invalidateFilter();
     }
+}
+
+void SortFilterProxyModel::activateDuplicatesFilter(bool shouldActivate)
+{
+    isDuplicatedFilterActive = shouldActivate;
+    invalidateFilter();
+}
+
+void SortFilterProxyModel::setDuplicatesFilter(QString filter)
+{
+    this->duplicatesFilter = filter;
 }
 
 

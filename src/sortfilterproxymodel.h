@@ -50,11 +50,12 @@ public slots:
     void removeAcceptedObject(QString objectName);
     void addAcceptedExtension(QString extensionName);
     void removeAcceptedExtension(QString extensionName);
+    void activateDuplicatesFilter(bool shouldActivate);
+    void setDuplicatesFilter(QString filter);
 
 signals:
     void filterMinimumDateChanged(QDate date);
     void filterMaximumDateChanged(QDate date);
-    void astroFileAccepted(const AstroFile& astroFile) const;
     void filterReset();
 
 protected:
@@ -74,11 +75,12 @@ private:
     bool objectAccepted(QString object) const;
     bool filterAccepted(QString filter) const;
     bool extensionAccepted(QString filter) const;
-    bool shouldAcceptTagsForFilters(const AstroFileImage* astroFileImage) const;
+    bool isDuplicatedFilterActive;
+    QString duplicatesFilter;
+    bool isDuplicateOf(QString hash) const;
 
 protected slots:
     virtual void resetInternalData();
-
 };
 
 #endif // SORTFILTERPROXYMODEL_H

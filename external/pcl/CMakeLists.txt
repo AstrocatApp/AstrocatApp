@@ -318,7 +318,7 @@ set (SRCS
     Convolution.cpp
     CRC32.cpp
     Crop.cpp
-    CUDADevice.cpp
+#    CUDADevice.cpp
     Cursor.cpp
     Diagnostics.cpp
     Dialog.cpp

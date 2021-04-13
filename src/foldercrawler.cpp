@@ -31,15 +31,22 @@ FolderCrawler::FolderCrawler(QObject *parent) : QObject(parent)
 
 }
 
+void FolderCrawler::cancel()
+{
+    cancelSignaled = true;
+}
+
 void FolderCrawler::crawl(QString rootFolder)
 {
-    QStringList extensions = {"*.fits", "*.fit", "*.xisf"};
+    QStringList extensions = {"*.fits", "*.fit", "*.xisf", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.tif", "*.tiff", "*.bmp"};
 
     QDirIterator it(rootFolder, extensions, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext())
     {
+        if (cancelSignaled)
+            return;
         it.next();
         emit fileFound(it.fileInfo());
     }
-    qDebug() << "Done crawling...";
+    qDebug() << "Done crawling... " << rootFolder;
 }

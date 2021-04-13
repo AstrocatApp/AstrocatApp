@@ -22,52 +22,31 @@
     SOFTWARE.
 */
 
-#include "fitsprocessor.h"
-#include "fitsio.h"
-#include "fitsfile.h"
+#ifndef FILEPROCESSFILTER_H
+#define FILEPROCESSFILTER_H
 
-QImage makeThumbnail(const QImage &image)
+#include "catalog.h"
+
+#include <QFileInfo>
+#include <QObject>
+
+class FileProcessFilter : public QObject
 {
-    QImage small = image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    return small;
-}
+    Q_OBJECT
+public:
+    explicit FileProcessFilter(QObject *parent = nullptr);
+    virtual void setCatalog(Catalog* cat);
+    virtual void cancel();
 
-void FitsProcessor::extractTags()
-{
-    fits.extractTags();
-    _tags = fits.getTags();
-}
+public slots:
+    void filterFile(QFileInfo fileInfo);
 
-void FitsProcessor::extractThumbnail()
-{
-    fits.extractImage();
-    auto image = fits.getImage();
-    _thumbnail = makeThumbnail(image);
-    _imageHash = fits.getImageHash();
-}
+signals:
+    void shouldProcess(QFileInfo fileInfo);
 
-bool FitsProcessor::loadFile(const AstroFile &astroFile)
-{
-    return fits.loadFile(astroFile.FullPath);
-}
+private:
+    Catalog* catalog;
+    volatile bool cancelSignaled = false;
+};
 
-
-QMap<QString, QString> FitsProcessor::getTags()
-{
-    return _tags;
-}
-
-QImage FitsProcessor::getThumbnail()
-{
-    return _thumbnail;
-}
-
-QImage FitsProcessor::getTinyThumbnail()
-{
-    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-}
-
-QByteArray FitsProcessor::getImageHash()
-{
-    return _imageHash;
-}
+#endif // FILEPROCESSFILTER_H

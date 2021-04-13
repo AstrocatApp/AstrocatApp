@@ -38,19 +38,24 @@ public:
     void cancel();
 
 public slots:
-    void deleteAstrofilesInFolder(const QString fullPath);
+    void deleteAstrofilesInFolder(const QString& fullPath);
     void initialize();
-    void addTags(const AstroFileImage& astroFileImage);
-    void addThumbnail(const AstroFileImage& astroFileImage, const QImage& thumbnail);
     void loadModel();
-    void insertAstrofileImage(const AstroFileImage& afi);
-    void saveStatus(const AstroFileImage& astroFileImage);
+    void addOrUpdateAstrofile(const AstroFile& afi);
+//    void saveStatus(const AstroFile& astroFile);
+    void getDuplicateFiles();
+    void getDuplicateFilesByFileHash();
+    void getDuplicateFilesByImageHash();
+    void loadThumbnal(const AstroFile& afi);
 
 signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
     void getTagsFinished(const QMap<QString, QSet<QString>>& tags);
     void astroFileDeleted(const AstroFile& astroFile);
-    void modelLoaded(const QList<AstroFileImage>& astroFileImages);
+    void modelLoaded(const QList<AstroFile>& astroFile);
+    void dbFailedToInitialize(const QString& message);
+    void astroFileUpdated(const AstroFile& astroFile);
+    void thumbnailLoaded(const AstroFile& astrofile);
 
 private:
     QSqlDatabase db;
@@ -58,9 +63,13 @@ private:
     void createDatabase();
     void migrateDatabase();
     void migrateFromVersion(int oldVersion);
-    QList<AstroFile> getAstrofilesInFolder(const QString fullPath, bool includeTags);
-    QMap<int, AstroFileImage> _getAllAstrofiles();
+    int insertAstrofile(const AstroFile& afi);
+    void addTags(const AstroFile& astroFile);
+    void addThumbnail(const AstroFile& astroFile);
+    QList<AstroFile> getAstrofilesInFolder(const QString& fullPath, bool includeTags);
+    QMap<int, AstroFile> _getAllAstrofiles();
     QMap<int, QImage> _getAllThumbnails();
+    QMap<QString, QString> GetAstrofileTags(int astroFileId);
 
     volatile bool cancelSignaled = false;
 };

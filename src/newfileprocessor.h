@@ -26,6 +26,7 @@
 #define NEWFILEPROCESSOR_H
 
 #include "astrofile.h"
+#include "catalog.h"
 #include "fileprocessor.h"
 
 #include <QFileInfo>
@@ -36,19 +37,21 @@ class NewFileProcessor : public QObject
     Q_OBJECT
 public:
     explicit NewFileProcessor(QObject *parent = nullptr);
-    void processNewFile(const QFileInfo& fileInfo);
-    void cancel();
+    virtual void processNewFile(const QFileInfo& fileInfo);
+    virtual void cancel();
 
 signals:
-    void astrofileProcessed(const AstroFileImage& astroFileImage);
+    void astrofileProcessed(const AstroFile& astroFile);
     void processingCancelled(const QFileInfo& fileInfo);
 
-private:
+protected:
     volatile bool cancelSignaled = false;
+
+private:
     FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);
     FileProcessor* getProcessorForFile(const AstroFile& astroFile);
-    AstroFileImage extractTags(const AstroFileImage& astroFileImage);
-    AstroFileImage extractThumbnail(const AstroFileImage& astroFileImage);
+
+    QByteArray getFileHash(const QFileInfo& fileInfo);
 };
 
 #endif // NEWFILEPROCESSOR_H

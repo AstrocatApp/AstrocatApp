@@ -2,6 +2,7 @@
     <qresource prefix="/Icons">
         <file>resources/loading.png</file>
         <file>resources/nopreview.png</file>
+        <file>resources/style.qss</file>
     </qresource>
     <qresource prefix="/Licenses">
         <file>resources/Licenses/QT.lic</file>

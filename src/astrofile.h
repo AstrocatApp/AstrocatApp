@@ -61,6 +61,7 @@ enum AstroFileType
 
 struct AstroFile
 {
+    int Id; // Id should be created only by the Database
     QString FileName;
     QString FullPath;
     QString DirectoryPath;
@@ -68,9 +69,25 @@ struct AstroFile
     QString FileExtension;
     QDateTime CreatedTime;
     QDateTime LastModifiedTime;
+    QString FileHash;
+    QString ImageHash;
     QMap<QString, QString> Tags;
 
+    QImage thumbnail;
+    QImage tinyThumbnail;
+    ThumbnailLoadStatus thumbnailStatus;
+    TagExtractStatus tagStatus;
+    AstroFileProcessStatus processStatus;
+    bool IsHidden;
+
     AstroFile()
+    {
+    }
+
+    AstroFile(const AstroFile& other)
+        : Id(other.Id), FileName(other.FileName), FullPath(other.FullPath), DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
+          CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
+          thumbnail(other.thumbnail), tinyThumbnail(other.tinyThumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus), IsHidden(other.IsHidden)
     {
     }
 
@@ -83,6 +100,8 @@ struct AstroFile
         FileName = fileInfo.baseName();
         FileExtension = fileInfo.suffix();
 
+        IsHidden = false;
+
         QString suffix = FileExtension.toLower();
         if ( suffix == "fits")
             FileType = AstroFileType::Fits;
@@ -94,32 +113,18 @@ struct AstroFile
             FileType = AstroFileType::Image;
         else if (suffix == "jpg")
             FileType = AstroFileType::Image;
+        else if (suffix == "gif")
+            FileType = AstroFileType::Image;
         else if (suffix == "jpeg")
+            FileType = AstroFileType::Image;
+        else if (suffix == "tif")
             FileType = AstroFileType::Image;
         else if (suffix == "tiff")
             FileType = AstroFileType::Image;
+        else if (suffix == "bmp")
+            FileType = AstroFileType::Image;
+        else FileType = AstroFileType::Unknown;
     }
-};
-
-struct AstroFileImage
-{
-    AstroFileImage() {}
-    AstroFileImage(const AstroFileImage& other)
-        :astroFile(other.astroFile), image(other.image), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus)
-    {}
-    AstroFileImage(AstroFile file,
-                   QImage img,
-                   ThumbnailLoadStatus thumbnailStatus = ThumbnailLoadStatus::NotProcessedYet,
-                   TagExtractStatus tagStatus = TagExtractStatus::TagNotProcessedYet,
-                   AstroFileProcessStatus processStatus = AstroFileProcessStatus::NeedsToBeProcessed)
-        :astroFile(file), image(img), thumbnailStatus(thumbnailStatus), tagStatus(tagStatus), processStatus(processStatus)
-    {
-    }
-    AstroFile astroFile;
-    QImage image;
-    ThumbnailLoadStatus thumbnailStatus;
-    TagExtractStatus tagStatus;
-    AstroFileProcessStatus processStatus;
 };
 
 #endif // ASTROFILE_H

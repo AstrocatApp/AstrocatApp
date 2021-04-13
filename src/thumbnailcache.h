@@ -22,52 +22,38 @@
     SOFTWARE.
 */
 
-#include "fitsprocessor.h"
-#include "fitsio.h"
-#include "fitsfile.h"
+#ifndef THUMBNAILCACHE_H
+#define THUMBNAILCACHE_H
 
-QImage makeThumbnail(const QImage &image)
+#include "astrofile.h"
+
+#include <QObject>
+#include <QStack>
+#include <QThread>
+#include <QWaitCondition>
+#include <QMutex>
+
+class ThumbnailCache : public QThread
 {
-    QImage small = image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    return small;
-}
+    Q_OBJECT
+public:
+    explicit ThumbnailCache(QObject *parent = nullptr);
+    void cancel();
 
-void FitsProcessor::extractTags()
-{
-    fits.extractTags();
-    _tags = fits.getTags();
-}
+//public slots:
+    void enqueueLoadThumbnail(const AstroFile& astroFile);
+signals:
+    void dbLoadThumbnail(const AstroFile& astroFile);
 
-void FitsProcessor::extractThumbnail()
-{
-    fits.extractImage();
-    auto image = fits.getImage();
-    _thumbnail = makeThumbnail(image);
-    _imageHash = fits.getImageHash();
-}
+private:
+    QStack<int> requests;
+    QWaitCondition bufferNotEmpty;
+    QMutex mutex;
+    volatile bool isCanceled = false;
 
-bool FitsProcessor::loadFile(const AstroFile &astroFile)
-{
-    return fits.loadFile(astroFile.FullPath);
-}
+    // QThread interface
+protected:
+    void run();
+};
 
-
-QMap<QString, QString> FitsProcessor::getTags()
-{
-    return _tags;
-}
-
-QImage FitsProcessor::getThumbnail()
-{
-    return _thumbnail;
-}
-
-QImage FitsProcessor::getTinyThumbnail()
-{
-    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-}
-
-QByteArray FitsProcessor::getImageHash()
-{
-    return _imageHash;
-}
+#endif // THUMBNAILCACHE_H

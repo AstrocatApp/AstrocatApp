@@ -28,6 +28,7 @@
 #include "astrofile.h"
 
 #include <QAbstractItemView>
+#include <QCheckBox>
 #include <QDateEdit>
 #include <QGroupBox>
 #include <QObject>
@@ -42,7 +43,6 @@ public:
 public slots:
     void setFilterMinimumDate(QDate date);
     void setFilterMaximumDate(QDate date);
-    void addAstroFileTags(const AstroFile& astroFile);
     void searchFilterReset();
 
 signals:
@@ -69,12 +69,19 @@ private:
     QGroupBox* datesGroup;
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
+
+    QList<QCheckBox*> objectsCheckBoxes;
+    QList<QCheckBox*> instrumentsCheckBoxes;
+    QList<QCheckBox*> filtersCheckBoxes;
+    QList<QCheckBox*> extensionsCheckBoxes;
+    QCheckBox* findCheckBox(QGroupBox* group, QList<QCheckBox*>& checkBoxes, QString titleProperty, void (FilterView::* func)(QString,int));
+
     QWidget* createDateBox();
     QWidget* createObjectsBox();
     QWidget* createInstrumentsBox();
     QWidget* createFiltersBox();
     QWidget* createFileExtensionsBox();
-    QSet<QString> acceptedAstroFiles;
+    QSet<int> acceptedAstroFiles;
     QMap<QString, QMap<QString,int>> fileTags;
     QSet<QString> checkedTags;
     void addObjects();

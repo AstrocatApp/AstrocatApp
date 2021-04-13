@@ -14,6 +14,8 @@ DEFINES += CURRENT_APP_VERSION=\"\\\"$${VERSION}\\\"\"
 SOURCES += \
     aboutwindow.cpp \
     autostretcher.cpp \
+    catalog.cpp \
+    fileprocessfilter.cpp \
     filerepository.cpp \
     fileviewmodel.cpp \
     filterview.cpp \
@@ -23,15 +25,19 @@ SOURCES += \
     imageprocessor.cpp \
     main.cpp \
     mainwindow.cpp \
+    mock_newfileprocessor.cpp \
     newfileprocessor.cpp \
     searchfolderdialog.cpp \
     sortfilterproxymodel.cpp \
+    thumbnailcache.cpp \
     xisfprocessor.cpp
 
 HEADERS += \
     aboutwindow.h \
     astrofile.h \
     autostretcher.h \
+    catalog.h \
+    fileprocessfilter.h \
     fileprocessor.h \
     filerepository.h \
     fileviewmodel.h \
@@ -41,9 +47,11 @@ HEADERS += \
     foldercrawler.h \
     imageprocessor.h \
     mainwindow.h \
+    mock_newfileprocessor.h \
     newfileprocessor.h \
     searchfolderdialog.h \
     sortfilterproxymodel.h \
+    thumbnailcache.h \
     xisfprocessor.h
 
 FORMS += \
@@ -57,7 +65,7 @@ TRANSLATIONS += \
 RESOURCES += \
     Resources.qrc
 
-LIBS += -L$$PWD/../external/build/libs/ -llcms -llz4 -lpcl -lRFC6234 -lcfitsio -lzlib
+LIBS += -L$$PWD/../external/build/libs/ -lpcl -llcms -llz4 -lRFC6234 -lcfitsio -lzlib
 
 win32 {
     LIBS += -L$$PWD/../external/build/libs/Release
@@ -67,6 +75,9 @@ win32 {
 }
 macx {
     DEFINES += __PCL_MACOSX
+}
+linux {
+DEFINES += __PCL_LINUX
 }
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

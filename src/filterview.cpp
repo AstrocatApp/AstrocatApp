@@ -44,17 +44,13 @@ FilterView::FilterView(QWidget *parent)
 
 void FilterView::setFilterMinimumDate(QDate date)
 {
+    minDateEdit->setDate(date);
 
 }
 
 void FilterView::setFilterMaximumDate(QDate date)
 {
-
-}
-
-void FilterView::addAstroFileTags(const AstroFile &astroFile)
-{
-
+    maxDateEdit->setDate(date);
 }
 
 void FilterView::searchFilterReset()
@@ -64,6 +60,8 @@ void FilterView::searchFilterReset()
 
 void FilterView::resetGroups()
 {
+    minDateEdit->setDate(QDate());
+    maxDateEdit->setDate(QDate());
     addObjects();
     addDates();
     addInstruments();
@@ -87,6 +85,9 @@ QWidget* FilterView::createDateBox()
     datesGroup = new QGroupBox(tr("Dates"));
     minDateEdit = new QDateEdit();
     maxDateEdit = new QDateEdit();
+
+    minDateEdit->setToolTip("Feature Coming Soon");
+    maxDateEdit->setToolTip("Feature Coming Soon");
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addWidget(minDateEdit);
@@ -134,53 +135,13 @@ QWidget *FilterView::createFileExtensionsBox()
     return extensionsGroup;
 }
 
-QPaintEngine *FilterView::paintEngine() const
-{
-}
-
-QRect FilterView::visualRect(const QModelIndex &index) const
-{
-}
-
-void FilterView::scrollTo(const QModelIndex &index, ScrollHint hint)
-{
-}
-
-QModelIndex FilterView::indexAt(const QPoint &point) const
-{
-}
-
-QModelIndex FilterView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
-{
-}
-
-int FilterView::horizontalOffset() const
-{
-}
-
-int FilterView::verticalOffset() const
-{
-}
-
-bool FilterView::isIndexHidden(const QModelIndex &index) const
-{
-}
-
-void FilterView::setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command)
-{
-}
-
-QRegion FilterView::visualRegionForSelection(const QItemSelection &selection) const
-{
-}
-
-
 void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
     for (int i = start; i <= end; i++)
     {
         QModelIndex index = model()->index(i, 0, parent);
         auto data = model()->data(index);
+        auto id = model()->data(index, AstroFileRoles::IdRole).toInt();
         auto object = model()->data(index, AstroFileRoles::ObjectRole).toString();
         auto instrument = model()->data(index, AstroFileRoles::InstrumentRole).toString();
         auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
@@ -188,7 +149,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
         auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
 
-        if (acceptedAstroFiles.contains(fullPath))
+        if (acceptedAstroFiles.contains(id))
         {
             // The astrofile has already been added. Let's add it again
         }
@@ -204,16 +165,14 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
                 fileTags["DATE-OBS"][date]++;
             if (!fileExtension.isEmpty())
                 fileTags["FILEEXT"][fileExtension]++;
-            acceptedAstroFiles.insert(fullPath);
+            acceptedAstroFiles.insert(id);
         }
-
-
     }
+
     emit astroFileAdded(end-start+1);
     // We should not nuke all groups
     resetGroups();
 }
-
 
 void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
 {
@@ -221,6 +180,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
     {
         QModelIndex index = model()->index(i, 0, parent);
         auto data = model()->data(index);
+        auto id = model()->data(index, AstroFileRoles::IdRole).toInt();
         auto object = model()->data(index, AstroFileRoles::ObjectRole).toString();
         auto instrument = model()->data(index, AstroFileRoles::InstrumentRole).toString();
         auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
@@ -228,7 +188,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
         auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
 
-        if (acceptedAstroFiles.contains(fullPath))
+        if (acceptedAstroFiles.contains(id))
         {
             if (!object.isEmpty())
                 fileTags["OBJECT"][object]--;
@@ -240,7 +200,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
                 fileTags["DATE-OBS"][date]--;
             if (!fileExtension.isEmpty())
                 fileTags["FILEEXT"][fileExtension]--;
-            acceptedAstroFiles.remove(fullPath);
+            acceptedAstroFiles.remove(id);
         }
     }
     emit astroFileRemoved(end-start+1);
@@ -260,30 +220,53 @@ void FilterView::clearLayout(QLayout* layout)
 
 void FilterView::addDates()
 {
+    QDate minDate, maxDate;
+
     auto& o = fileTags["DATE-OBS"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
     {
         QString n = setiter.next().key();
         QDate d = QDate::fromString(n, Qt::ISODate);
-        if (d < minDateEdit->date())
+        if (d < minDate) minDate = d;
+        if (d > maxDate) maxDate = d;
+    }
+
+    // Disable the date pickers until we fix them.
+    minDateEdit->blockSignals(true);
+    minDateEdit->setDate(minDate);
+    minDateEdit->setReadOnly(true);
+    minDateEdit->setEnabled(false);
+    minDateEdit->blockSignals(false);
+
+    maxDateEdit->blockSignals(true);
+    maxDateEdit->setDate(maxDate);
+    maxDateEdit->setReadOnly(true);
+    maxDateEdit->setEnabled(false);
+    maxDateEdit->blockSignals(false);
+}
+
+QCheckBox *FilterView::findCheckBox(QGroupBox *group, QList<QCheckBox *> &checkBoxes, QString titleProperty, void (FilterView::*func)(QString, int))
+{
+    for (auto& a: checkBoxes)
+    {
+        auto prop = a->property("for_name");
+        if (prop == titleProperty)
         {
-            minDateEdit->blockSignals(true);
-            minDateEdit->setDate(d);
-            minDateEdit->blockSignals(false);
-        }
-        if (d > maxDateEdit->date())
-        {
-            maxDateEdit->blockSignals(true);
-            maxDateEdit->setDate(d);
-            maxDateEdit->blockSignals(false);
+            return a;
         }
     }
+    QCheckBox* checkBox = new QCheckBox();
+    checkBox->setProperty("for_name", titleProperty);
+    checkBox->setEnabled(true);
+    checkBoxes.append(checkBox);
+    group->layout()->addWidget(checkBox);
+    connect(checkBox, &QCheckBox::stateChanged, this, [=]() {(this->*func)(titleProperty, checkBox->checkState());});
+    return checkBox;
 }
 
 void FilterView::addObjects()
 {
-    clearLayout(objectsGroup->layout());
     auto& o = fileTags["OBJECT"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -292,18 +275,18 @@ void FilterView::addObjects()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(objectsGroup, objectsCheckBoxes, name, &FilterView::selectedObjectsChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("OBJ_"+name))
             checkBox->setChecked(true);
-        objectsGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedObjectsChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 
 void FilterView::addInstruments()
 {
-    clearLayout(instrumentsGroup->layout());
     auto& o = fileTags["INSTRUME"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -312,18 +295,18 @@ void FilterView::addInstruments()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(instrumentsGroup, instrumentsCheckBoxes, name, &FilterView::selectedInstrumentsChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("INS_"+name))
             checkBox->setChecked(true);
-        instrumentsGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedInstrumentsChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 
 void FilterView::addFilters()
 {
-    clearLayout(filtersGroup->layout());
     auto& o = fileTags["FILTER"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -332,18 +315,18 @@ void FilterView::addFilters()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(filtersGroup, filtersCheckBoxes, name, &FilterView::selectedFiltersChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("FIL_"+name))
             checkBox->setChecked(true);
-        filtersGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedFiltersChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 
 void FilterView::addFileExtensions()
 {
-    clearLayout(extensionsGroup->layout());
     auto& o = fileTags["FILEEXT"];
     QMapIterator setiter(o);
     while (setiter.hasNext())
@@ -352,12 +335,13 @@ void FilterView::addFileExtensions()
         QString name = next.key();
         int num = next.value();
         QString tagText = QString("%1 (%2)").arg(name).arg(num);
-        QCheckBox* checkBox = new QCheckBox(tagText);
-        if (num == 0) checkBox->setEnabled(false);
+
+        QCheckBox* checkBox = findCheckBox(extensionsGroup, extensionsCheckBoxes, name, &FilterView::selectedFileExtensionsChanged);
+
+        checkBox->setEnabled(num != 0);
         if (checkedTags.contains("EXT_"+name))
             checkBox->setChecked(true);
-        extensionsGroup->layout()->addWidget(checkBox);
-        connect(checkBox, &QCheckBox::stateChanged, this, [=]() {selectedFileExtensionsChanged(name, checkBox->checkState());});
+        checkBox->setText(tagText);
     }
 }
 
@@ -419,4 +403,44 @@ void FilterView::selectedFileExtensionsChanged(QString object, int state)
         emit addAcceptedExtension(object);
         break;
     }
+}
+
+QPaintEngine *FilterView::paintEngine() const
+{
+}
+
+QRect FilterView::visualRect(const QModelIndex &index) const
+{
+}
+
+void FilterView::scrollTo(const QModelIndex &index, ScrollHint hint)
+{
+}
+
+QModelIndex FilterView::indexAt(const QPoint &point) const
+{
+}
+
+QModelIndex FilterView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
+{
+}
+
+int FilterView::horizontalOffset() const
+{
+}
+
+int FilterView::verticalOffset() const
+{
+}
+
+bool FilterView::isIndexHidden(const QModelIndex &index) const
+{
+}
+
+void FilterView::setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command)
+{
+}
+
+QRegion FilterView::visualRegionForSelection(const QItemSelection &selection) const
+{
 }

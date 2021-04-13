@@ -27,9 +27,11 @@
 
 #include "fitsfile.h"
 
+#include <QCryptographicHash>
+
 FitsFile::FitsFile()
 {
-
+    _fptr = 0;
 }
 
 FitsFile::~FitsFile()
@@ -84,6 +86,12 @@ void FitsFile::extractTags()
     }
 }
 
+QByteArray calculateHash(QByteArray &array)
+{
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    return hash.hash(array,QCryptographicHash::Sha1);
+}
+
 void FitsFile::extractImage()
 {
     int status = 0;
@@ -104,7 +112,7 @@ void FitsFile::extractImage()
 
     if (naxis < 2)
     {
-        qDebug() << "Not a 2D image";
+        // Not a 2D Image
         return;
     }
 
@@ -171,6 +179,9 @@ void FitsFile::extractImage()
 
     fits_read_img(_fptr, fitsDataType, 1, numberOfPixels, NULL, _data, NULL, &status);
     CHK_STATUS(status);
+
+    auto hashData = QByteArray((char*)_data, numberOfPixels * _bytesPerPixel * _numberOfChannels);
+    _imageHash = calculateHash(hashData);
 
     if (_numberOfChannels == 3)
     switch (_imageEquivType)

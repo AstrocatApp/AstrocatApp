@@ -25,13 +25,28 @@
 #include "autostretcher.h"
 #include "xisfprocessor.h"
 
+#include <QCryptographicHash>
+
 
 using namespace pcl;
 
-//XisfProcessor::~XisfProcessor()
-//{
+XisfProcessor::~XisfProcessor() noexcept
+{
+    xisf.Close();
+}
 
-//}
+bool XisfProcessor::loadFile(const AstroFile &astroFile)
+{
+    try
+    {
+        xisf.Open(astroFile.FullPath.toStdWString().c_str());
+    }
+    catch (pcl::Error)
+    {
+        return false;
+    }
+    return true;
+}
 
 QImage makeImage(int _width, int _height, float* _data, QImage::Format _qImageFormat, int _numberOfChannels)
 {
@@ -71,29 +86,27 @@ QImage makeImage(int _width, int _height, float* _data, QImage::Format _qImageFo
     return out;
 }
 
-void XisfProcessor::extractTags(const AstroFileImage &astroFileImage)
-{
-    XISFReader xisf;
-    xisf.Open(astroFileImage.astroFile.FullPath.toStdWString().c_str());
-
+void XisfProcessor::extractTags()
+{    
     auto fitsTags = xisf.ReadFITSKeywords();
     for (auto& f : fitsTags)
     {
         _tags.insert(QString(f.name.c_str()).remove("'").trimmed(), QString(f.value.c_str()).remove("'").trimmed());
     }
-
-    xisf.Close();
 }
 
-void XisfProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
+QByteArray XisfProcessor::calculateHash(QByteArray &array)
+{
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    return hash.hash(array,QCryptographicHash::Sha1);
+}
+
+void XisfProcessor::extractThumbnail()
 {
     FImage image;
-    XISFReader xisf;
-    xisf.Open(astroFileImage.astroFile.FullPath.toStdWString().c_str());
     xisf.ReadImage(image);
 
     int channels = image.NumberOfChannels();
-//    qDebug()<<"Image channels: " << channels;
 
     int height = image.Height();
     int width = image.Width();
@@ -116,6 +129,9 @@ void XisfProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
         }
     }
 
+    auto hashData = QByteArray((char*)data, width * height * channels * sizeof(float));
+    _imageHash = calculateHash(hashData);
+
     AutoStretcher<float> as(width, height, channels, 0);
     as.setData(data);
     as.calculateParams();
@@ -124,6 +140,25 @@ void XisfProcessor::extractThumbnail(const AstroFileImage &astroFileImage)
 
     this->_thumbnail = qimage.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    xisf.Close();
     delete [] data;
+}
+
+QByteArray XisfProcessor::getImageHash()
+{
+    return _imageHash;
+}
+
+QMap<QString, QString> XisfProcessor::getTags()
+{
+    return _tags;
+}
+
+QImage XisfProcessor::getThumbnail()
+{
+    return _thumbnail;
+}
+
+QImage XisfProcessor::getTinyThumbnail()
+{
+    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }

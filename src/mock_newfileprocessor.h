@@ -22,52 +22,22 @@
     SOFTWARE.
 */
 
-#include "fitsprocessor.h"
-#include "fitsio.h"
-#include "fitsfile.h"
+#ifndef MOCK_NEWFILEPROCESSOR_H
+#define MOCK_NEWFILEPROCESSOR_H
 
-QImage makeThumbnail(const QImage &image)
+#include "newfileprocessor.h"
+
+#include <QObject>
+
+class Mock_NewFileProcessor : public NewFileProcessor
 {
-    QImage small = image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    return small;
-}
+    Q_OBJECT
+public:
 
-void FitsProcessor::extractTags()
-{
-    fits.extractTags();
-    _tags = fits.getTags();
-}
+signals:
 
-void FitsProcessor::extractThumbnail()
-{
-    fits.extractImage();
-    auto image = fits.getImage();
-    _thumbnail = makeThumbnail(image);
-    _imageHash = fits.getImageHash();
-}
+public:
+    void processNewFile(const QFileInfo &fileInfo);
+};
 
-bool FitsProcessor::loadFile(const AstroFile &astroFile)
-{
-    return fits.loadFile(astroFile.FullPath);
-}
-
-
-QMap<QString, QString> FitsProcessor::getTags()
-{
-    return _tags;
-}
-
-QImage FitsProcessor::getThumbnail()
-{
-    return _thumbnail;
-}
-
-QImage FitsProcessor::getTinyThumbnail()
-{
-    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-}
-
-QByteArray FitsProcessor::getImageHash()
-{
-    return _imageHash;
-}
+#endif // MOCK_NEWFILEPROCESSOR_H

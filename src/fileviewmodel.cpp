@@ -25,6 +25,7 @@
 #include "fileviewmodel.h"
 
 #include <QPixmap>
+#include <QPixmapCache>
 
 FileViewModel::FileViewModel(QObject* parent) : QAbstractItemModel(parent)
 {
@@ -36,18 +37,10 @@ FileViewModel::~FileViewModel()
 {
 }
 
-void FileViewModel::setInitialModel(const QList<AstroFileImage> &files)
+void FileViewModel::setInitialModel(int count)
 {
-    int count = 0;
-
-    for (auto& i : files)
-    {
-        fileList.append(i);
-        fileMap.insert(i.astroFile.FullPath, i);
-        insertRow(count);
-
-        count++;
-    }
+    qDebug()<<"Setting initial model";
+    insertRows(0, count, QModelIndex());
 }
 
 int FileViewModel::rowCount(const QModelIndex &parent) const
@@ -74,9 +67,10 @@ QModelIndex FileViewModel::parent(const QModelIndex &child) const
 QModelIndex FileViewModel::index(int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    if (row < fileList.count()  && row >= 0 && column < cc && column >= 0)
+    if (row < rc  && row >= 0 && column < cc && column >= 0)
     {
-        return createIndex(row, 0, &fileList[row]);
+        auto a = catalog->getAstroFile(row);
+        return createIndex(row, 0, a);
     }
     return QModelIndex();
 }
@@ -88,11 +82,8 @@ bool FileViewModel::insertRows(int row, int count, const QModelIndex &parent)
     beginInsertRows(parent, row, row + count -1);
     rc+= count;
     endInsertRows();
-    if (rc == 1)
+    if (rc >= 1)
         emit modelIsEmpty(false);
-
-    // The following signal is used by the Main Window to display the number of items.
-    emit itemsAdded(count);
 
     return true;
 }
@@ -102,22 +93,24 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
     if (parent.isValid())
         return false;
 
-    beginRemoveRows(parent, row, row);
+    beginRemoveRows(parent, row, row + count - 1);
     rc-= count;
-    auto astroFileImage = fileList.at(row);
-    fileMap.remove(astroFileImage.astroFile.FullPath);
-    fileList.removeAt(row);
     endRemoveRows();
     if (rc == 0)
         emit modelIsEmpty(true);
+
+    // Do not "emit" astroFileDeleted, but instead call it directly.
+    // Otherwise due to threading, the row will be wrong.
+//    emit astroFileDeleted(row);
+    catalog->deleteAstroFileRow(row);
     return true;
 }
 
 bool FileViewModel::insertColumns(int column, int count, const QModelIndex &parent)
 {
     Q_UNUSED(count);
-    beginInsertColumns(parent,column, column);
-    cc++;
+    beginInsertColumns(parent,column, column + count -1);
+    cc += count;
     endInsertColumns();
     return true;
 }
@@ -129,9 +122,9 @@ bool FileViewModel::hasChildren(const QModelIndex &parent) const
     return true;
 }
 
-bool FileViewModel::astroFileExists(const QString fullPath)
+void FileViewModel::setCatalog(Catalog *cat)
 {
-    return fileMap.contains(fullPath);
+    this->catalog = cat;
 }
 
 void FileViewModel::setCellSize(const int newSize)
@@ -142,163 +135,141 @@ void FileViewModel::setCellSize(const int newSize)
     emit layoutChanged();
 }
 
-int FileViewModel::getRowForAstroFile(const AstroFile& astroFile)
-{
-    int index = 0;
-    for (auto& af : fileList)
-    {
-        if (af.astroFile.FullPath == astroFile.FullPath)
-        {
-            return index;
-        }
-        index++;
-    }
-    return -1;
-}
-
-QModelIndex FileViewModel::getIndexForAstroFile(const AstroFile& astroFile)
-{
-    int row = getRowForAstroFile(astroFile);
-    if (row == -1)
-        return QModelIndex();
-
-    return createIndex(row, 0, &astroFile); // we probably should not pass the astrofile pointer to this index
-}
-
 QVariant FileViewModel::data(const QModelIndex &index, int role) const
 {
-    if (index.row() >= fileList.count())
+    if (index.row() >= rc)
     {
         return QVariant();
     }
-    auto a = fileList.at(index.row());
+    AstroFile a(*catalog->getAstroFile(index.row()));
 
     switch (role)
     {
         case Qt::DisplayRole:
         {
-            return a.astroFile.FileName;
+            return a.FileName;
         }
         case Qt::DecorationRole:
         {
-            if (a.image.isNull())
+            QPixmap pixmap;
+            if (!QPixmapCache::find(QString::number(a.Id), &pixmap))
             {
-                auto img = QImage(":Icons/resources/loading.png");
+//                qDebug()<<"Requesting thumb from db for: " << a.Id;
+                emit loadThumbnailFromDb(a);
+                auto img = a.tinyThumbnail.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 return img;
             }
-            QImage small = a.image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            return small;
+            else
+            {
+//                qDebug()<<"Showing thumb for: " << a.Id;
+                QImage image = pixmap.toImage();
+                QImage small = image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                return small;
+            }
         }
         case Qt::SizeHintRole:
         {
             return cellSize;
         }
+        case AstroFileRoles::IdRole:
+        {
+            return a.Id;
+        }
         case AstroFileRoles::ObjectRole:
         {
-            return a.astroFile.Tags["OBJECT"];
+            return a.Tags["OBJECT"];
         }
         case AstroFileRoles::InstrumentRole:
         {
-            return a.astroFile.Tags["INSTRUME"];
+            return a.Tags["INSTRUME"];
         }
         case AstroFileRoles::FilterRole:
         {
-            return a.astroFile.Tags["FILTER"];
+            return a.Tags["FILTER"];
         }
         case AstroFileRoles::DateRole:
         {
-            return a.astroFile.Tags["DATE-OBS"];
+            return a.Tags["DATE-OBS"];
         }
         case AstroFileRoles::FullPathRole:
         {
-            return a.astroFile.FullPath;
+            return a.FullPath;
         }
         case AstroFileRoles::RaRole:
         {
-            return a.astroFile.Tags["RA"];
+            return a.Tags["RA"];
         }
         case AstroFileRoles::DecRole:
         {
-            return a.astroFile.Tags["DEC"];
+            return a.Tags["DEC"];
         }
         case AstroFileRoles::CcdTempRole:
         {
-            return a.astroFile.Tags["CCD-TEMP"];
+            return a.Tags["CCD-TEMP"];
         }
         case AstroFileRoles::ImageXSizeRole:
         {
-            return a.astroFile.Tags["NAXIS1"];
+            return a.Tags["NAXIS1"];
         }
         case AstroFileRoles::ImageYSizeRole:
         {
-            return a.astroFile.Tags["NAXIS2"];
+            return a.Tags["NAXIS2"];
         }
         case AstroFileRoles::GainRole:
         {
-            return a.astroFile.Tags["GAIN"];
+            return a.Tags["GAIN"];
         }
         case AstroFileRoles::ExposureRole:
         {
-            return a.astroFile.Tags["EXPTIME"];
+            return a.Tags["EXPTIME"];
         }
         case AstroFileRoles::BayerModeRole:
         {
-            return a.astroFile.Tags["BAYERPAT"];
+            return a.Tags["BAYERPAT"];
         }
         case AstroFileRoles::OffsetRole:
         {
-            return a.astroFile.Tags["BLKLEVEL"];
+            return a.Tags["BLKLEVEL"];
         }
         case AstroFileRoles::FileTypeRole:
         {
-            return a.astroFile.FileType;
+            return a.FileType;
         }
         case AstroFileRoles::FileExtensionRole:
         {
-            return a.astroFile.FileExtension;
+            return a.FileExtension;
+        }
+        case AstroFileRoles::FileHashRole:
+        {
+            return a.FileHash;
         }
     }
 
     return QVariant();
 }
 
-void FileViewModel::removeAstroFile(AstroFile astroFile)
+void FileViewModel::AddAstroFiles(int numberAdded)
 {
-    int row = getRowForAstroFile(astroFile);
-    if (row>=0)
-    {
-        removeRow(row);
-
-        // The following signal is used by the Main Window to display the number of items.
-        emit itemsRemoved(1);
-    }
+    insertRows(rc, numberAdded, QModelIndex());
 }
 
-void FileViewModel::clearModel()
+void FileViewModel::UpdateAstroFile(AstroFile astroFile, int row)
 {
-    emit beginResetModel();
-    fileMap.clear();
-
-    fileList.clear();
-    rc=0;
-    emit endResetModel();
+    auto index = createIndex(row, 0);
+    emit dataChanged(index, index);
 }
 
-void FileViewModel::addAstroFile(const AstroFileImage &astroFileImage)
+void FileViewModel::RemoveAstroFile(const AstroFile& astroFile)
 {
-    bool afiExists = fileMap.contains(astroFileImage.astroFile.FullPath);
-    if (!afiExists)
-    {
-        // This is a new file
-        fileList.append(astroFileImage);
-        fileMap[astroFileImage.astroFile.FullPath] = astroFileImage;
-        insertRow(rc);
-    }
-    else
-    {
-        QModelIndex index = getIndexForAstroFile(astroFileImage.astroFile);
-        fileList[index.row()] = astroFileImage;
-        fileMap[astroFileImage.astroFile.FullPath] = astroFileImage;
-        emit dataChanged(index, index);
-    }
+    int row = catalog->astroFileIndex(astroFile);
+    removeRow(row);
+}
+
+void FileViewModel::addThumbnail(const AstroFile &astroFile)
+{
+    int row = catalog->astroFileIndex(astroFile);
+    auto index = createIndex(row, 0);
+//    qDebug()<<"Inserting into PixmapCache: " << astroFile.Id << " row: " << row;
+    QPixmapCache::insert(QString::number(astroFile.Id), QPixmap::fromImage(astroFile.thumbnail));
+    emit dataChanged(index, index, {Qt::DecorationRole});
 }
