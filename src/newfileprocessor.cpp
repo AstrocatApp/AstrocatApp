@@ -44,9 +44,6 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 
     AstroFile astroFile(fileInfo);
 
-//    afi = extractTags(afi);
-//    afi = extractThumbnail(afi);
-
     FileProcessor* processor = getProcessorForFile(astroFile);
 
     if (!processor->loadFile(astroFile))
@@ -65,6 +62,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
     processor->extractThumbnail();
     auto thumbnail = processor->getThumbnail();
     astroFile.thumbnail = thumbnail;
+    astroFile.tinyThumbnail = processor->getTinyThumbnail();
     astroFile.thumbnailStatus = Loaded;
 
     QString hash = getFileHash(fileInfo).toHex();

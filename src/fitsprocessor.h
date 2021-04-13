@@ -37,6 +37,7 @@ public:
     QByteArray getImageHash();
     QMap<QString, QString> getTags();
     QImage getThumbnail();
+    QImage getTinyThumbnail();
 
 private:
     QMap<QString, QString> _tags;

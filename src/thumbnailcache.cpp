@@ -22,52 +22,59 @@
     SOFTWARE.
 */
 
-#include "fitsprocessor.h"
-#include "fitsio.h"
-#include "fitsfile.h"
+#include "thumbnailcache.h"
 
-QImage makeThumbnail(const QImage &image)
+#define MAX_REQUEST 5
+
+ThumbnailCache::ThumbnailCache(QObject *parent) : QThread(parent)
 {
-    QImage small = image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    return small;
+
 }
 
-void FitsProcessor::extractTags()
+void ThumbnailCache::run()
 {
-    fits.extractTags();
-    _tags = fits.getTags();
+    while (!isCanceled)
+    {
+        mutex.lock();
+        if (requests.isEmpty())
+            bufferNotEmpty.wait(&mutex);
+        mutex.unlock();
+
+        if (isCanceled)
+            break;
+
+        mutex.lock();
+        int id = requests.pop();
+        AstroFile a;
+        a.Id = id;
+        emit dbLoadThumbnail(a);
+        mutex.unlock();
+    }
 }
 
-void FitsProcessor::extractThumbnail()
+void ThumbnailCache::cancel()
 {
-    fits.extractImage();
-    auto image = fits.getImage();
-    _thumbnail = makeThumbnail(image);
-    _imageHash = fits.getImageHash();
+    isCanceled = true;
+    mutex.lock();
+    bufferNotEmpty.wakeAll();
+    mutex.unlock();
 }
 
-bool FitsProcessor::loadFile(const AstroFile &astroFile)
+void ThumbnailCache::enqueueLoadThumbnail(const AstroFile &astroFile)
 {
-    return fits.loadFile(astroFile.FullPath);
-}
-
-
-QMap<QString, QString> FitsProcessor::getTags()
-{
-    return _tags;
-}
-
-QImage FitsProcessor::getThumbnail()
-{
-    return _thumbnail;
-}
-
-QImage FitsProcessor::getTinyThumbnail()
-{
-    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-}
-
-QByteArray FitsProcessor::getImageHash()
-{
-    return _imageHash;
+    mutex.lock();
+    int requestsSize = requests.size();
+    if (requests.contains(astroFile.Id))
+    {
+        mutex.unlock();
+        return;
+    }
+    if (requestsSize >= MAX_REQUEST)
+    {
+        requests.removeLast();
+        qDebug()<<"Dropping one request";
+    }
+    requests.push(astroFile.Id);
+    bufferNotEmpty.wakeOne();
+    mutex.unlock();
 }

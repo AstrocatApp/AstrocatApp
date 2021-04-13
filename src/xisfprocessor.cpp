@@ -157,3 +157,8 @@ QImage XisfProcessor::getThumbnail()
 {
     return _thumbnail;
 }
+
+QImage XisfProcessor::getTinyThumbnail()
+{
+    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}

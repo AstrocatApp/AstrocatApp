@@ -22,52 +22,31 @@
     SOFTWARE.
 */
 
-#include "fitsprocessor.h"
-#include "fitsio.h"
-#include "fitsfile.h"
+#include "fileprocessfilter.h"
 
-QImage makeThumbnail(const QImage &image)
+FileProcessFilter::FileProcessFilter(QObject *parent) : QObject(parent)
 {
-    QImage small = image.scaled( QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    return small;
 }
 
-void FitsProcessor::extractTags()
+void FileProcessFilter::setCatalog(Catalog *cat)
 {
-    fits.extractTags();
-    _tags = fits.getTags();
+    this->catalog = cat;
 }
 
-void FitsProcessor::extractThumbnail()
+void FileProcessFilter::cancel()
 {
-    fits.extractImage();
-    auto image = fits.getImage();
-    _thumbnail = makeThumbnail(image);
-    _imageHash = fits.getImageHash();
+    cancelSignaled = true;
 }
 
-bool FitsProcessor::loadFile(const AstroFile &astroFile)
+void FileProcessFilter::filterFile(QFileInfo fileInfo)
 {
-    return fits.loadFile(astroFile.FullPath);
+    if (cancelSignaled)
+        return;
+    if (!catalog->shouldProcessFile(fileInfo))
+        return;
+    if (cancelSignaled)
+        return;
+    emit shouldProcess(fileInfo);
 }
 
 
-QMap<QString, QString> FitsProcessor::getTags()
-{
-    return _tags;
-}
-
-QImage FitsProcessor::getThumbnail()
-{
-    return _thumbnail;
-}
-
-QImage FitsProcessor::getTinyThumbnail()
-{
-    return _thumbnail.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-}
-
-QByteArray FitsProcessor::getImageHash()
-{
-    return _imageHash;
-}
