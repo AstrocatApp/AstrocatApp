@@ -35,6 +35,7 @@
 #include <QDesktopServices>
 #include <QProcess>
 #include <QPixmapCache>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -477,16 +478,9 @@ void revealFile(QWidget* parent, const QString &pathToReveal) {
     QProcess::execute("/usr/bin/osascript", scriptArgs);
 #else
     // we cannot select a file here, because no file browser really supports it...
-//    const QFileInfo fileInfo(pathIn);
-//    const QString folder = fileInfo.absoluteFilePath();
-//    const QString app = Utils::UnixUtils::fileBrowser(Core::ICore::instance()->settings());
-//    QProcess browserProc;
-//    const QString browserArgs = Utils::UnixUtils::substituteFileBrowserParameters(app, folder);
-//    bool success = browserProc.startDetached(browserArgs);
-//    const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
-//    success = success && error.isEmpty();
-//    if (!success)
-//        showGraphicalShellError(parent, app, error);
+    QFileInfo fi(pathToReveal);
+
+    QDesktopServices::openUrl(QUrl::fromLocalFile(fi.absoluteDir().canonicalPath()));
 #endif
 
 }
@@ -517,7 +511,15 @@ void MainWindow::remove()
 
 void MainWindow::createActions()
 {
-    revealAct = new QAction(tr("Reveal"), this);
+#if defined(Q_OS_WIN)
+    QString revealStr = tr("Reveal");
+#elif defined(Q_OS_MAC)
+    QString revealStr = tr("Reveal");
+#else
+    QString revealStr = tr("Reveal Folder");
+#endif
+
+    revealAct = new QAction(revealStr, this);
     revealAct->setStatusTip(tr("Open the file in the file browser"));
     connect(revealAct, &QAction::triggered, this, &MainWindow::reveal);
 
