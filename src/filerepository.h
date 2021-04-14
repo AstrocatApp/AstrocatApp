@@ -42,7 +42,6 @@ public slots:
     void initialize();
     void loadModel();
     void addOrUpdateAstrofile(const AstroFile& afi);
-//    void saveStatus(const AstroFile& astroFile);
     void getDuplicateFiles();
     void getDuplicateFilesByFileHash();
     void getDuplicateFilesByImageHash();
@@ -66,10 +65,9 @@ private:
     int insertAstrofile(const AstroFile& afi);
     void addTags(const AstroFile& astroFile);
     void addThumbnail(const AstroFile& astroFile);
-    QList<AstroFile> getAstrofilesInFolder(const QString& fullPath, bool includeTags);
+    QList<AstroFile> getAstrofilesInFolder(const QString& fullPath);
     QMap<int, AstroFile> _getAllAstrofiles();
     QMap<int, QImage> _getAllThumbnails();
-    QMap<QString, QString> GetAstrofileTags(int astroFileId);
 
     volatile bool cancelSignaled = false;
 };

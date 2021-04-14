@@ -237,42 +237,7 @@ void FileRepository::createTables()
     }
 }
 
-QMap<QString, QString> FileRepository::GetAstrofileTags(int astroFileId)
-{
-    QMap<QString, QString> map;
-    QSqlQuery query("SELECT * FROM tags WHERE fits_id = ?");
-    query.bindValue(0, astroFileId);
-    query.exec();
-    while (query.next())
-    {
-        int idtagKey = query.record().indexOf("tagKey");
-        int idtagValue = query.record().indexOf("tagValue");
-        auto key = query.value(idtagKey).toString();
-        auto value = query.value(idtagValue).toString();
-        map.insert(key, value);
-    }
-    return map;
-}
-
-//QMap<QString, QSet<QString>> GetAllAstrofileTags()
-//{
-//    QMap<QString, QSet<QString>> map;
-//    QSqlQuery query("SELECT tags.tagKey, tags.tagValue FROM tags");
-//    query.exec();
-//    while (query.next())
-//    {
-//        auto a1 = query.value(0).toString();
-//        auto a2 = query.value(1).toString();
-
-//        if (map.contains(a1))
-//            map[a1].insert(a2);
-//        else
-//            map.insert(a1, QSet<QString>({a2}));
-//    }
-//    return map;
-//}
-
-QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath, bool includeTags)
+QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath)
 {
     QList<AstroFile> files;
     QSqlQuery query;
@@ -321,12 +286,6 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath, 
         astro.ImageHash = query.value(idImageHash).toString();
         astro.IsHidden = query.value(idIsHidden).toInt();
 
-        int astroFileId = query.value(idId).toInt();
-        if (includeTags)
-        {
-            auto map = GetAstrofileTags(astroFileId);
-            astro.Tags.insert(map);
-        }
         files.append(astro);
     }
 
@@ -381,7 +340,7 @@ int FileRepository::insertAstrofile(const AstroFile& astroFile)
 
 void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
 {
-    auto files = getAstrofilesInFolder(fullPath, false);
+    auto files = getAstrofilesInFolder(fullPath);
     QSqlQuery query;
     QString paddedFullPath;
 
@@ -466,21 +425,6 @@ void FileRepository::addThumbnail(const AstroFile &astroFile)
     if (!tagStatusQuery.exec())
         qDebug() << "FAILED to execute UPDATE Thumbnail Status query" << tagStatusQuery.lastError();
 }
-
-//void FileRepository::saveStatus(const AstroFile& astroFile)
-//{
-//    if (cancelSignaled)
-//    {
-//        return;
-//    }
-
-//    QSqlQuery processStatusQuery;
-//    processStatusQuery.prepare("UPDATE fits set ProcessStatus = :processStatus WHERE FullPath = :fullPath");
-//    processStatusQuery.bindValue(":processStatus", astroFile.processStatus);
-//    processStatusQuery.bindValue(":fullPath", astroFile.FullPath);
-//    if (!processStatusQuery.exec())
-//        qDebug() << "FAILED to execute UPDATE TAG Status query: " <<processStatusQuery.lastError() ;
-//}
 
 void FileRepository::getDuplicateFiles()
 {
