@@ -137,7 +137,7 @@ void AutoStretcher<T>::calculateParams()
 {
     QElapsedTimer timer;
     timer.start();
-    int sampleSize = 50000;
+    int sampleSize = 250000;
 
     int channelSize = _width * _height;
     float* channelMedians = new float[_numberOfChannels];
