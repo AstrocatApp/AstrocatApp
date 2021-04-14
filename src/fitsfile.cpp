@@ -358,27 +358,34 @@ void FitsFile::makeImage()
 template <typename T>
 void FitsFile::deBayer()
 {
-    _width/=2;
-    _height/=2;
     T * data = reinterpret_cast<T*>(_data);
-    T* dataRed = new T[_width * _height];
-    T* dataGreen = new T[_width * _height];
-    T* dataBlue = new T[_width * _height];
+    T* dataRed = new T[_width * _height/4];
+    T* dataGreen = new T[_width * _height/4];
+    T* dataBlue = new T[_width * _height/4];
 
-    for (int i = 0; i < _height; i++)
+    T* redIt = dataRed;
+    T* greenIt = dataGreen;
+    T* blueIt = dataBlue;
+
+    for (int i = 0; (i+1) < _height; i+=2)
     {
-        for (int j = 0; j < _width; j++)
+        for (int j = 0; (j+1) < _width; j+=2)
         {
-            T _red    = (data[i*4*_width + 2*j]);
-            T _green1 = (data[i*4*_width + 2*j+1]);
-            T _green2 = (data[(i+1)*4*_width + 2*j]);
-            T _blue   = (data[(i+1)*4*_width + 2*j+1]);
+            T _red    = (data[i*_width + j]);
+            T _green1 = (data[i*_width + j+1]);
+            T _green2 = (data[(i+1)*_width + j]);
+            T _blue   = (data[(i+1)*_width + j+1]);
 
-            dataRed  [i*_width + j] = _red;
-            dataGreen[i*_width + j] = (_green1 + _green2)/2;
-            dataBlue [i*_width + j] = _blue;
+            *redIt   = _red;
+            *greenIt = (_green1 + _green2)/2;
+            *blueIt = _blue;
+            redIt++;
+            greenIt++;
+            blueIt++;
         }
     }
+    _width/=2;
+    _height/=2;
     delete [] _data;
     _data = (unsigned char*)new T[_width * _height * 3];
     long size = _width * _height * sizeof(T);
