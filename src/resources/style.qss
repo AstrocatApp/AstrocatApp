@@ -1,4 +1,10 @@
 
+/*
+0676E5 : blue, checkbox selected
+0039C8 : dark blue, text background
+0A65EA : slider blue
+*/
+
 QMainWindow {
   background-color: #323232;
 }
@@ -8,36 +14,25 @@ QWidget {
 }
 
 QPushButton {
-/*  background-color: #656565;
-  color : white;
-  border-radius: 4px;*/
-
-color: white;
-background-color: #656565;
-border-style: outset;
-border-width: 0px;
-border-radius: 4px;
-border-color: beige;
-/*font: bold 14px;*/
-/*min-width: 10em;*/
-padding: 4px;
+  color: white;
+  background-color: #656565;
+  border-style: outset;
+  border-width: 0px;
+  border-radius: 4px;
+  border-color: beige;
+  padding: 4px;
 }
 
-/*QPushButton:hover {
-  background-color: #54687A;
-  color: #E0E1E3;
-}*/
-
 QPushButton:pressed {
-background-color: #076BD2;
+  background-color: #076BD2;
 }
 
 QDateEdit {
-color: white;
+  color: white;
 }
 
 QDateEdit:disabled {
-color: gray;
+  color: gray;
 }
 
 QScrollArea {
@@ -45,7 +40,7 @@ QScrollArea {
 }
 
 QVBoxLayout {
-background-color: #823232;
+  background-color: #823232;
 }
 
 QGroupBox {
@@ -67,22 +62,23 @@ QListView {
 }
 
 QListView::item {
-    color: white;
+  color: white;
 }
 
 QListView::item:selected {
-    border: 1px solid #6a6ea9;
+  border: 1px solid #6a6ea9;
+  background-color: transparent;
 }
 
 QFrame {
-    border: 1px solid black;
-    border-radius: 4px;
-    padding: 2px;
+  border: 1px solid black;
+  border-radius: 4px;
+  padding: 2px;
 }
 
 QLabel {
-border: 0px solid blue;
-color: white;
+  border: 0px solid blue;
+  color: white;
 }
 
 QStatusBar {
@@ -90,28 +86,29 @@ QStatusBar {
 }
 
 QMenuBar {
-color: white;
+  color: white;
 }
 
 QMenu::item{
-background-color: #393939;
-color: white;
+  background-color: #393939;
+  color: white;
 }
 
 QMenu::item:selected{
-background-color: rgb(0, 85, 127);
-color: white;
+  background-color: rgb(0, 85, 127);
+  color: white;
 }
 
 QTextBrowser {
   color: white;
 }
+
 QSplitter {
-border: 0px solid blue;
+  border: 0px solid blue;
 }
 
 QStatusBar {
-border: 1px solid #6F6F6F;
+  border: 1px solid #6F6F6F;
 }
 
 QCheckBox {
