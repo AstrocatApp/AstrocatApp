@@ -15,6 +15,7 @@ cmake ..
 make
 cd ../..
 ```
+On Windows, instead of make, you can use `cmake.exe --build . --config Release`
 
 This should put all third party binaries in the `external/build/libs` folder
 
