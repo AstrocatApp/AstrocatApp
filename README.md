@@ -26,3 +26,12 @@ qmake ../src/AstrocatApp.pro -spec macx-clang CONFIG+=x86_64 CONFIG+=qtquickcomp
 make
 ```
 
+## Extra Build Steps for Windows
+We need to build pthreads for Windows.
+```
+cd external/pthreads
+nmake clean VC
+copy pthreadVC2.dll ..\build\libs\Release\
+copy pthreadVC2.lib ..\build\libs\Release\
+```
+To run the app from explorer, copy pthreadVC2.dll to the binary release folder.

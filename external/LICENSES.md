@@ -42,3 +42,8 @@ Astrocat uses QT and QT Creator under the LGPL v3.0 License
 **Website:** http://devernay.github.io/cminpack/
 **Source Code:**   
 **License:** [cminpack/CopyrightMINPACK.txt](cminpack/CopyrightMINPACK.txt)  
+
+## PTHREADS  
+**Website:** http://sourceware.org/pthreads-win32/
+**Source Code:**   
+**License:** [pthreads/COPYING](pthreads/COPYING)  
