@@ -69,7 +69,7 @@ LIBS += -L$$PWD/../external/build/libs/ -lpcl -llcms -llz4 -lRFC6234 -lcfitsio -
 
 win32 {
     LIBS += -L$$PWD/../external/build/libs/Release
-    LIBS += -luser32 -luserenv -ladvapi32
+    LIBS += -luser32 -luserenv -ladvapi32 -lpthreadVC2
     DEFINES += __PCL_WINDOWS WIN32 WIN64 __PCL_NO_WIN32_MINIMUM_VERSIONS UNICODE _UNICODE _WINDOWS _NDEBUG
     QMAKE_CXXFLAGS = "/EHsc /MP"
 }
