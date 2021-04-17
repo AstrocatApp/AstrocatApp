@@ -38,7 +38,6 @@
 #include "fileprocessfilter.h"
 #include "thumbnailcache.h"
 
-#include <QAbstractItemModelTester>
 #include <QFileInfo>
 #include <QMainWindow>
 #include <QThread>
@@ -127,7 +126,6 @@ private:
     SortFilterProxyModel* sortFilterProxyModel;
 
     SearchFolderDialog searchFolderDialog;
-    QAbstractItemModelTester* tester;
     FilterView* filterView;
 
     QImage makeThumbnail(const QImage& image);
