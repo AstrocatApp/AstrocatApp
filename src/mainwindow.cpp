@@ -448,23 +448,10 @@ void revealFile(QWidget* parent, const QString &pathToReveal) {
     // See http://stackoverflow.com/questions/3490336/how-to-reveal-in-finder-or-show-in-explorer-with-qt
     // for details
 
-    // Mac, Windows support folder or file.
 #if defined(Q_OS_WIN)
-    const QString explorer = Environment::systemEnvironment().searchInPath(QLatin1String("explorer.exe"));
-    if (explorer.isEmpty()) {
-        QMessageBox::warning(parent,
-                             tr("Launching Windows Explorer failed"),
-                             tr("Could not find explorer.exe in path to launch Windows Explorer."));
-        return;
-    }
-    QString param;
-    if (!QFileInfo(pathIn).isDir())
-        param = QLatin1String("/select,");
-    param += QDir::toNativeSeparators(pathIn);
-    QString command = explorer + " " + param;
-    QString command = explorer + " " + param;
-    QProcess::startDetached(command);
-
+    QString path = QDir::toNativeSeparators(pathToReveal);
+    QString param = QString("/select," + path);
+    QProcess::startDetached("explorer.exe", QStringList(param));
 #elif defined(Q_OS_MAC)
     Q_UNUSED(parent)
     QStringList scriptArgs;
