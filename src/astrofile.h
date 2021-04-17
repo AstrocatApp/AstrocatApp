@@ -53,7 +53,7 @@ enum AstroFileProcessStatus
 
 enum AstroFileType
 {
-    Unknown = -1,
+    UnknownType = -1,
     Fits,
     Xisf,
     Image
@@ -123,7 +123,7 @@ struct AstroFile
             FileType = AstroFileType::Image;
         else if (suffix == "bmp")
             FileType = AstroFileType::Image;
-        else FileType = AstroFileType::Unknown;
+        else FileType = AstroFileType::UnknownType;
     }
 };
 
