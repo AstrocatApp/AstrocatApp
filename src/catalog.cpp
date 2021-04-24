@@ -41,12 +41,20 @@ Catalog::~Catalog()
 
 void Catalog::addSearchFolder(const QString &folder)
 {
+    QMutexLocker locker(&searchFoldersMutex);
     searchFolders.append(folder);
 }
 
 void Catalog::addSearchFolder(const QList<QString> &folders)
 {
+    QMutexLocker locker(&searchFoldersMutex);
     searchFolders.append(folders);
+}
+
+void Catalog::removeSearchFolder(const QString &folder)
+{
+    QMutexLocker locker(&searchFoldersMutex);
+    searchFolders.removeOne(folder);
 }
 
 void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
@@ -160,6 +168,21 @@ bool Catalog::shouldProcessFile(const QFileInfo &fileInfo)
     QMutexLocker locker(&listMutex);
 
     QString path = fileInfo.absoluteFilePath();
+
+    searchFoldersMutex.lock();
+    bool isInSearchFolders = false;
+    for (auto s : searchFolders)
+    {
+        if (path.contains(s))
+        {
+            isInSearchFolders = true;
+            break;
+        }
+    }
+    searchFoldersMutex.unlock();
+
+    if (!isInSearchFolders)
+        return false;
 
     auto a = getAstroFileByPath(path);
     if (a == nullptr)

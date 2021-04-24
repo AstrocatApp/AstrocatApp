@@ -40,6 +40,7 @@ public:
 
     void addSearchFolder(const QString& folder);
     void addSearchFolder(const QList<QString>& folders);
+    void removeSearchFolder(const QString& folder);
 
 
 //    void hideAstroFile(const AstroFile& astroFile);
@@ -76,6 +77,7 @@ signals:
 
 private:
     QRecursiveMutex listMutex;
+    QRecursiveMutex searchFoldersMutex;
 
     QList<QString> searchFolders;
     QList<AstroFile*> astroFiles;

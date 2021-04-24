@@ -31,12 +31,14 @@
 
 #include <QFileInfo>
 #include <QObject>
+#include <QThreadPool>
 
 class NewFileProcessor : public QObject
 {
     Q_OBJECT
 public:
     explicit NewFileProcessor(QObject *parent = nullptr);
+    virtual void setCatalog(Catalog* cat);
     virtual void processNewFile(const QFileInfo& fileInfo);
     virtual void cancel();
 
@@ -46,12 +48,14 @@ signals:
 
 protected:
     volatile bool cancelSignaled = false;
+    Catalog* catalog;
 
 private:
     FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);
     FileProcessor* getProcessorForFile(const AstroFile& astroFile);
 
     QByteArray getFileHash(const QFileInfo& fileInfo);
+    QThreadPool threadPool;
 };
 
 #endif // NEWFILEPROCESSOR_H

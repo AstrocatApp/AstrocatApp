@@ -70,3 +70,8 @@ void Mock_NewFileProcessor::processNewFile(const QFileInfo &fileInfo)
     lastId++;
     emit astrofileProcessed(astroFile);
 }
+
+void Mock_NewFileProcessor::setCatalog(Catalog *cat)
+{
+    this->catalog = cat;
+}
