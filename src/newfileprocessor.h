@@ -37,6 +37,7 @@ class NewFileProcessor : public QObject
     Q_OBJECT
 public:
     explicit NewFileProcessor(QObject *parent = nullptr);
+    virtual void setCatalog(Catalog* cat);
     virtual void processNewFile(const QFileInfo& fileInfo);
     virtual void cancel();
 
@@ -46,6 +47,7 @@ signals:
 
 protected:
     volatile bool cancelSignaled = false;
+    Catalog* catalog;
 
 private:
     FileProcessor* getProcessorForFile(const QFileInfo& fileInfo);

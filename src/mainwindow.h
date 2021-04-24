@@ -59,6 +59,7 @@ public:
 
 public slots:
 //    void newFileFound(const QFileInfo fileInfo);
+    void searchFolderAdded(const QString folder);
     void searchFolderRemoved(const QString folder);
 
 signals:
@@ -132,6 +133,7 @@ private:
     void cleanUpWorker(QThread* thread);
     void clearDetailLabels();
     void crawlAllSearchFolders();
+    QList<QString> getSearchFolders();
 
     bool shouldShowWatermark = true;
     const QString DEFAULT_WATERMARK_MESSAGE = "Select Settings -> Folders in the menu to add folders ...";

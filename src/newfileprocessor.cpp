@@ -32,10 +32,18 @@
 
 NewFileProcessor::NewFileProcessor(QObject *parent) : QObject(parent)
 {
+    catalog = nullptr;
+}
+
+void NewFileProcessor::setCatalog(Catalog *cat)
+{
+    this->catalog = cat;
 }
 
 void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 {
+    Q_ASSERT(catalog != nullptr);
+
     if (cancelSignaled)
     {
         emit processingCancelled(fileInfo);
@@ -45,6 +53,12 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
     AstroFile astroFile(fileInfo);
 
     FileProcessor* processor = getProcessorForFile(astroFile);
+        if (!catalog->shouldProcessFile(fileInfo))
+        {
+            // This file is not in the catalog anymore.
+            emit processingCancelled(fileInfo);
+            return;
+        }
 
     if (!processor->loadFile(astroFile))
     {

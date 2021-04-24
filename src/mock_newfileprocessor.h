@@ -38,6 +38,10 @@ signals:
 
 public:
     void processNewFile(const QFileInfo &fileInfo);
+
+    // NewFileProcessor interface
+public:
+    void setCatalog(Catalog *cat);
 };
 
 #endif // MOCK_NEWFILEPROCESSOR_H

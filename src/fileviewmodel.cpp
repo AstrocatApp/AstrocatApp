@@ -261,6 +261,7 @@ void FileViewModel::UpdateAstroFile(AstroFile astroFile, int row)
 
 void FileViewModel::RemoveAstroFile(const AstroFile& astroFile)
 {
+//    qDebug()<<"Removed from model: " << astroFile.FullPath;
     int row = catalog->astroFileIndex(astroFile);
     removeRow(row);
 }

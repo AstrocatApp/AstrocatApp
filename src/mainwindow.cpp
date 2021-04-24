@@ -60,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 //    newFileProcessorWorker = new Mock_NewFileProcessor;
     newFileProcessorWorker = new NewFileProcessor;
+    newFileProcessorWorker->setCatalog(catalog);
 
     newFileProcessorWorker->moveToThread(newFileProcessorThread);
 
@@ -119,7 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(newFileProcessorWorker, &NewFileProcessor::astrofileProcessed,              this,                   &MainWindow::astroFileProcessed);
     connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
     connect(newFileProcessorThread, &QThread::finished,                                 newFileProcessorWorker, &QObject::deleteLater);
-    connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             folderCrawlerWorker,    &FolderCrawler::crawl);
+    connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             this,                   &MainWindow::searchFolderAdded);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderRemoved,           this,                   &MainWindow::searchFolderRemoved);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMinimumDateChanged,    filterView,             &FilterView::setFilterMinimumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterView,             &FilterView::setFilterMaximumDate);
@@ -187,6 +188,8 @@ void MainWindow::initialize()
     if (isInitialized)
         return;
 
+    auto foldersFromList = getSearchFolders();
+    catalog->addSearchFolder(foldersFromList);
     folderCrawlerThread->start();
     fileRepositoryThread->start();
     newFileProcessorThread->start();
@@ -207,10 +210,16 @@ void MainWindow::cleanUpWorker(QThread* thread)
     delete thread;
 }
 
+void MainWindow::searchFolderAdded(const QString folder)
+{
+    catalog->addSearchFolder(folder);
+
+    emit folderCrawlerWorker->crawl(folder);
+}
+
 void MainWindow::searchFolderRemoved(const QString folder)
 {
-    // TODO: Don't cancel pending operations for all. Cancel pending operations only for the Removed folder.
-//    cancelPendingOperations();
+    catalog->removeSearchFolder(folder);
 
     // The source folder was removed by the user. We will need to remove all images in this source folder from the db.
     emit deleteAstrofilesInFolder(folder);
@@ -274,12 +283,18 @@ void MainWindow::clearDetailLabels()
 
 void MainWindow::crawlAllSearchFolders()
 {
-    QSettings settings;
-    auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
+    auto foldersFromList = getSearchFolders();
     for (auto& f : foldersFromList)
     {
         emit crawl(f);
     }
+}
+
+QList<QString> MainWindow::getSearchFolders()
+{
+    QSettings settings;
+    auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
+    return foldersFromList;
 }
 
 void MainWindow::handleSelectionChanged(QItemSelection selection)
@@ -341,6 +356,17 @@ void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
 
 void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 {
+    QFileInfo fileInfo(astroFile.FullPath);
+    if (!catalog->shouldProcessFile(fileInfo))
+    {
+        // This file is not in the catalog anymore.
+        numberOfActiveJobs--;
+        ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
+        return;
+    }
+
+    // do not decrement numberOfActiveJobs yet. It will be decremented
+    // after the db recorded it.
     emit dbAddOrUpdateAstroFile(astroFile);
 }
 
