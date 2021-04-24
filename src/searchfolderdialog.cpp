@@ -37,7 +37,7 @@ SearchFolderDialog::SearchFolderDialog(QWidget *parent) :
     auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
     searchFolders.append(foldersFromList);
 
-    ui->searchFoldersWidget->setSelectionMode(QAbstractItemView::SelectionMode::MultiSelection);
+    ui->searchFoldersWidget->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
     ui->searchFoldersWidget->addItems(foldersFromList);
     connect(ui->addNewButton, &QPushButton::clicked, this, &SearchFolderDialog::addNewClicked);
     connect(ui->removeSelectedButton, &QPushButton::clicked, this, &SearchFolderDialog::removeClicked);

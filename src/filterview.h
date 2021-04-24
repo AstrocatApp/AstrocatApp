@@ -31,10 +31,11 @@
 #include <QCheckBox>
 #include <QDateEdit>
 #include <QGroupBox>
+#include <QListView>
 #include <QObject>
 #include <QVBoxLayout>
 
-class FilterView : public QAbstractItemView
+class FilterView : public QListView
 {
     Q_OBJECT
 public:
@@ -95,24 +96,6 @@ private:
     void selectedInstrumentsChanged(QString object, int state);
     void selectedFiltersChanged(QString object, int state);
     void selectedFileExtensionsChanged(QString object, int state);
-
-    // QPaintDevice interface
-public:
-    QPaintEngine *paintEngine() const;
-
-    // QAbstractItemView interface
-public:
-    QRect visualRect(const QModelIndex &index) const;
-    void scrollTo(const QModelIndex &index, ScrollHint hint);
-    QModelIndex indexAt(const QPoint &point) const;
-
-protected:
-    QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
-    int horizontalOffset() const;
-    int verticalOffset() const;
-    bool isIndexHidden(const QModelIndex &index) const;
-    void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command);
-    QRegion visualRegionForSelection(const QItemSelection &selection) const;
 
     // QAbstractItemView interface
 protected slots:

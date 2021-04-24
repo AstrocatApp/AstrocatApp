@@ -29,6 +29,7 @@
 
 SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyModel(parent)
 {
+    isDuplicatedFilterActive = false;
 }
 
 bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const

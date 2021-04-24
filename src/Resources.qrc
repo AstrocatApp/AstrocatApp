@@ -13,5 +13,6 @@
         <file>resources/Licenses/PCL.lic</file>
         <file>resources/Licenses/RFC6234.lic</file>
         <file>resources/Licenses/ZLIB.lic</file>
+        <file>resources/Licenses/PTHREADS.lic</file>
     </qresource>
 </RCC>

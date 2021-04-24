@@ -1,10 +1,10 @@
-QT       += core gui sql testlib
+QT       += core gui sql concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
-VERSION = 0.0.9
+VERSION = 0.0.1
 DEFINES += CURRENT_APP_VERSION=\"\\\"$${VERSION}\\\"\"
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -68,8 +68,8 @@ RESOURCES += \
 LIBS += -L$$PWD/../external/build/libs/ -lpcl -llcms -llz4 -lRFC6234 -lcfitsio -lzlib
 
 win32 {
-    LIBS += -L$$PWD/../external/build/libs/Release
-    LIBS += -luser32 -luserenv -ladvapi32
+    LIBS += -L$$PWD/../external/build/libs
+    LIBS += -luser32 -luserenv -ladvapi32 -lpthreadVC2
     DEFINES += __PCL_WINDOWS WIN32 WIN64 __PCL_NO_WIN32_MINIMUM_VERSIONS UNICODE _UNICODE _WINDOWS _NDEBUG
     QMAKE_CXXFLAGS = "/EHsc /MP"
 }

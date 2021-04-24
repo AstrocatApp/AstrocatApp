@@ -35,6 +35,7 @@
 #include <QDesktopServices>
 #include <QProcess>
 #include <QPixmapCache>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -59,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 //    newFileProcessorWorker = new Mock_NewFileProcessor;
     newFileProcessorWorker = new NewFileProcessor;
+    newFileProcessorWorker->setCatalog(catalog);
 
     newFileProcessorWorker->moveToThread(newFileProcessorThread);
 
@@ -118,7 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(newFileProcessorWorker, &NewFileProcessor::astrofileProcessed,              this,                   &MainWindow::astroFileProcessed);
     connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
     connect(newFileProcessorThread, &QThread::finished,                                 newFileProcessorWorker, &QObject::deleteLater);
-    connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             folderCrawlerWorker,    &FolderCrawler::crawl);
+    connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             this,                   &MainWindow::searchFolderAdded);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderRemoved,           this,                   &MainWindow::searchFolderRemoved);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMinimumDateChanged,    filterView,             &FilterView::setFilterMinimumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterView,             &FilterView::setFilterMaximumDate);
@@ -186,6 +188,8 @@ void MainWindow::initialize()
     if (isInitialized)
         return;
 
+    auto foldersFromList = getSearchFolders();
+    catalog->addSearchFolder(foldersFromList);
     folderCrawlerThread->start();
     fileRepositoryThread->start();
     newFileProcessorThread->start();
@@ -206,10 +210,16 @@ void MainWindow::cleanUpWorker(QThread* thread)
     delete thread;
 }
 
+void MainWindow::searchFolderAdded(const QString folder)
+{
+    catalog->addSearchFolder(folder);
+
+    emit folderCrawlerWorker->crawl(folder);
+}
+
 void MainWindow::searchFolderRemoved(const QString folder)
 {
-    // TODO: Don't cancel pending operations for all. Cancel pending operations only for the Removed folder.
-//    cancelPendingOperations();
+    catalog->removeSearchFolder(folder);
 
     // The source folder was removed by the user. We will need to remove all images in this source folder from the db.
     emit deleteAstrofilesInFolder(folder);
@@ -273,12 +283,18 @@ void MainWindow::clearDetailLabels()
 
 void MainWindow::crawlAllSearchFolders()
 {
-    QSettings settings;
-    auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
+    auto foldersFromList = getSearchFolders();
     for (auto& f : foldersFromList)
     {
         emit crawl(f);
     }
+}
+
+QList<QString> MainWindow::getSearchFolders()
+{
+    QSettings settings;
+    auto foldersFromList = settings.value("SearchFolders").value<QList<QString>>();
+    return foldersFromList;
 }
 
 void MainWindow::handleSelectionChanged(QItemSelection selection)
@@ -340,6 +356,17 @@ void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
 
 void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 {
+    QFileInfo fileInfo(astroFile.FullPath);
+    if (!catalog->shouldProcessFile(fileInfo))
+    {
+        // This file is not in the catalog anymore.
+        numberOfActiveJobs--;
+        ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
+        return;
+    }
+
+    // do not decrement numberOfActiveJobs yet. It will be decremented
+    // after the db recorded it.
     emit dbAddOrUpdateAstroFile(astroFile);
 }
 
@@ -447,23 +474,10 @@ void revealFile(QWidget* parent, const QString &pathToReveal) {
     // See http://stackoverflow.com/questions/3490336/how-to-reveal-in-finder-or-show-in-explorer-with-qt
     // for details
 
-    // Mac, Windows support folder or file.
 #if defined(Q_OS_WIN)
-    const QString explorer = Environment::systemEnvironment().searchInPath(QLatin1String("explorer.exe"));
-    if (explorer.isEmpty()) {
-        QMessageBox::warning(parent,
-                             tr("Launching Windows Explorer failed"),
-                             tr("Could not find explorer.exe in path to launch Windows Explorer."));
-        return;
-    }
-    QString param;
-    if (!QFileInfo(pathIn).isDir())
-        param = QLatin1String("/select,");
-    param += QDir::toNativeSeparators(pathIn);
-    QString command = explorer + " " + param;
-    QString command = explorer + " " + param;
-    QProcess::startDetached(command);
-
+    QString path = QDir::toNativeSeparators(pathToReveal);
+    QString param = QString("/select," + path);
+    QProcess::startDetached("explorer.exe", QStringList(param));
 #elif defined(Q_OS_MAC)
     Q_UNUSED(parent)
     QStringList scriptArgs;
@@ -477,16 +491,9 @@ void revealFile(QWidget* parent, const QString &pathToReveal) {
     QProcess::execute("/usr/bin/osascript", scriptArgs);
 #else
     // we cannot select a file here, because no file browser really supports it...
-//    const QFileInfo fileInfo(pathIn);
-//    const QString folder = fileInfo.absoluteFilePath();
-//    const QString app = Utils::UnixUtils::fileBrowser(Core::ICore::instance()->settings());
-//    QProcess browserProc;
-//    const QString browserArgs = Utils::UnixUtils::substituteFileBrowserParameters(app, folder);
-//    bool success = browserProc.startDetached(browserArgs);
-//    const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
-//    success = success && error.isEmpty();
-//    if (!success)
-//        showGraphicalShellError(parent, app, error);
+    QFileInfo fi(pathToReveal);
+
+    QDesktopServices::openUrl(QUrl::fromLocalFile(fi.absoluteDir().canonicalPath()));
 #endif
 
 }
@@ -517,7 +524,15 @@ void MainWindow::remove()
 
 void MainWindow::createActions()
 {
-    revealAct = new QAction(tr("Reveal"), this);
+#if defined(Q_OS_WIN)
+    QString revealStr = tr("Reveal");
+#elif defined(Q_OS_MAC)
+    QString revealStr = tr("Reveal");
+#else
+    QString revealStr = tr("Reveal Folder");
+#endif
+
+    revealAct = new QAction(revealStr, this);
     revealAct->setStatusTip(tr("Open the file in the file browser"));
     connect(revealAct, &QAction::triggered, this, &MainWindow::reveal);
 

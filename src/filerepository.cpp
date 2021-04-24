@@ -208,6 +208,13 @@ void FileRepository::createTables()
         return;
     }
 
+    QSqlQuery tagsFitsIdIndexQuery("CREATE INDEX idx_ftags_fitsid ON tags(fits_id);");
+    if(!tagsFitsIdIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(tagsFitsIdIndexQuery.lastError().text());
+        return;
+    }
+
     QSqlQuery thumbnailsquery(
         "CREATE TABLE thumbnails ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -221,44 +228,16 @@ void FileRepository::createTables()
         emit dbFailedToInitialize(thumbnailsquery.lastError().text());
         return;
     }
-}
 
-QMap<QString, QString> FileRepository::GetAstrofileTags(int astroFileId)
-{
-    QMap<QString, QString> map;
-    QSqlQuery query("SELECT * FROM tags WHERE fits_id = ?");
-    query.bindValue(0, astroFileId);
-    query.exec();
-    while (query.next())
+    QSqlQuery thumbnailsFitsIdIndexQuery("CREATE UNIQUE INDEX idx_thumbnails_fitsid ON thumbnails(fits_id);");
+    if(!thumbnailsFitsIdIndexQuery.isActive())
     {
-        int idtagKey = query.record().indexOf("tagKey");
-        int idtagValue = query.record().indexOf("tagValue");
-        auto key = query.value(idtagKey).toString();
-        auto value = query.value(idtagValue).toString();
-        map.insert(key, value);
+        emit dbFailedToInitialize(thumbnailsFitsIdIndexQuery.lastError().text());
+        return;
     }
-    return map;
 }
 
-//QMap<QString, QSet<QString>> GetAllAstrofileTags()
-//{
-//    QMap<QString, QSet<QString>> map;
-//    QSqlQuery query("SELECT tags.tagKey, tags.tagValue FROM tags");
-//    query.exec();
-//    while (query.next())
-//    {
-//        auto a1 = query.value(0).toString();
-//        auto a2 = query.value(1).toString();
-
-//        if (map.contains(a1))
-//            map[a1].insert(a2);
-//        else
-//            map.insert(a1, QSet<QString>({a2}));
-//    }
-//    return map;
-//}
-
-QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath, bool includeTags)
+QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath)
 {
     QList<AstroFile> files;
     QSqlQuery query;
@@ -307,12 +286,6 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath, 
         astro.ImageHash = query.value(idImageHash).toString();
         astro.IsHidden = query.value(idIsHidden).toInt();
 
-        int astroFileId = query.value(idId).toInt();
-        if (includeTags)
-        {
-            auto map = GetAstrofileTags(astroFileId);
-            astro.Tags.insert(map);
-        }
         files.append(astro);
     }
 
@@ -359,6 +332,7 @@ int FileRepository::insertAstrofile(const AstroFile& astroFile)
     {
         // TODO: Handle failures
         qDebug() << "record could not add: " << queryAdd.lastError();
+        return 0;
     }
 
     return queryAdd.lastInsertId().toInt();
@@ -366,7 +340,7 @@ int FileRepository::insertAstrofile(const AstroFile& astroFile)
 
 void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
 {
-    auto files = getAstrofilesInFolder(fullPath, false);
+    auto files = getAstrofilesInFolder(fullPath);
     QSqlQuery query;
     QString paddedFullPath;
 
@@ -409,7 +383,7 @@ void FileRepository::addTags(const AstroFile& astroFile)
         tagAddQuery.bindValue(":tagKey", key);
         tagAddQuery.bindValue(":tagValue", value);
         if (!tagAddQuery.exec())
-            qDebug() << "FAILED to execute INSERT TAG query";
+            qDebug() << "FAILED to execute INSERT TAG query: " << tagAddQuery.lastError();
     }
 
     QSqlQuery tagStatusQuery;
@@ -451,21 +425,6 @@ void FileRepository::addThumbnail(const AstroFile &astroFile)
     if (!tagStatusQuery.exec())
         qDebug() << "FAILED to execute UPDATE Thumbnail Status query" << tagStatusQuery.lastError();
 }
-
-//void FileRepository::saveStatus(const AstroFile& astroFile)
-//{
-//    if (cancelSignaled)
-//    {
-//        return;
-//    }
-
-//    QSqlQuery processStatusQuery;
-//    processStatusQuery.prepare("UPDATE fits set ProcessStatus = :processStatus WHERE FullPath = :fullPath");
-//    processStatusQuery.bindValue(":processStatus", astroFile.processStatus);
-//    processStatusQuery.bindValue(":fullPath", astroFile.FullPath);
-//    if (!processStatusQuery.exec())
-//        qDebug() << "FAILED to execute UPDATE TAG Status query: " <<processStatusQuery.lastError() ;
-//}
 
 void FileRepository::getDuplicateFiles()
 {

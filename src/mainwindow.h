@@ -38,7 +38,6 @@
 #include "fileprocessfilter.h"
 #include "thumbnailcache.h"
 
-#include <QAbstractItemModelTester>
 #include <QFileInfo>
 #include <QMainWindow>
 #include <QThread>
@@ -60,6 +59,7 @@ public:
 
 public slots:
 //    void newFileFound(const QFileInfo fileInfo);
+    void searchFolderAdded(const QString folder);
     void searchFolderRemoved(const QString folder);
 
 signals:
@@ -127,13 +127,13 @@ private:
     SortFilterProxyModel* sortFilterProxyModel;
 
     SearchFolderDialog searchFolderDialog;
-    QAbstractItemModelTester* tester;
     FilterView* filterView;
 
     QImage makeThumbnail(const QImage& image);
     void cleanUpWorker(QThread* thread);
     void clearDetailLabels();
     void crawlAllSearchFolders();
+    QList<QString> getSearchFolders();
 
     bool shouldShowWatermark = true;
     const QString DEFAULT_WATERMARK_MESSAGE = "Select Settings -> Folders in the menu to add folders ...";
