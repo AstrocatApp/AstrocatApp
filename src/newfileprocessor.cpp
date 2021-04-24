@@ -29,6 +29,7 @@
 #include "fitsprocessor.h"
 
 #include <QCryptographicHash>
+#include <QtConcurrent>
 
 NewFileProcessor::NewFileProcessor(QObject *parent) : QObject(parent)
 {
@@ -50,9 +51,9 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         return;
     }
 
-    AstroFile astroFile(fileInfo);
+    QFuture<void> future = QtConcurrent::run(&threadPool, [=]() {
+        AstroFile astroFile(fileInfo);
 
-    FileProcessor* processor = getProcessorForFile(astroFile);
         if (!catalog->shouldProcessFile(fileInfo))
         {
             // This file is not in the catalog anymore.
@@ -60,33 +61,37 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
             return;
         }
 
-    if (!processor->loadFile(astroFile))
-    {
-        // This is an invalid file.
-        astroFile.processStatus = FailedToProcess;
+        FileProcessor* processor = getProcessorForFile(astroFile);
+
+        if (!processor->loadFile(astroFile))
+        {
+            // This is an invalid file.
+            astroFile.processStatus = FailedToProcess;
+            emit astrofileProcessed(astroFile);
+            return;
+        }
+        processor->extractTags();
+
+        auto tags = processor->getTags();
+        astroFile.Tags.swap(tags);
+        astroFile.tagStatus = TagExtracted;
+
+        processor->extractThumbnail();
+        auto thumbnail = processor->getThumbnail();
+        astroFile.thumbnail = thumbnail;
+        astroFile.tinyThumbnail = processor->getTinyThumbnail();
+        astroFile.thumbnailStatus = Loaded;
+
+        QString hash = getFileHash(fileInfo).toHex();
+        astroFile.FileHash = hash;
+
+        QString imageHash = processor->getImageHash().toHex();
+        astroFile.ImageHash = imageHash;
+        delete processor;
+        astroFile.processStatus = Processed;
+
         emit astrofileProcessed(astroFile);
-        return;
-    }
-    processor->extractTags();
-
-    auto tags = processor->getTags();
-    astroFile.Tags.swap(tags);
-    astroFile.tagStatus = TagExtracted;
-
-    processor->extractThumbnail();
-    auto thumbnail = processor->getThumbnail();
-    astroFile.thumbnail = thumbnail;
-    astroFile.tinyThumbnail = processor->getTinyThumbnail();
-    astroFile.thumbnailStatus = Loaded;
-
-    QString hash = getFileHash(fileInfo).toHex();
-    astroFile.FileHash = hash;
-
-    QString imageHash = processor->getImageHash().toHex();
-    astroFile.ImageHash = imageHash;
-    delete processor;
-    astroFile.processStatus = Processed;
-    emit astrofileProcessed(astroFile);
+    });
 }
 
 QByteArray fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)

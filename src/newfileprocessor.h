@@ -31,6 +31,7 @@
 
 #include <QFileInfo>
 #include <QObject>
+#include <QThreadPool>
 
 class NewFileProcessor : public QObject
 {
@@ -54,6 +55,7 @@ private:
     FileProcessor* getProcessorForFile(const AstroFile& astroFile);
 
     QByteArray getFileHash(const QFileInfo& fileInfo);
+    QThreadPool threadPool;
 };
 
 #endif // NEWFILEPROCESSOR_H
