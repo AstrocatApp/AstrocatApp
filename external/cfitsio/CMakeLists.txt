@@ -4,9 +4,7 @@
 SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 PROJECT(CFITSIO)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-
-set(LIBRARY_OUTPUT_PATH ../libs)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0)
 
 # Allow @rpath token in target install name on Macs.
 # See "cmake --help-policy CMP0042" for more information.
@@ -18,11 +16,11 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 
 # Allow the developer to select if Dynamic or Static libraries are built
-OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-OPTION (USE_PTHREADS "Thread-safe build (using pthreads)" ON)
+OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+OPTION (USE_PTHREADS "Thread-safe build (using pthreads)" OFF)
 
 # Allow curl dependency to be disabled using "-DUseCurl=OFF":
-OPTION(UseCurl "UseCurl" OFF)
+OPTION(UseCurl "UseCurl" ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
 set (LIB_DESTINATION "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
@@ -33,38 +31,6 @@ SET(${PROJECT_NAME}_MAJOR_VERSION 3)
 SET(${PROJECT_NAME}_MINOR_VERSION 49)
 SET(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
 SET(LIB_NAME cfitsio)
-
-IF(NOT MSVC)
-add_compile_definitions(_REENTRANT)
-add_compile_definitions(STDC_HEADERS)
-add_compile_definitions(HAVE_SYS_TYPES_H)
-add_compile_definitions(HAVE_SYS_STAT_H)
-add_compile_definitions(HAVE_STDLIB_H)
-add_compile_definitions(HAVE_STRING_H)
-add_compile_definitions(HAVE_MEMORY_H)
-add_compile_definitions(HAVE_STRINGS_H)
-add_compile_definitions(HAVE_INTTYPES_H)
-add_compile_definitions(HAVE_STDINT_H)
-add_compile_definitions(HAVE_UNISTD_H)
-add_compile_definitions(HAVE_STDLIB_H)
-add_compile_definitions(HAVE_STRING_H)
-add_compile_definitions(HAVE_MATH_H)
-add_compile_definitions(HAVE_LIMITS_H)
-add_compile_definitions(_LARGEFILE_SOURCE)
-add_compile_definitions(_FILE_OFFSET_BITS)
-#add_compile_definitions(CFITSIO_HAVE_CURL)
-add_compile_definitions(HAVE_FTRUNCATE)
-add_compile_definitions(HAVE_LONGLONG)
-#add_compile_definitions(HAVE_SHMEM_SERVICES)
-add_compile_definitions(HAVE_UNION_SEMUN)
-add_compile_definitions(HAVE_FMEMOPEN)
-add_compile_definitions(HAVE_NET_SERVICES)
-ENDIF()
-
-include_directories(
-    .
-    zlib
-)
 
 # Microsoft Visual Studio:
 IF(MSVC OR BORLAND)
@@ -95,16 +61,9 @@ ENDIF (BUILD_SHARED_LIBS)
 FILE(GLOB H_FILES "*.h")
 
 IF (USE_PTHREADS)
-    IF (APPLE)
-        FIND_PACKAGE(pthreads REQUIRED PATH ${CMAKE_SOURCE_DIR}/pthread)
-        INCLUDE_DIRECTORIES(${PTHREADS_INCLUDE_DIR})
-        ADD_DEFINITIONS(-D_REENTRANT)
-    ELSEIF (LINUX)
-        FIND_PACKAGE(pthreads REQUIRED)
-        INCLUDE_DIRECTORIES(${PTHREADS_INCLUDE_DIR})
-        ADD_DEFINITIONS(-D_REENTRANT)
-    ELSEIF (MSVC)
-    ENDIF()
+    FIND_PACKAGE(pthreads REQUIRED)
+    INCLUDE_DIRECTORIES(${PTHREADS_INCLUDE_DIR})
+    ADD_DEFINITIONS(-D_REENTRANT)
 ENDIF()
 
 # Math library (not available in MSVC or MINGW)
@@ -134,13 +93,13 @@ IF (NOT MSVC)
     ENDIF ()
 
     # Find curl library, for HTTPS support:
-#    IF (UseCurl)
-#        FIND_PACKAGE(CURL)
-#        IF (CURL_FOUND)
-#            INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIR})
-#            ADD_DEFINITIONS(-DCFITSIO_HAVE_CURL)
-#        ENDIF()
-#    ENDIF()
+    IF (UseCurl)
+        FIND_PACKAGE(CURL)
+        IF (CURL_FOUND)
+            INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIR})
+            ADD_DEFINITIONS(-DCFITSIO_HAVE_CURL)
+        ENDIF()
+    ENDIF()
 ENDIF()
 
 SET(SRC_FILES
@@ -158,7 +117,6 @@ SET(SRC_FILES
     putkey.c quantize.c region.c ricecomp.c scalnull.c simplerng.c swapproc.c
     wcssub.c wcsutil.c zlib/zcompress.c zlib/zuncompress.c
 )
-
 
 # For future modifications:
 
