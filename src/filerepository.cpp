@@ -623,7 +623,7 @@ void FileRepository::loadModel()
         auto fitsId = thumbiter.key();
         auto& image = thumbiter.value();
         fitsmap[fitsId].tinyThumbnail = image;
-        fitsmap[fitsId].thumbnailStatus = Loaded;
+        fitsmap[fitsId].thumbnailStatus = ThumbnailLoaded;
     }
 
     // 6. convert map's `values` into a list of astroFile, and emit the list

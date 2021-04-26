@@ -32,9 +32,9 @@
 
 enum ThumbnailLoadStatus
 {
-    Loaded,
-    NotProcessedYet,
-    FailedToProess
+    ThumbnailLoaded,
+    ThumbnailNotProcessedYet,
+    ThumbnailFailedToProcess
 };
 
 enum TagExtractStatus
@@ -47,8 +47,8 @@ enum TagExtractStatus
 enum AstroFileProcessStatus
 {
     NeedsToBeProcessed,
-    Processed,
-    FailedToProcess
+    AstroFileProcessed,
+    AstroFileFailedToProcess
 };
 
 enum AstroFileType
@@ -85,9 +85,23 @@ struct AstroFile
     }
 
     AstroFile(const AstroFile& other)
-        : Id(other.Id), FileName(other.FileName), FullPath(other.FullPath), DirectoryPath(other.DirectoryPath), FileType(other.FileType), FileExtension(other.FileExtension),
-          CreatedTime(other.CreatedTime), LastModifiedTime(other.LastModifiedTime), FileHash(other.FileHash), ImageHash(other.ImageHash), Tags(other.Tags),
-          thumbnail(other.thumbnail), tinyThumbnail(other.tinyThumbnail), thumbnailStatus(other.thumbnailStatus), tagStatus(other.tagStatus), processStatus(other.processStatus), IsHidden(other.IsHidden)
+        : Id(other.Id),
+          FileName(other.FileName),
+          FullPath(other.FullPath),
+          DirectoryPath(other.DirectoryPath),
+          FileType(other.FileType),
+          FileExtension(other.FileExtension),
+          CreatedTime(other.CreatedTime),
+          LastModifiedTime(other.LastModifiedTime),
+          FileHash(other.FileHash),
+          ImageHash(other.ImageHash),
+          Tags(other.Tags),
+          thumbnail(other.thumbnail),
+          tinyThumbnail(other.tinyThumbnail),
+          thumbnailStatus(other.thumbnailStatus),
+          tagStatus(other.tagStatus),
+          processStatus(other.processStatus),
+          IsHidden(other.IsHidden)
     {
     }
 

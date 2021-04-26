@@ -60,7 +60,7 @@ void Mock_NewFileProcessor::processNewFile(const QFileInfo &fileInfo)
     QImage thum = makeImage(lastId, false);
 
     AstroFile astroFile(fileInfo);
-    astroFile.processStatus = Processed;
+    astroFile.processStatus = AstroFileProcessed;
     astroFile.Tags.insert({{"OBJECT", "value1"}, {"INSTRUME", "value2"}});
     astroFile.tagStatus = TagExtracted;
     astroFile.thumbnail = thum;
