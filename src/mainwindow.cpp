@@ -176,6 +176,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::cancelPendingOperations()
 {
+    catalog->removeAllSearchFolders();
     thumbnailCache.cancel();
     fileFilter->cancel();
     folderCrawlerWorker->cancel();

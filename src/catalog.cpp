@@ -57,6 +57,12 @@ void Catalog::removeSearchFolder(const QString &folder)
     searchFolders.removeOne(folder);
 }
 
+void Catalog::removeAllSearchFolders()
+{
+    QMutexLocker locker(&searchFoldersMutex);
+    searchFolders.clear();
+}
+
 void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
 {
     QMutexLocker locker(&listMutex);

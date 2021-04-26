@@ -41,6 +41,7 @@ public:
     void addSearchFolder(const QString& folder);
     void addSearchFolder(const QList<QString>& folders);
     void removeSearchFolder(const QString& folder);
+    void removeAllSearchFolders();
 
 
 //    void hideAstroFile(const AstroFile& astroFile);
