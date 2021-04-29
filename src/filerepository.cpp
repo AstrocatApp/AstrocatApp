@@ -360,10 +360,7 @@ void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
         qDebug() << "could not delete: " << query.lastError();
 
     qDebug()<<"Done deleting from table";
-    for(auto& file : files)
-    {
-        emit astroFileDeleted(file);
-    }
+    emit astroFilesDeleted(files);
     qDebug()<<"Done deleting";
 }
 
