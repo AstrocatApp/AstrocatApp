@@ -266,6 +266,12 @@ void FileViewModel::RemoveAstroFile(const AstroFile& astroFile)
     removeRow(row);
 }
 
+void FileViewModel::RemoveAstroFiles(const QList<AstroFile> &astroFiles)
+{
+    int row = catalog->astroFileIndex(astroFiles.first());
+    removeRows(row, astroFiles.count(), QModelIndex());
+}
+
 void FileViewModel::addThumbnail(const AstroFile &astroFile)
 {
     int row = catalog->astroFileIndex(astroFile);

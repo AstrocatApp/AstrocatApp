@@ -66,7 +66,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         if (!processor->loadFile(astroFile))
         {
             // This is an invalid file.
-            astroFile.processStatus = FailedToProcess;
+            astroFile.processStatus = AstroFileFailedToProcess;
             emit astrofileProcessed(astroFile);
             return;
         }
@@ -80,7 +80,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         auto thumbnail = processor->getThumbnail();
         astroFile.thumbnail = thumbnail;
         astroFile.tinyThumbnail = processor->getTinyThumbnail();
-        astroFile.thumbnailStatus = Loaded;
+        astroFile.thumbnailStatus = ThumbnailLoaded;
 
         QString hash = getFileHash(fileInfo).toHex();
         astroFile.FileHash = hash;
@@ -88,7 +88,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         QString imageHash = processor->getImageHash().toHex();
         astroFile.ImageHash = imageHash;
         delete processor;
-        astroFile.processStatus = Processed;
+        astroFile.processStatus = AstroFileProcessed;
 
         emit astrofileProcessed(astroFile);
     });

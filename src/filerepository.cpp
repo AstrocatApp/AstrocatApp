@@ -360,10 +360,7 @@ void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
         qDebug() << "could not delete: " << query.lastError();
 
     qDebug()<<"Done deleting from table";
-    for(auto& file : files)
-    {
-        emit astroFileDeleted(file);
-    }
+    emit astroFilesDeleted(files);
     qDebug()<<"Done deleting";
 }
 
@@ -623,7 +620,7 @@ void FileRepository::loadModel()
         auto fitsId = thumbiter.key();
         auto& image = thumbiter.value();
         fitsmap[fitsId].tinyThumbnail = image;
-        fitsmap[fitsId].thumbnailStatus = Loaded;
+        fitsmap[fitsId].thumbnailStatus = ThumbnailLoaded;
     }
 
     // 6. convert map's `values` into a list of astroFile, and emit the list

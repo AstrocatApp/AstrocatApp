@@ -51,6 +51,7 @@ signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
     void getTagsFinished(const QMap<QString, QSet<QString>>& tags);
     void astroFileDeleted(const AstroFile& astroFile);
+    void astroFilesDeleted(const QList<AstroFile>& astroFiles);
     void modelLoaded(const QList<AstroFile>& astroFile);
     void dbFailedToInitialize(const QString& message);
     void astroFileUpdated(const AstroFile& astroFile);

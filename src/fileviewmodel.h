@@ -79,6 +79,7 @@ public slots:
     void AddAstroFiles(int numberAdded);
     void UpdateAstroFile(AstroFile astroFile, int row);
     void RemoveAstroFile(const AstroFile& astroFile);
+    void RemoveAstroFiles(const QList<AstroFile>& astroFiles);
 
 signals:
     void modelIsEmpty(bool isEmpty);

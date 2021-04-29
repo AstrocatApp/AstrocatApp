@@ -24,6 +24,8 @@
 
 #include "catalog.h"
 
+#include <QTimer>
+
 
 // We should check if the folder is a child folder of an
 // existing search folder.
@@ -31,7 +33,9 @@
 // child folders
 Catalog::Catalog(QObject *parent)
 {
-
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
+    timer->start(500);
 }
 
 Catalog::~Catalog()
@@ -57,6 +61,12 @@ void Catalog::removeSearchFolder(const QString &folder)
     searchFolders.removeOne(folder);
 }
 
+void Catalog::removeAllSearchFolders()
+{
+    QMutexLocker locker(&searchFoldersMutex);
+    searchFolders.clear();
+}
+
 void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
 {
     QMutexLocker locker(&listMutex);
@@ -71,7 +81,13 @@ void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
         astroFiles.append(a);
         filePathToIdMap.insert(astroFile.FullPath, a);
         if (shouldEmit)
-            emit AstroFilesAdded(1);
+        {
+//            emit AstroFilesAdded(1);
+            astroFilesQueueMutex.lock();
+            astroFilesQueue++;
+            astroFilesQueueMutex.unlock();
+
+        }
     }
     else
     {
@@ -81,6 +97,23 @@ void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
         filePathToIdMap.insert(astroFile.FullPath, a);
         delete existing;
         emit AstroFileUpdated(astroFile, index);
+    }
+}
+
+void Catalog::pushProcessedQueue()
+{
+    int local = 0;
+    astroFilesQueueMutex.lock();
+    if (astroFilesQueue > 0)
+    {
+        local = astroFilesQueue;
+        astroFilesQueue = 0;
+    }
+    astroFilesQueueMutex.unlock();
+    if (local > 0)
+    {
+        qDebug()<<"Pushing " << local;
+        emit AstroFilesAdded(local);
     }
 }
 
