@@ -86,6 +86,10 @@ private:
 
     AstroFile* getAstroFileByPath(QString path);
     void impAddAstroFile(const AstroFile& astroFile, bool shouldEmit = true);
+    QTimer* timer;
+    void pushProcessedQueue();
+    QRecursiveMutex astroFilesQueueMutex;
+    int astroFilesQueue;
 };
 
 #endif // CATALOG_H
