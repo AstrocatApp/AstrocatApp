@@ -75,6 +75,7 @@ win32 {
 }
 macx {
     DEFINES += __PCL_MACOSX
+    ICON = resources/Icons/mac.icns
 }
 linux {
 DEFINES += __PCL_LINUX
