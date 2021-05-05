@@ -86,6 +86,10 @@ MainWindow::MainWindow(QWidget *parent)
     thumbnailCache.moveToThread(fileRepositoryThread);
     thumbnailCache.start();
 
+    ui->statusbar->setStyleSheet(
+                "QStatusBar {color: white; background-color: #232323;}"
+                "QWidget {color: white;}"
+                );
     ui->statusbar->addPermanentWidget(&numberOfItemsLabel);
     ui->statusbar->addPermanentWidget(&numberOfVisibleItemsLabel);
     ui->statusbar->addPermanentWidget(&numberOfSelectedItemsLabel);
