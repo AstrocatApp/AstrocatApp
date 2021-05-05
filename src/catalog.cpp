@@ -35,6 +35,7 @@ Catalog::Catalog(QObject *parent)
 {
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
+    astroFilesQueue = 0;
     timer->start(500);
 }
 
@@ -127,9 +128,9 @@ void Catalog::addAstroFiles(const QList<AstroFile> &files)
 {
     for (auto& a : files)
     {
-        impAddAstroFile(a, false);
+        impAddAstroFile(a, true);
     }
-    emit AstroFilesAdded(files.count());
+//    emit AstroFilesAdded(files.count());
 }
 
 void Catalog::deleteAstroFile(const AstroFile &astroFile)
