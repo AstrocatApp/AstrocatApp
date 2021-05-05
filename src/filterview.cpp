@@ -72,6 +72,11 @@ void FilterView::resetGroups()
 QWidget* FilterView::createObjectsBox()
 {
     objectsGroup = new QGroupBox(tr("Objects"));
+    objectsGroup->setStyleSheet(
+                "QGroupBox:title {color: white;} "
+                "QWidget {"
+                "  color: white;"
+                "}");
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(20);
@@ -105,6 +110,11 @@ QWidget* FilterView::createDateBox()
 QWidget* FilterView::createInstrumentsBox()
 {
     instrumentsGroup = new QGroupBox(tr("Instruments"));
+    instrumentsGroup->setStyleSheet(
+                "QGroupBox:title {color: white;} "
+                "QWidget {"
+                "  color: white;"
+                "}");
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
@@ -116,6 +126,11 @@ QWidget* FilterView::createInstrumentsBox()
 QWidget *FilterView::createFiltersBox()
 {
     filtersGroup = new QGroupBox(tr("Filters"));
+    filtersGroup->setStyleSheet(
+                "QGroupBox:title {color: white;} "
+                "QWidget {"
+                "  color: white;"
+                "}");
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
@@ -127,6 +142,11 @@ QWidget *FilterView::createFiltersBox()
 QWidget *FilterView::createFileExtensionsBox()
 {
     extensionsGroup = new QGroupBox(tr("Extensions"));
+    extensionsGroup->setStyleSheet(
+                "QGroupBox:title {color: white;} "
+                "QWidget {"
+                "  color: white;"
+                "}");
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
