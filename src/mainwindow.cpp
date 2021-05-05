@@ -91,6 +91,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusbar->addPermanentWidget(&numberOfSelectedItemsLabel);
     //    ui->statusbar->addPermanentWidget(&numberOfActiveJobsLabel);
 
+    ui->splitter->setSizes({50, 1000});
+
     ui->astroListView->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
     createActions();
     QPixmapCache::setCacheLimit(100*1024);
