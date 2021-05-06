@@ -279,6 +279,12 @@ QCheckBox *FilterView::findCheckBox(QGroupBox *group, QList<QCheckBox *> &checkB
     QCheckBox* checkBox = new QCheckBox();
     checkBox->setProperty("for_name", titleProperty);
     checkBox->setEnabled(true);
+
+#ifdef Q_OS_WINDOWS
+    checkBox->setStyleSheet(
+                    "QCheckBox::indicator:disabled{background-color:gray;}"
+                    );
+#endif
     checkBoxes.append(checkBox);
     group->layout()->addWidget(checkBox);
     connect(checkBox, &QCheckBox::stateChanged, this, [=]() {(this->*func)(titleProperty, checkBox->checkState());});
