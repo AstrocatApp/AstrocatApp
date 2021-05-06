@@ -24,6 +24,7 @@
 
 #include "fileviewmodel.h"
 
+#include <QIcon>
 #include <QPixmap>
 #include <QPixmapCache>
 
@@ -156,16 +157,18 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
             {
 //                qDebug()<<"Requesting thumb from db for: " << a.Id;
                 emit loadThumbnailFromDb(a);
-                auto img = a.tinyThumbnail.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                return img;
+                pixmap = QPixmap::fromImage(a.tinyThumbnail);
             }
-            else
-            {
-//                qDebug()<<"Showing thumb for: " << a.Id;
-                QImage image = pixmap.toImage();
-                QImage small = image.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                return small;
-            }
+
+            pixmap = pixmap.scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            QIcon icon;
+//            for (auto state : {QIcon::Off, QIcon::On}){
+//                   for (auto mode : {QIcon::Normal, QIcon::Disabled, QIcon::Active, QIcon::Selected})
+//                       icon.addPixmap(pixmap, mode, state);
+//            }
+            icon.addPixmap(pixmap, QIcon::Normal);
+            icon.addPixmap(pixmap, QIcon::Selected);
+            return icon;
         }
         case Qt::SizeHintRole:
         {

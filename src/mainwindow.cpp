@@ -77,6 +77,24 @@ MainWindow::MainWindow(QWidget *parent)
     ui->astroListView->setModel(sortFilterProxyModel);
     ui->astroListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->astroListView->setUniformItemSizes(true);
+    ui->astroListView->setIconSize(QSize(200,200));
+
+//    ui->astroListView->setStyleSheet(
+//                "QListView::item {"
+//                    "background-color: #232323;"
+//                    "color: white;"
+//                    "}"
+//                "QListView::item:selected {"
+//                    "border: 1px solid #6a6ea9;"
+//                    "background-color: #232323;"
+//                    "color: white;"
+//                    "}"
+//                "QListView::item:selected:active {"
+//                    "border: 1px solid #6a6ea9;"
+//                    "background-color: #232323;"
+//                    "color: white;"
+//                    "}"
+//                );
 
     QItemSelectionModel *selectionModel = ui->astroListView->selectionModel();
     filterView = new FilterView(ui->scrollAreaWidgetContents_2);
@@ -244,6 +262,7 @@ void MainWindow::on_imageSizeSlider_valueChanged(int value)
 
     // TODO: This call causes filterAcceptsRow() to be called in the sortFilterProxyModel. Investigate and see if we need to fix.
     fileViewModel->setCellSize(value);
+    ui->astroListView->setIconSize(QSize(4,4)*value);
 
     // TODO: This call causes filterAcceptsRow() to be called in the sortFilterProxyModel. Investigate and see if we need to fix.
 //    auto scrollToIndex = sortFilterProxyModel->index(currentIndex.row(), currentIndex.column(), QModelIndex());
