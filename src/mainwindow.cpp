@@ -79,22 +79,26 @@ MainWindow::MainWindow(QWidget *parent)
     ui->astroListView->setUniformItemSizes(true);
     ui->astroListView->setIconSize(QSize(200,200));
 
-//    ui->astroListView->setStyleSheet(
-//                "QListView::item {"
-//                    "background-color: #232323;"
-//                    "color: white;"
-//                    "}"
-//                "QListView::item:selected {"
-//                    "border: 1px solid #6a6ea9;"
-//                    "background-color: #232323;"
-//                    "color: white;"
-//                    "}"
-//                "QListView::item:selected:active {"
-//                    "border: 1px solid #6a6ea9;"
-//                    "background-color: #232323;"
-//                    "color: white;"
-//                    "}"
-//                );
+    ui->astroListView->setStyleSheet(
+                "QListView {"
+                    "background-color: #232323;"
+                    "color: white;"
+                    "}"
+                "QListView::item {"
+                    "background-color: #232323;"
+                    "color: white;"
+                    "}"
+                "QListView::item:selected {"
+                    "border: 1px solid #6a6ea9;"
+                    "background-color: #232323;"
+                    "color: white;"
+                    "}"
+                "QListView::item:selected:active {"
+                    "border: 1px solid #6a6ea9;"
+                    "background-color: #232323;"
+                    "color: white;"
+                    "}"
+                );
 
     QItemSelectionModel *selectionModel = ui->astroListView->selectionModel();
     filterView = new FilterView(ui->scrollAreaWidgetContents_2);
