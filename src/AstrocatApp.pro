@@ -25,6 +25,7 @@ SOURCES += \
     imageprocessor.cpp \
     main.cpp \
     mainwindow.cpp \
+    mock_foldercrawler.cpp \
     mock_newfileprocessor.cpp \
     newfileprocessor.cpp \
     searchfolderdialog.cpp \
@@ -47,6 +48,7 @@ HEADERS += \
     foldercrawler.h \
     imageprocessor.h \
     mainwindow.h \
+    mock_foldercrawler.h \
     mock_newfileprocessor.h \
     newfileprocessor.h \
     searchfolderdialog.h \

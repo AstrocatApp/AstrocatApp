@@ -28,6 +28,7 @@
 #include "aboutwindow.h"
 #include "mock_newfileprocessor.h"
 #include "catalog.h"
+#include "mock_foldercrawler.h"
 
 #include <QContextMenuEvent>
 #include <QMessageBox>
@@ -50,6 +51,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     folderCrawlerThread = new QThread(this);
     folderCrawlerWorker = new FolderCrawler;
+//    folderCrawlerWorker = new Mock_FolderCrawler;
     folderCrawlerWorker->moveToThread(folderCrawlerThread);
 
     fileRepositoryThread = new QThread(this);
@@ -206,6 +208,7 @@ MainWindow::~MainWindow()
 void MainWindow::cancelPendingOperations()
 {
     catalog->removeAllSearchFolders();
+    catalog->cancel();
     thumbnailCache.cancel();
     fileFilter->cancel();
     folderCrawlerWorker->cancel();

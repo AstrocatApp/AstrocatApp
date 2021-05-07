@@ -33,15 +33,21 @@
 // child folders
 Catalog::Catalog(QObject *parent)
 {
-    QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
+//    QTimer *timer = new QTimer(this);
+    connect(&timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
     astroFilesQueue = 0;
-    timer->start(500);
+    timer.start(500);
 }
 
 Catalog::~Catalog()
 {
 
+}
+
+void Catalog::cancel()
+{
+    cancelSignaled = true;
+    timer.stop();
 }
 
 void Catalog::addSearchFolder(const QString &folder)
@@ -74,6 +80,9 @@ void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
 
     // Check if this file already exists
     // We should probably check by id, but we don't have that mapping
+    // Getting the index is O(n), and it may take a long time to
+    // call it on initialization of large DBs.
+    // i.e. don't call `int index = astroFileIndex(astroFile);` here
 
     auto existing = getAstroFileByPath(astroFile.FullPath);
     if (existing == nullptr)
@@ -118,7 +127,6 @@ void Catalog::pushProcessedQueue()
     }
 }
 
-
 void Catalog::addAstroFile(const AstroFile& astroFile)
 {
     impAddAstroFile(astroFile, true);
@@ -128,6 +136,8 @@ void Catalog::addAstroFiles(const QList<AstroFile> &files)
 {
     for (auto& a : files)
     {
+        if (cancelSignaled)
+            return;
         impAddAstroFile(a, true);
     }
 //    emit AstroFilesAdded(files.count());
