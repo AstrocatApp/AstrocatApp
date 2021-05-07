@@ -77,6 +77,7 @@ signals:
     void AstroFilesAdded(int numberAdded);
     void AstroFileUpdated(AstroFile astroFile, int row);
     void AstroFileRemoved(AstroFile astroFile, int row);
+    void DoneAddingAstrofiles();
 
 private:
     QRecursiveMutex listMutex;

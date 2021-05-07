@@ -29,6 +29,7 @@
 #include "mock_newfileprocessor.h"
 #include "catalog.h"
 #include "mock_foldercrawler.h"
+#include "modelloadingdialog.h"
 
 #include <QContextMenuEvent>
 #include <QMessageBox>
@@ -231,7 +232,17 @@ void MainWindow::initialize()
     emit initializeFileRepository();
     _watermarkMessage = "Loading Catalog...";
     setWatermark(true);
+
+    loading = new ModelLoadingDialog(this);
+
+    connect(fileRepositoryWorker, &FileRepository::modelLoadingGotAstrofiles, loading, &ModelLoadingDialog::modelLoadingFromDbGotAstrofiles);
+    connect(fileRepositoryWorker, &FileRepository::modelLoadingGotTags, loading, &ModelLoadingDialog::modelLoadingFromDbGotTag);
+    connect(fileRepositoryWorker, &FileRepository::modelLoadingGotThumbnails, loading, &ModelLoadingDialog::modelLoadingFromDbGotThumbnails);
+    connect(fileRepositoryWorker, &FileRepository::modelLoaded, loading, &ModelLoadingDialog::modelLoaded);
+    connect(catalog, &Catalog::DoneAddingAstrofiles, loading, &ModelLoadingDialog::closeWindow);
+    loading->open();
     emit loadModelFromDb();
+
     isInitialized = true;
     emit dbGetDuplicates();
 }

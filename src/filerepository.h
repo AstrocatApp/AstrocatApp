@@ -56,6 +56,9 @@ signals:
     void dbFailedToInitialize(const QString& message);
     void astroFileUpdated(const AstroFile& astroFile);
     void thumbnailLoaded(const AstroFile& astrofile);
+    void modelLoadingGotAstrofiles();
+    void modelLoadingGotTags();
+    void modelLoadingGotThumbnails();
 
 private:
     QSqlDatabase db;

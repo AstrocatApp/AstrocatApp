@@ -27,6 +27,7 @@ SOURCES += \
     mainwindow.cpp \
     mock_foldercrawler.cpp \
     mock_newfileprocessor.cpp \
+    modelloadingdialog.cpp \
     newfileprocessor.cpp \
     searchfolderdialog.cpp \
     sortfilterproxymodel.cpp \
@@ -50,6 +51,7 @@ HEADERS += \
     mainwindow.h \
     mock_foldercrawler.h \
     mock_newfileprocessor.h \
+    modelloadingdialog.h \
     newfileprocessor.h \
     searchfolderdialog.h \
     sortfilterproxymodel.h \
@@ -59,6 +61,7 @@ HEADERS += \
 FORMS += \
     aboutwindow.ui \
     mainwindow.ui \
+    modelloadingdialog.ui \
     searchfolderdialog.ui
 
 TRANSLATIONS += \

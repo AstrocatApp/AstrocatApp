@@ -141,6 +141,7 @@ void Catalog::addAstroFiles(const QList<AstroFile> &files)
         impAddAstroFile(a, true);
     }
 //    emit AstroFilesAdded(files.count());
+    emit DoneAddingAstrofiles();
 }
 
 void Catalog::deleteAstroFile(const AstroFile &astroFile)

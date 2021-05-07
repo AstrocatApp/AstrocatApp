@@ -585,7 +585,7 @@ void FileRepository::loadModel()
     // insert all into map
 
     auto fitsmap = _getAllAstrofiles();
-
+    emit modelLoadingGotAstrofiles();
     // 2. Get the entire tags table into memory
     // select * from tags
 
@@ -604,11 +604,13 @@ void FileRepository::loadModel()
         fitsmap[fitsId].Tags.insert(tagsList);
 //        fitsmap[fitsId].thumbnail = QImage(20, 20, QImage::Format::Format_RGB32);
     }
+    emit modelLoadingGotTags();
 
     // 4. Get the entire thumbnails into memory
     // select * from thumbnails
 
     auto thumbnails = _getAllThumbnails();
+    emit modelLoadingGotThumbnails();
 
     // 5. Add thumbnails to their fits files
     // insert all thumbnails from #4 into map by fits_id
