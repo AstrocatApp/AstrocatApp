@@ -126,6 +126,8 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     QPixmapCache::setCacheLimit(100*1024);
 
+    loading = new ModelLoadingDialog(this);
+
     connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
     connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);
     connect(this,                   &MainWindow::deleteAstrofilesInFolder,              fileRepositoryWorker,   &FileRepository::deleteAstrofilesInFolder);
@@ -177,6 +179,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterView,             &FilterView::astroFileRemoved,                      this,                   &MainWindow::itemRemovedFromSortFilterView);
     connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
+    connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotAstrofiles,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotAstrofiles);
+    connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotTags,               loading,                &ModelLoadingDialog::modelLoadingFromDbGotTag);
+    connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotThumbnails,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotThumbnails);
+    connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       loading,                &ModelLoadingDialog::modelLoaded);
+    connect(catalog,                &Catalog::DoneAddingAstrofiles,                     loading,                &ModelLoadingDialog::closeWindow);
 
     // Enable the tester during development and debugging. Disble before committing
 //    tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
@@ -233,13 +240,6 @@ void MainWindow::initialize()
     _watermarkMessage = "Loading Catalog...";
     setWatermark(true);
 
-    loading = new ModelLoadingDialog(this);
-
-    connect(fileRepositoryWorker, &FileRepository::modelLoadingGotAstrofiles, loading, &ModelLoadingDialog::modelLoadingFromDbGotAstrofiles);
-    connect(fileRepositoryWorker, &FileRepository::modelLoadingGotTags, loading, &ModelLoadingDialog::modelLoadingFromDbGotTag);
-    connect(fileRepositoryWorker, &FileRepository::modelLoadingGotThumbnails, loading, &ModelLoadingDialog::modelLoadingFromDbGotThumbnails);
-    connect(fileRepositoryWorker, &FileRepository::modelLoaded, loading, &ModelLoadingDialog::modelLoaded);
-    connect(catalog, &Catalog::DoneAddingAstrofiles, loading, &ModelLoadingDialog::closeWindow);
     loading->open();
     emit loadModelFromDb();
 
