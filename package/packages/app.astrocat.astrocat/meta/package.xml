@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Astrocat</DisplayName>
+    <Description>Astrocat Application</Description>
+    <Version>0.0.1</Version>
+    <ReleaseDate>2021-05-08</ReleaseDate>
+    <Default>true</Default>
+</Package>
