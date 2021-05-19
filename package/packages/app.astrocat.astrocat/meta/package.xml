@@ -2,7 +2,8 @@
 <Package>
     <DisplayName>Astrocat</DisplayName>
     <Description>Astrocat Application</Description>
-    <Version>0.0.1</Version>
+    <Version>0.1</Version>
     <ReleaseDate>2021-05-08</ReleaseDate>
     <Default>true</Default>
+    <Script>installscript.qs</Script>
 </Package>
