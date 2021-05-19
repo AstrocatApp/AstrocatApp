@@ -779,19 +779,6 @@
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
-          <widget class="QPushButton" name="duplicatesButton">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="toolTip">
-            <string>Feature Coming Soon</string>
-           </property>
-           <property name="text">
-            <string>Find Duplicates</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
       </item>
