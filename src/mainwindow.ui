@@ -772,7 +772,7 @@
             </font>
            </property>
            <property name="text">
-            <string>TextLabel</string>
+            <string>File Name:</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
