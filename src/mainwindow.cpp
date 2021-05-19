@@ -497,7 +497,7 @@ void MainWindow::itemContextMenuRequested(const QPoint &pos)
 
     QMenu menu(this);
     menu.addAction(revealAct);
-    menu.addAction(removeAct);
+//    menu.addAction(removeAct);
     auto menuPos = ui->astroListView->viewport()->mapToGlobal(pos);
     menu.exec(menuPos);
 }
