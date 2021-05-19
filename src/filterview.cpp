@@ -34,7 +34,7 @@ FilterView::FilterView(QWidget *parent)
     _parent = parent;
     vLayout = new QVBoxLayout;
     parent->layout()->addWidget(createObjectsBox());
-    parent->layout()->addWidget(createDateBox());
+//    parent->layout()->addWidget(createDateBox());
     parent->layout()->addWidget(createInstrumentsBox());
     parent->layout()->addWidget(createFiltersBox());
     parent->layout()->addWidget(createFileExtensionsBox());
@@ -63,7 +63,7 @@ void FilterView::resetGroups()
     minDateEdit->setDate(QDate());
     maxDateEdit->setDate(QDate());
     addObjects();
-    addDates();
+//    addDates();
     addInstruments();
     addFilters();
     addFileExtensions();
