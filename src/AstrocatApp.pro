@@ -4,7 +4,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
-VERSION = 0.0.1
+VERSION = 0.1
 DEFINES += CURRENT_APP_VERSION=\"\\\"$${VERSION}\\\"\"
 
 # You can make your code fail to compile if it uses deprecated APIs.
