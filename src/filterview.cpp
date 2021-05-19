@@ -34,6 +34,7 @@ FilterView::FilterView(QWidget *parent)
     _parent = parent;
     vLayout = new QVBoxLayout;
     parent->layout()->addWidget(createObjectsBox());
+    createDateBox();
 //    parent->layout()->addWidget(createDateBox());
     parent->layout()->addWidget(createInstrumentsBox());
     parent->layout()->addWidget(createFiltersBox());
