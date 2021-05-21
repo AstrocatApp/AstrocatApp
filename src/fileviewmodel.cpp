@@ -136,6 +136,43 @@ void FileViewModel::setCellSize(const int newSize)
     emit layoutChanged();
 }
 
+QString FileViewModel::raConverter(QString ra) const
+{
+    return ra;
+}
+
+QString FileViewModel::decConverter(QString dec) const
+{
+    bool isNeg = false;
+    bool ok;
+    float fDec = dec.toFloat(&ok);
+    if (!ok)
+        return QString();
+
+    if (fDec < 0)
+    {
+        isNeg = true;
+        fDec = -fDec;
+    }
+
+    int degrees = (int) fDec;
+    fDec -= degrees;
+
+    fDec *= 60;
+    int arcMins = (int) fDec;
+
+    fDec -= arcMins;
+    fDec *= 60;
+    int arcSecs = (int) fDec;
+
+    fDec -= arcSecs;
+    fDec *= 10;
+    int arcSecDecimal = (int) fDec;
+
+    QString decString = QString{ "%1%2:%3:%4.%5" }.arg( isNeg ? '-' : '+' ).arg(degrees,2).arg(arcMins,2).arg(arcSecs,2).arg(arcSecDecimal);
+    return decString;
+}
+
 QVariant FileViewModel::data(const QModelIndex &index, int role) const
 {
     if (index.row() >= rc)
@@ -200,11 +237,11 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         }
         case AstroFileRoles::RaRole:
         {
-            return a.Tags["RA"];
+            return a.Tags["OBJCTRA"];
         }
         case AstroFileRoles::DecRole:
         {
-            return a.Tags["DEC"];
+            return a.Tags["OBJCTDEC"];
         }
         case AstroFileRoles::CcdTempRole:
         {
