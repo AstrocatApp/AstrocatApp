@@ -34,6 +34,9 @@ enum BayerPattern
 {
     None, // Mono Image
     RGGB,
+    BGGR,
+    GRBG,
+    GBRG,
     Unsupported
 };
 
@@ -99,6 +102,14 @@ private:
     int _bytesPerPixel;
     template <typename T>
     void deBayer();
+    template <typename T>
+    void deBayer_RGGB();
+    template <typename T>
+    void deBayer_BGGR();
+    template <typename T>
+    void deBayer_GRBG();
+    template <typename T>
+    void deBayer_GBRG();
     template <typename T>
     void makeImage();
 };
