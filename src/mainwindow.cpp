@@ -387,7 +387,9 @@ void MainWindow::handleSelectionChanged(QItemSelection selection)
     ui->decLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::DecRole).toString());
     ui->temperatureLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::CcdTempRole).toString());
     ui->fullPathLabel->setText(sortFilterProxyModel->data(index, AstroFileRoles::FullPathRole).toString());
-    ui->imagesizeLabel->setText(xSize+"x"+ySize);
+
+    if (! xSize.isEmpty() && ! ySize.isEmpty())
+        ui->imagesizeLabel->setText(xSize+"x"+ySize);
 }
 
 void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
