@@ -47,7 +47,7 @@ public slots:
     void setFilterMaximumDate(QDate date);
     void searchFilterReset();
 
-    void alignLeft();
+    void alignLeft(bool isChecked);
     void alignCenter();
     void alignRight();
 
@@ -62,6 +62,8 @@ signals:
     void removeAcceptedObject(QString objectName);
     void addAcceptedExtension(QString objectName);
     void removeAcceptedExtension(QString objectName);
+    void addAcceptedFolder(QString objectName);
+    void removeAcceptedFolder(QString objectName);
     void astroFileAdded(int numberAdded);
     void astroFileRemoved(int numberRemoved);
 
@@ -73,6 +75,7 @@ private:
     FilterGroupBox* filtersGroup;
     FilterGroupBox* extensionsGroup;
     FilterGroupBox* datesGroup;
+    FilterGroupBox* foldersGroup;
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
 
@@ -82,6 +85,7 @@ private:
     QList<QCheckBox*> instrumentsCheckBoxes;
     QList<QCheckBox*> filtersCheckBoxes;
     QList<QCheckBox*> extensionsCheckBoxes;
+    QList<QCheckBox*> foldersCheckBoxes;
     QCheckBox* findCheckBox(QGroupBox* group, QList<QCheckBox*>& checkBoxes, QString titleProperty, void (FilterView::* func)(QString,int));
 
     QWidget* createDateBox();
@@ -89,20 +93,27 @@ private:
     QWidget* createInstrumentsBox();
     QWidget* createFiltersBox();
     QWidget* createFileExtensionsBox();
+    QWidget* createFoldersBox();
+
+    QMenu* createObjectsOptionsMenu();
+
     QSet<int> acceptedAstroFiles;
     QMap<QString, QMap<QString,int>> fileTags;
+    QMap<QString, int> acceptedFolders;
     QSet<QString> checkedTags;
     void addObjects();
     void addDates();
     void addInstruments();
     void addFilters();
     void addFileExtensions();
+    void addFolders();
     void resetGroups();
     void clearLayout(QLayout* layout);
     void selectedObjectsChanged(QString object, int state);
     void selectedInstrumentsChanged(QString object, int state);
     void selectedFiltersChanged(QString object, int state);
     void selectedFileExtensionsChanged(QString object, int state);
+    void selectedFoldersChanged(QString object, int state);
 
     // QAbstractItemView interface
 protected slots:

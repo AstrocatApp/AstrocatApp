@@ -235,6 +235,14 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         {
             return a.FullPath;
         }
+        case AstroFileRoles::DirectoryRole:
+        {
+            return a.DirectoryPath;
+        }
+        case AstroFileRoles::VolumeNameRole:
+        {
+            return a.VolumeName;
+        }
         case AstroFileRoles::RaRole:
         {
             return a.Tags["OBJCTRA"];

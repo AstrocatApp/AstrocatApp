@@ -39,6 +39,8 @@ enum AstroFileRoles
     FilterRole,
     DateRole,
     FullPathRole,
+    DirectoryRole,
+    VolumeNameRole,
     RaRole,
     DecRole,
     CcdTempRole,

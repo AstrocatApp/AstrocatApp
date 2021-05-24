@@ -27,6 +27,7 @@
 #include "fileviewmodel.h"
 
 #include <QCheckBox>
+#include <QDir>
 #include <QLabel>
 #include <QPushButton>
 #include <QToolButton>
@@ -37,47 +38,35 @@ FilterView::FilterView(QWidget *parent)
     _parent = parent;
     vLayout = new QVBoxLayout;
 
-    myGroup = new FilterGroupBox();
-    myGroup->setTitle("My Group");
+//    myGroup = new FilterGroupBox();
+//    myGroup->setTitle("My Group");
 
-    QLabel* label = new QLabel();
-    label->setText("Label");
-    QVBoxLayout*    vbox = new QVBoxLayout(this);
-    vbox->setParent(this);
-    myGroup->setLayout(vbox);
+//    QLabel* label = new QLabel();
+//    label->setText("Label");
+//    QVBoxLayout*    vbox = new QVBoxLayout(this);
+//    vbox->setParent(this);
+//    myGroup->setLayout(vbox);
 
-    myGroup->layout()->addWidget(label);
+//    myGroup->layout()->addWidget(label);
 
-    QLabel* label2 = new QLabel();
-    label2->setText("Label 2");
-    myGroup->layout()->addWidget(label2);
+//    QLabel* label2 = new QLabel();
+//    label2->setText("Label 2");
+//    myGroup->layout()->addWidget(label2);
 
-    QMenu* myMenu = new QMenu();
-    QAction* alignLeftAction = new QAction("Align left", this);
-    QAction* alignCenterAction = new QAction("Align center", this);
-    QAction* alignRightAction = new QAction("Align right", this);
-    myMenu->addAction(alignLeftAction);
-    myMenu->addAction(alignCenterAction);
-    myMenu->addAction(alignRightAction);
-
-    QObject::connect(alignLeftAction, SIGNAL(triggered()),
-                                    this, SLOT(alignLeft()));
-    QObject::connect(alignCenterAction, SIGNAL(triggered()),
-                                      this, SLOT(alignCenter()));
-    QObject::connect(alignRightAction, SIGNAL(triggered()),
-                                      this, SLOT(alignRight()));
-
-    myGroup->addToolButtonMenu(myMenu);
+//    QMenu* myMenu = createObjectsOptionsMenu();
+//    myGroup->addToolButtonMenu(myMenu);
 
     parent->layout()->addWidget(createObjectsBox());
 
-    parent->layout()->addWidget(myGroup);
+//    parent->layout()->addWidget(myGroup);
 
     createDateBox();
 //    parent->layout()->addWidget(createDateBox());
     parent->layout()->addWidget(createInstrumentsBox());
     parent->layout()->addWidget(createFiltersBox());
     parent->layout()->addWidget(createFileExtensionsBox());
+    parent->layout()->addWidget(createFoldersBox());
+
     QSpacerItem * spacer = new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Expanding);
     parent->layout()->addItem(spacer);
 }
@@ -98,9 +87,9 @@ void FilterView::searchFilterReset()
     resetGroups();
 }
 
-void FilterView::alignLeft()
+void FilterView::alignLeft(bool isChecked)
 {
-    qDebug() << "MainWindow::alignLeft()";
+    qDebug() << "MainWindow::alignLeft():" <<isChecked;
 }
 
 void FilterView::alignCenter()
@@ -122,6 +111,7 @@ void FilterView::resetGroups()
     addInstruments();
     addFilters();
     addFileExtensions();
+    addFolders();
 }
 
 QWidget* FilterView::createObjectsBox()
@@ -132,6 +122,9 @@ QWidget* FilterView::createObjectsBox()
     vbox->addStretch(20);
     objectsGroup->setLayout(vbox);
 //    objectsGroup->layout()->addItem(vbox);
+
+    QMenu* myMenu = createObjectsOptionsMenu();
+    objectsGroup->addToolButtonMenu(myMenu);
 
     return objectsGroup;
 }
@@ -195,6 +188,39 @@ QWidget *FilterView::createFileExtensionsBox()
     return extensionsGroup;
 }
 
+QWidget *FilterView::createFoldersBox()
+{
+    foldersGroup = new FilterGroupBox(tr("Folders"));
+    QVBoxLayout *vbox = new QVBoxLayout;
+    vbox->addStretch(1);
+    foldersGroup->setLayout(vbox);
+//    extensionsGroup->layout()->addItem(vbox);
+
+    return foldersGroup;
+}
+
+QMenu *FilterView::createObjectsOptionsMenu()
+{
+    QMenu* myMenu = new QMenu();
+    QAction* singleSelectionAction = new QAction("Single Selection", this);
+    singleSelectionAction->setCheckable(true);
+    singleSelectionAction->setChecked(true);
+
+    QAction* alignCenterAction = new QAction("Align center", this);
+    QAction* alignRightAction = new QAction("Align right", this);
+    myMenu->addAction(singleSelectionAction);
+    myMenu->addAction(alignCenterAction);
+    myMenu->addAction(alignRightAction);
+
+    QObject::connect(singleSelectionAction, &QAction::triggered,
+                                    this, &FilterView::alignLeft);
+    QObject::connect(alignCenterAction, SIGNAL(triggered()),
+                                      this, SLOT(alignCenter()));
+    QObject::connect(alignRightAction, SIGNAL(triggered()),
+                                      this, SLOT(alignRight()));
+    return myMenu;
+}
+
 void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
 {
     for (int i = start; i <= end; i++)
@@ -207,6 +233,8 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
         auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
         auto date = model()->data(index, AstroFileRoles::DateRole).toString();
         auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
+        auto directoryPath = model()->data(index, AstroFileRoles::DirectoryRole).toString();
+        auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
 
         if (acceptedAstroFiles.contains(id))
@@ -225,6 +253,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
                 fileTags["DATE-OBS"][date]++;
             if (!fileExtension.isEmpty())
                 fileTags["FILEEXT"][fileExtension]++;
+            acceptedFolders[directoryPath]++;
             acceptedAstroFiles.insert(id);
         }
     }
@@ -246,6 +275,8 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
         auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
         auto date = model()->data(index, AstroFileRoles::DateRole).toString();
         auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
+        auto directoryPath = model()->data(index, AstroFileRoles::DirectoryRole).toString();
+        auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
 
         if (acceptedAstroFiles.contains(id))
@@ -260,6 +291,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
                 fileTags["DATE-OBS"][date]--;
             if (!fileExtension.isEmpty())
                 fileTags["FILEEXT"][fileExtension]--;
+            acceptedFolders[directoryPath]--;
             acceptedAstroFiles.remove(id);
         }
     }
@@ -411,6 +443,27 @@ void FilterView::addFileExtensions()
     }
 }
 
+void FilterView::addFolders()
+{
+    auto& o = acceptedFolders;
+    QMapIterator setiter(o);
+    while (setiter.hasNext())
+    {
+        auto next = setiter.next();
+        QString name = next.key();
+        int num = next.value();
+        QString tagText = QString("%1 (%2)").arg(name).arg(num);
+
+        QCheckBox* checkBox = findCheckBox(foldersGroup, foldersCheckBoxes, name, &FilterView::selectedFoldersChanged);
+
+        checkBox->setEnabled(num != 0);
+        if (checkedTags.contains("FOL_"+name))
+            checkBox->setChecked(true);
+        checkBox->setText(tagText);
+    }
+
+}
+
 void FilterView::selectedObjectsChanged(QString object, int state)
 {
     switch (state)
@@ -469,4 +522,20 @@ void FilterView::selectedFileExtensionsChanged(QString object, int state)
         emit addAcceptedExtension(object);
         break;
     }
+}
+
+void FilterView::selectedFoldersChanged(QString object, int state)
+{
+    switch (state)
+    {
+    case 0:
+        checkedTags.remove("FOL_"+object);
+        emit removeAcceptedFolder(object);
+        break;
+    case 2:
+        checkedTags.insert("FOL_"+object);
+        emit addAcceptedFolder(object);
+        break;
+    }
+
 }

@@ -50,6 +50,8 @@ public slots:
     void removeAcceptedObject(QString objectName);
     void addAcceptedExtension(QString extensionName);
     void removeAcceptedExtension(QString extensionName);
+    void addAcceptedFolder(QString extensionName);
+    void removeAcceptedFolder(QString extensionName);
     void activateDuplicatesFilter(bool shouldActivate);
     void setDuplicatesFilter(QString filter);
 
@@ -70,11 +72,13 @@ private:
     QList<QString> acceptedObjects;
     QList<QString> acceptedInstruments;
     QList<QString> acceptedExtensions;
+    QList<QString> acceptedFolders;
     bool dateInRange(QDate date) const;
     bool instrumentAccepted(QString instrument) const;
     bool objectAccepted(QString object) const;
     bool filterAccepted(QString filter) const;
     bool extensionAccepted(QString filter) const;
+    bool folderAccepted(QString folder) const;
     bool isDuplicatedFilterActive;
     QString duplicatesFilter;
     bool isDuplicateOf(QString hash) const;
