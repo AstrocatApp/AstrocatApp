@@ -28,12 +28,14 @@
 #include "astrofile.h"
 #include "filtergroupbox.h"
 
+#include <FolderViewModel.h>
 #include <QAbstractItemView>
 #include <QCheckBox>
 #include <QDateEdit>
 #include <QGroupBox>
 #include <QListView>
 #include <QObject>
+#include <QTreeView>
 #include <QVBoxLayout>
 
 class FilterView : public QListView
@@ -50,6 +52,8 @@ public slots:
     void alignLeft(bool isChecked);
     void alignCenter();
     void alignRight();
+
+    void setFoldersModel(QAbstractItemModel* model);
 
 signals:
     void minimumDateChanged(QDate date);
@@ -78,8 +82,10 @@ private:
     FilterGroupBox* foldersGroup;
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
+    QTreeView* foldersTreeView;
 
     FilterGroupBox* myGroup;
+    FolderViewModel* folderModel;
 
     QList<QCheckBox*> objectsCheckBoxes;
     QList<QCheckBox*> instrumentsCheckBoxes;

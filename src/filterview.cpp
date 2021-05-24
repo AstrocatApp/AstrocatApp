@@ -38,6 +38,8 @@ FilterView::FilterView(QWidget *parent)
     _parent = parent;
     vLayout = new QVBoxLayout;
 
+    folderModel = new FolderViewModel();
+
 //    myGroup = new FilterGroupBox();
 //    myGroup->setTitle("My Group");
 
@@ -69,6 +71,8 @@ FilterView::FilterView(QWidget *parent)
 
     QSpacerItem * spacer = new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Expanding);
     parent->layout()->addItem(spacer);
+
+    setFoldersModel(folderModel);
 }
 
 void FilterView::setFilterMinimumDate(QDate date)
@@ -100,6 +104,11 @@ void FilterView::alignCenter()
 void FilterView::alignRight()
 {
     qDebug() << "MainWindow::alignRight()";
+}
+
+void FilterView::setFoldersModel(QAbstractItemModel* model)
+{
+    this->foldersTreeView->setModel(model);
 }
 
 void FilterView::resetGroups()
@@ -196,6 +205,9 @@ QWidget *FilterView::createFoldersBox()
     foldersGroup->setLayout(vbox);
 //    extensionsGroup->layout()->addItem(vbox);
 
+    foldersTreeView = new QTreeView();
+    vbox->addWidget(foldersTreeView);
+
     return foldersGroup;
 }
 
@@ -255,6 +267,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
                 fileTags["FILEEXT"][fileExtension]++;
             acceptedFolders[directoryPath]++;
             acceptedAstroFiles.insert(id);
+            folderModel->addItem(volumeName, directoryPath);
         }
     }
 
@@ -293,6 +306,7 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
                 fileTags["FILEEXT"][fileExtension]--;
             acceptedFolders[directoryPath]--;
             acceptedAstroFiles.remove(id);
+            folderModel->removeItem(volumeName, directoryPath);
         }
     }
     emit astroFileRemoved(end-start+1);

@@ -23,6 +23,7 @@ SOURCES += \
     fitsfile.cpp \
     fitsprocessor.cpp \
     foldercrawler.cpp \
+    folderviewmodel.cpp \
     imageprocessor.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -49,6 +50,7 @@ HEADERS += \
     fitsfile.h \
     fitsprocessor.h \
     foldercrawler.h \
+    folderviewmodel.h \
     imageprocessor.h \
     mainwindow.h \
     mock_foldercrawler.h \

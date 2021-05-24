@@ -170,6 +170,7 @@ void FileRepository::createTables()
             "FileName TEXT, "
             "FullPath TEXT, "
             "DirectoryPath TEXT, "
+            "VolumeName TEXT, "
             "FileType TEXT, "
             "FileExtension TEXT, "
             "CreatedTime DATE, "
@@ -266,6 +267,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath)
         int idFileName = query.record().indexOf("FileName");
         int idFullPath = query.record().indexOf("FullPath");
         int idDirectoryPath = query.record().indexOf("DirectoryPath");
+        int idVolumeName = query.record().indexOf("VolumeName");
         int idFileType = query.record().indexOf("FileType");
         int idFileExtension = query.record().indexOf("FileExtension");
         int idCreatedTime = query.record().indexOf("CreatedTime");
@@ -278,6 +280,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath)
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();
+        astro.VolumeName = query.value(idVolumeName).toString();
         astro.FileType = AstroFileType(query.value(idFileType).toInt());
         astro.FileExtension = query.value(idFileExtension).toString();
         astro.CreatedTime = query.value(idCreatedTime).toDateTime();
@@ -312,11 +315,12 @@ int FileRepository::insertAstrofile(const AstroFile& astroFile)
 {
     QSqlQuery queryAdd;
 
-    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,FileType,FileExtension,CreatedTime,LastModifiedTime,TagStatus,ThumbnailStatus,ProcessStatus,FileHash,ImageHash,IsHidden) "
-                        "VALUES (:FileName,:FullPath,:DirectoryPath,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime,:TagStatus,:ThumbnailStatus,:ProcessStatus,:FileHash,:ImageHash,:IsHidden)");
+    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,VolumeName,FileType,FileExtension,CreatedTime,LastModifiedTime,TagStatus,ThumbnailStatus,ProcessStatus,FileHash,ImageHash,IsHidden) "
+                        "VALUES (:FileName,:FullPath,:DirectoryPath,:VolumeName,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime,:TagStatus,:ThumbnailStatus,:ProcessStatus,:FileHash,:ImageHash,:IsHidden)");
     queryAdd.bindValue(":FileName", astroFile.FileName);
     queryAdd.bindValue(":FullPath", astroFile.FullPath);
     queryAdd.bindValue(":DirectoryPath", astroFile.DirectoryPath);
+    queryAdd.bindValue(":VolumeName", astroFile.VolumeName);
     queryAdd.bindValue(":FileType", astroFile.FileType);
     queryAdd.bindValue(":FileExtension", astroFile.FileExtension);
     queryAdd.bindValue(":CreatedTime", astroFile.CreatedTime);
@@ -498,6 +502,7 @@ QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
     int idFileName = query.record().indexOf("FileName");
     int idFullPath = query.record().indexOf("FullPath");
     int idDirectoryPath = query.record().indexOf("DirectoryPath");
+    int idVolumeName = query.record().indexOf("VolumeName");
     int idFileType = query.record().indexOf("FileType");
     int idFileExtension = query.record().indexOf("FileExtension");
     int idCreatedTime = query.record().indexOf("CreatedTime");
@@ -518,6 +523,7 @@ QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
         astro.FileName = query.value(idFileName).toString();
         astro.FullPath = query.value(idFullPath).toString();
         astro.DirectoryPath = query.value(idDirectoryPath).toString();
+        astro.VolumeName = query.value(idVolumeName).toString();
         astro.FileType = AstroFileType(query.value(idFileType).toInt());
         astro.FileExtension = query.value(idFileExtension).toString();
         astro.FileHash = query.value(idFileHash).toString();
