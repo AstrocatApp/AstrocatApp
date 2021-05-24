@@ -26,6 +26,7 @@
 #define FILTERVIEW_H
 
 #include "astrofile.h"
+#include "filtergroupbox.h"
 
 #include <QAbstractItemView>
 #include <QCheckBox>
@@ -46,6 +47,10 @@ public slots:
     void setFilterMaximumDate(QDate date);
     void searchFilterReset();
 
+    void alignLeft();
+    void alignCenter();
+    void alignRight();
+
 signals:
     void minimumDateChanged(QDate date);
     void maximumDateChanged(QDate date);
@@ -63,13 +68,15 @@ signals:
 private:
     QWidget* _parent;
     QVBoxLayout* vLayout;
-    QGroupBox* objectsGroup;
-    QGroupBox* instrumentsGroup;
-    QGroupBox* filtersGroup;
-    QGroupBox* extensionsGroup;
-    QGroupBox* datesGroup;
+    FilterGroupBox* objectsGroup;
+    FilterGroupBox* instrumentsGroup;
+    FilterGroupBox* filtersGroup;
+    FilterGroupBox* extensionsGroup;
+    FilterGroupBox* datesGroup;
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
+
+    FilterGroupBox* myGroup;
 
     QList<QCheckBox*> objectsCheckBoxes;
     QList<QCheckBox*> instrumentsCheckBoxes;

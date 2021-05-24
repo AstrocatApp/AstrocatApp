@@ -27,13 +27,52 @@
 #include "fileviewmodel.h"
 
 #include <QCheckBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 FilterView::FilterView(QWidget *parent)
 {
     _parent = parent;
     vLayout = new QVBoxLayout;
+
+    myGroup = new FilterGroupBox();
+    myGroup->setTitle("My Group");
+
+    QLabel* label = new QLabel();
+    label->setText("Label");
+    QVBoxLayout*    vbox = new QVBoxLayout(this);
+    vbox->setParent(this);
+    myGroup->setLayout(vbox);
+
+    myGroup->layout()->addWidget(label);
+
+    QLabel* label2 = new QLabel();
+    label2->setText("Label 2");
+    myGroup->layout()->addWidget(label2);
+
+    QMenu* myMenu = new QMenu();
+    QAction* alignLeftAction = new QAction("Align left", this);
+    QAction* alignCenterAction = new QAction("Align center", this);
+    QAction* alignRightAction = new QAction("Align right", this);
+    myMenu->addAction(alignLeftAction);
+    myMenu->addAction(alignCenterAction);
+    myMenu->addAction(alignRightAction);
+
+    QObject::connect(alignLeftAction, SIGNAL(triggered()),
+                                    this, SLOT(alignLeft()));
+    QObject::connect(alignCenterAction, SIGNAL(triggered()),
+                                      this, SLOT(alignCenter()));
+    QObject::connect(alignRightAction, SIGNAL(triggered()),
+                                      this, SLOT(alignRight()));
+
+    myGroup->addToolButtonMenu(myMenu);
+
     parent->layout()->addWidget(createObjectsBox());
+
+    parent->layout()->addWidget(myGroup);
+
     createDateBox();
 //    parent->layout()->addWidget(createDateBox());
     parent->layout()->addWidget(createInstrumentsBox());
@@ -59,6 +98,21 @@ void FilterView::searchFilterReset()
     resetGroups();
 }
 
+void FilterView::alignLeft()
+{
+    qDebug() << "MainWindow::alignLeft()";
+}
+
+void FilterView::alignCenter()
+{
+    qDebug() << "MainWindow::alignCenter()";
+}
+
+void FilterView::alignRight()
+{
+    qDebug() << "MainWindow::alignRight()";
+}
+
 void FilterView::resetGroups()
 {
     minDateEdit->setDate(QDate());
@@ -72,23 +126,19 @@ void FilterView::resetGroups()
 
 QWidget* FilterView::createObjectsBox()
 {
-    objectsGroup = new QGroupBox(tr("Objects"));
-    objectsGroup->setStyleSheet(
-                "QGroupBox:title {color: white;} "
-                "QWidget {"
-                "  color: white;"
-                "}");
+    objectsGroup = new FilterGroupBox(tr("Objects"));
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(20);
     objectsGroup->setLayout(vbox);
+//    objectsGroup->layout()->addItem(vbox);
 
     return objectsGroup;
 }
 
 QWidget* FilterView::createDateBox()
 {
-    datesGroup = new QGroupBox(tr("Dates"));
+    datesGroup = new FilterGroupBox(tr("Dates"));
     minDateEdit = new QDateEdit();
     maxDateEdit = new QDateEdit();
 
@@ -100,6 +150,7 @@ QWidget* FilterView::createDateBox()
     vbox->addWidget(maxDateEdit);
     vbox->addStretch(1);
     datesGroup->setLayout(vbox);
+//    datesGroup->layout()->addItem(vbox);
     minDateEdit->setDate(QDate::currentDate());
 
     connect(minDateEdit, &QDateEdit::dateChanged, this, &FilterView::minimumDateChanged);
@@ -110,48 +161,36 @@ QWidget* FilterView::createDateBox()
 
 QWidget* FilterView::createInstrumentsBox()
 {
-    instrumentsGroup = new QGroupBox(tr("Instruments"));
-    instrumentsGroup->setStyleSheet(
-                "QGroupBox:title {color: white;} "
-                "QWidget {"
-                "  color: white;"
-                "}");
+    instrumentsGroup = new FilterGroupBox(tr("Instruments"));
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
     instrumentsGroup->setLayout(vbox);
+//    instrumentsGroup->layout()->addItem(vbox);
 
     return instrumentsGroup;
 }
 
 QWidget *FilterView::createFiltersBox()
 {
-    filtersGroup = new QGroupBox(tr("Filters"));
-    filtersGroup->setStyleSheet(
-                "QGroupBox:title {color: white;} "
-                "QWidget {"
-                "  color: white;"
-                "}");
+    filtersGroup = new FilterGroupBox(tr("Filters"));
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
     filtersGroup->setLayout(vbox);
+//    filtersGroup->layout()->addItem(vbox);
 
     return filtersGroup;
 }
 
 QWidget *FilterView::createFileExtensionsBox()
 {
-    extensionsGroup = new QGroupBox(tr("Extensions"));
-    extensionsGroup->setStyleSheet(
-                "QGroupBox:title {color: white;} "
-                "QWidget {"
-                "  color: white;"
-                "}");
+    extensionsGroup = new FilterGroupBox(tr("Extensions"));
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
     extensionsGroup->setLayout(vbox);
+//    extensionsGroup->layout()->addItem(vbox);
 
     return extensionsGroup;
 }
