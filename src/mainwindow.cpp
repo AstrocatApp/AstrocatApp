@@ -146,7 +146,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this,                   &MainWindow::processQueued);
     connect(fileRepositoryWorker,   &FileRepository::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
     connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
-    connect(fileRepositoryWorker,   &FileRepository::astroFilesDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFiles);
+    connect(fileRepositoryWorker,   &FileRepository::astroFilesDeleted,                 fileViewModel,          &FileViewModel::RemoveAstroFiles);
     connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
     connect(fileRepositoryWorker,   &FileRepository::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);
     connect(fileRepositoryWorker,   &FileRepository::thumbnailLoaded,                   fileViewModel,          &FileViewModel::addThumbnail);
