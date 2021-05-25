@@ -27,8 +27,8 @@
 
 #include "astrofile.h"
 #include "filtergroupbox.h"
+#include "folderviewmodel.h"
 
-#include <FolderViewModel.h>
 #include <QAbstractItemView>
 #include <QCheckBox>
 #include <QDateEdit>
@@ -49,11 +49,10 @@ public slots:
     void setFilterMaximumDate(QDate date);
     void searchFilterReset();
 
-    void alignLeft(bool isChecked);
-    void alignCenter();
-    void alignRight();
+    void foldersIncludeSubfolders();
 
     void setFoldersModel(QAbstractItemModel* model);
+    void treeViewClicked(const QItemSelection &selected, const QItemSelection &deselected);
 
 signals:
     void minimumDateChanged(QDate date);
@@ -66,7 +65,7 @@ signals:
     void removeAcceptedObject(QString objectName);
     void addAcceptedExtension(QString objectName);
     void removeAcceptedExtension(QString objectName);
-    void addAcceptedFolder(QString objectName);
+    void addAcceptedFolder(QString objectName, bool includeSubfolders);
     void removeAcceptedFolder(QString objectName);
     void astroFileAdded(int numberAdded);
     void astroFileRemoved(int numberRemoved);
@@ -83,6 +82,7 @@ private:
     QDateEdit* minDateEdit;
     QDateEdit* maxDateEdit;
     QTreeView* foldersTreeView;
+    QItemSelectionModel* folderTreeSelectionModel;
 
     FilterGroupBox* myGroup;
     FolderViewModel* folderModel;
@@ -101,12 +101,15 @@ private:
     QWidget* createFileExtensionsBox();
     QWidget* createFoldersBox();
 
-    QMenu* createObjectsOptionsMenu();
+    QMenu* createFoldersOptionsMenu();
 
     QSet<int> acceptedAstroFiles;
     QMap<QString, QMap<QString,int>> fileTags;
     QMap<QString, int> acceptedFolders;
     QSet<QString> checkedTags;
+
+    bool bFoldersIncludeSubfolders = true;
+
     void addObjects();
     void addDates();
     void addInstruments();

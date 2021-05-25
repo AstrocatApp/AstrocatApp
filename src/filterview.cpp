@@ -40,28 +40,7 @@ FilterView::FilterView(QWidget *parent)
 
     folderModel = new FolderViewModel();
 
-//    myGroup = new FilterGroupBox();
-//    myGroup->setTitle("My Group");
-
-//    QLabel* label = new QLabel();
-//    label->setText("Label");
-//    QVBoxLayout*    vbox = new QVBoxLayout(this);
-//    vbox->setParent(this);
-//    myGroup->setLayout(vbox);
-
-//    myGroup->layout()->addWidget(label);
-
-//    QLabel* label2 = new QLabel();
-//    label2->setText("Label 2");
-//    myGroup->layout()->addWidget(label2);
-
-//    QMenu* myMenu = createObjectsOptionsMenu();
-//    myGroup->addToolButtonMenu(myMenu);
-
     parent->layout()->addWidget(createObjectsBox());
-
-//    parent->layout()->addWidget(myGroup);
-
     createDateBox();
 //    parent->layout()->addWidget(createDateBox());
     parent->layout()->addWidget(createInstrumentsBox());
@@ -73,12 +52,16 @@ FilterView::FilterView(QWidget *parent)
     parent->layout()->addItem(spacer);
 
     setFoldersModel(folderModel);
+
+    foldersTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    folderTreeSelectionModel = new QItemSelectionModel(folderModel);
+    foldersTreeView->setSelectionModel(folderTreeSelectionModel);
+    connect(folderTreeSelectionModel, &QItemSelectionModel::selectionChanged, this, &FilterView::treeViewClicked);
 }
 
 void FilterView::setFilterMinimumDate(QDate date)
 {
     minDateEdit->setDate(date);
-
 }
 
 void FilterView::setFilterMaximumDate(QDate date)
@@ -91,24 +74,51 @@ void FilterView::searchFilterReset()
     resetGroups();
 }
 
-void FilterView::alignLeft(bool isChecked)
+void FilterView::foldersIncludeSubfolders()
 {
-    qDebug() << "MainWindow::alignLeft():" <<isChecked;
-}
+    bFoldersIncludeSubfolders = !bFoldersIncludeSubfolders;
 
-void FilterView::alignCenter()
-{
-    qDebug() << "MainWindow::alignCenter()";
-}
-
-void FilterView::alignRight()
-{
-    qDebug() << "MainWindow::alignRight()";
+    // We will simulate a click event on the tree to enforce the new setting
+    auto selection = foldersTreeView->selectionModel()->selection();
+    if (!selection.isEmpty())
+    {
+        emit treeViewClicked(selection, QItemSelection());
+    }
 }
 
 void FilterView::setFoldersModel(QAbstractItemModel* model)
 {
     this->foldersTreeView->setModel(model);
+}
+
+void FilterView::treeViewClicked(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    QModelIndex index = selected[0].indexes()[0];
+    QStringList paths;
+    auto itIndex = index;
+    while (itIndex != QModelIndex())
+    {
+        auto folder = folderModel->data(itIndex, Qt::DisplayRole).toString();
+        paths.prepend(folder);
+        itIndex = itIndex.parent();
+    }
+
+    int counter = 0;
+    QString volume;
+    QString fullPath;
+    for (auto path : paths)
+    {
+        if (counter == 0)
+        {
+            volume = path;
+            counter++;
+            continue;
+        }
+        fullPath = fullPath + "/" + path;
+    }
+    fullPath += "/";
+
+    selectedFoldersChanged(fullPath, 2);
 }
 
 void FilterView::resetGroups()
@@ -120,7 +130,7 @@ void FilterView::resetGroups()
     addInstruments();
     addFilters();
     addFileExtensions();
-    addFolders();
+//    addFolders();
 }
 
 QWidget* FilterView::createObjectsBox()
@@ -131,9 +141,6 @@ QWidget* FilterView::createObjectsBox()
     vbox->addStretch(20);
     objectsGroup->setLayout(vbox);
 //    objectsGroup->layout()->addItem(vbox);
-
-    QMenu* myMenu = createObjectsOptionsMenu();
-    objectsGroup->addToolButtonMenu(myMenu);
 
     return objectsGroup;
 }
@@ -206,30 +213,25 @@ QWidget *FilterView::createFoldersBox()
 //    extensionsGroup->layout()->addItem(vbox);
 
     foldersTreeView = new QTreeView();
+    foldersTreeView->setHeaderHidden(true);
     vbox->addWidget(foldersTreeView);
+
+    QMenu* myMenu = createFoldersOptionsMenu();
+    foldersGroup->addToolButtonMenu(myMenu);
 
     return foldersGroup;
 }
 
-QMenu *FilterView::createObjectsOptionsMenu()
+QMenu *FilterView::createFoldersOptionsMenu()
 {
     QMenu* myMenu = new QMenu();
-    QAction* singleSelectionAction = new QAction("Single Selection", this);
-    singleSelectionAction->setCheckable(true);
-    singleSelectionAction->setChecked(true);
 
-    QAction* alignCenterAction = new QAction("Align center", this);
-    QAction* alignRightAction = new QAction("Align right", this);
-    myMenu->addAction(singleSelectionAction);
-    myMenu->addAction(alignCenterAction);
-    myMenu->addAction(alignRightAction);
+    QAction* includeSubfoldersAction = new QAction("Include Subfolders", this);
+    includeSubfoldersAction->setCheckable(true);
+    includeSubfoldersAction->setChecked(true);
+    myMenu->addAction(includeSubfoldersAction);
 
-    QObject::connect(singleSelectionAction, &QAction::triggered,
-                                    this, &FilterView::alignLeft);
-    QObject::connect(alignCenterAction, SIGNAL(triggered()),
-                                      this, SLOT(alignCenter()));
-    QObject::connect(alignRightAction, SIGNAL(triggered()),
-                                      this, SLOT(alignRight()));
+    QObject::connect(includeSubfoldersAction, &QAction::triggered, this, &FilterView::foldersIncludeSubfolders);
     return myMenu;
 }
 
@@ -271,6 +273,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
         }
     }
 
+//    foldersTreeView->expandToDepth(2);
     emit astroFileAdded(end-start+1);
     // We should not nuke all groups
     resetGroups();
@@ -548,8 +551,7 @@ void FilterView::selectedFoldersChanged(QString object, int state)
         break;
     case 2:
         checkedTags.insert("FOL_"+object);
-        emit addAcceptedFolder(object);
+        emit addAcceptedFolder(object, this->bFoldersIncludeSubfolders);
         break;
     }
-
 }

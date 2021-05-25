@@ -32,6 +32,11 @@ class FolderNode
 public:
     QString folderName;
     QList<FolderNode*> children;
+    bool isChecked() const { return checked; }
+    void setChecked( bool set ) { checked = set; }
+
+private:
+    bool checked;
 };
 
 class FolderViewModel : public QStandardItemModel
@@ -47,6 +52,7 @@ private:
     QMap<QString, int> folders;
     QStandardItem* rootItem;
     FolderNode* rootFolder;
+
 };
 
 #endif // FOLDERVIEWMODEL_H

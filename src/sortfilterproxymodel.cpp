@@ -90,7 +90,9 @@ bool SortFilterProxyModel::extensionAccepted(QString extension) const
 
 bool SortFilterProxyModel::folderAccepted(QString folder) const
 {
-    return acceptedFolders.empty() || acceptedFolders.contains(folder) || (acceptedFolders.contains("None") && folder.isEmpty());
+    if (!folder.endsWith('/'))
+        folder.append('/');
+    return acceptedFolders.isEmpty() || acceptedFolders == folder || (includeSubfolders && folder.startsWith(acceptedFolders)) || (acceptedFolders.contains("None") && folder.isEmpty());
 }
 
 bool SortFilterProxyModel::isDuplicateOf(QString hash) const
@@ -188,23 +190,28 @@ void SortFilterProxyModel::removeAcceptedExtension(QString extensionName)
     }
 }
 
-void SortFilterProxyModel::addAcceptedFolder(QString folderName)
+void SortFilterProxyModel::addAcceptedFolder(QString folderName, bool includeSubfolders)
 {
-    if (!acceptedFolders.contains(folderName))
-    {
-        acceptedFolders.append(folderName);
-//        emit filterReset();
-        invalidateFilter();
-    }
+    this->includeSubfolders = includeSubfolders;
+    acceptedFolders = folderName;
+    invalidateFilter();
+
+//    acceptedFolders.clear();
+//    if (!acceptedFolders.contains(folderName))
+//    {
+//        acceptedFolders.append(folderName);
+////        emit filterReset();
+//        invalidateFilter();
+//    }
 }
 
 void SortFilterProxyModel::removeAcceptedFolder(QString folderName)
 {
-    if (acceptedFolders.removeOne(folderName))
-    {
-//        emit filterReset();
-        invalidateFilter();
-    }
+//    if (acceptedFolders.removeOne(folderName))
+//    {
+////        emit filterReset();
+//        invalidateFilter();
+//    }
 }
 
 void SortFilterProxyModel::activateDuplicatesFilter(bool shouldActivate)

@@ -41,7 +41,6 @@ QStringList foo(const QString& str) {
         dir.cdUp();
     } while (!dir.isRoot());
 
-    qDebug()<<"foo: " << folders;
     return folders;
 }
 
@@ -69,6 +68,7 @@ void FolderViewModel::addItem(QString volume, QString folderPath)
         rootFolder->children.append(node);
 
         QStandardItem *item = new QStandardItem(volume);
+        item->setData(QVariant::fromValue(node));
         parentItem->appendRow(item);
         parentItem = item;
     }
@@ -78,14 +78,12 @@ void FolderViewModel::addItem(QString volume, QString folderPath)
     auto paths = foo(folderPath);
     for (auto path : paths)
     {
-        qDebug()<<"Searching for: " << path;
         auto original = iterator;
         int row = 0;
         for (auto child : iterator->children)
         {
             if (child->folderName == path)
             {
-                qDebug()<<"Iterating to: " << parentItem->child(row)->data(Qt::DisplayRole);
                 parentItem = parentItem->child(row);
                 iterator = child;
                 break;
@@ -95,14 +93,13 @@ void FolderViewModel::addItem(QString volume, QString folderPath)
         if (iterator == original)
         {
             // we did not find it
-            qDebug()<< "Did not find: " << path;
             auto node = new FolderNode();
             node->folderName = path;
             iterator->children.append(node);
             iterator = node;
 
             QStandardItem *item = new QStandardItem(path);
-            qDebug()<<"Adding to parent: " << parentItem->data(Qt::DisplayRole).toString() << " item: " <<path;
+            item->setData(folderPath);
             parentItem->appendRow(item);
             parentItem = item;
         }
@@ -118,4 +115,3 @@ void FolderViewModel::removeItem(QString volume, QString folderPath)
 {
     folders[folderPath]--;
 }
-
