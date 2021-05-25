@@ -65,6 +65,7 @@ struct AstroFile
     QString FileName;
     QString FullPath;
     QString DirectoryPath;
+    QString VolumeName;
     AstroFileType FileType;
     QString FileExtension;
     QDateTime CreatedTime;
@@ -89,6 +90,7 @@ struct AstroFile
           FileName(other.FileName),
           FullPath(other.FullPath),
           DirectoryPath(other.DirectoryPath),
+          VolumeName(other.VolumeName),
           FileType(other.FileType),
           FileExtension(other.FileExtension),
           CreatedTime(other.CreatedTime),

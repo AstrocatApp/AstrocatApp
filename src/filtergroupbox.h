@@ -22,27 +22,41 @@
     SOFTWARE.
 */
 
-#ifndef FOLDERCRAWLER_H
-#define FOLDERCRAWLER_H
+#ifndef FILTERGROUPBOX_H
+#define FILTERGROUPBOX_H
 
-#include <QFileInfo>
-#include <QObject>
+#include <QGroupBox>
+#include <QMenu>
+#include <QPropertyAnimation>
+#include <QToolButton>
+#include <QWidget>
 
-class FolderCrawler : public QObject
+class FilterGroupBox : public QGroupBox
 {
     Q_OBJECT
 public:
-    explicit FolderCrawler(QObject *parent = nullptr);
-    void cancel();
+    explicit FilterGroupBox(QWidget *parent = nullptr);
+    explicit FilterGroupBox(const QString &title, QWidget *parent = nullptr) : FilterGroupBox(parent)
+    {
+        setTitle(title);
+    };
+    ~FilterGroupBox();
 
-public slots:
-    virtual void crawl(QString rootFolder);
+    void addToolButtonMenu(QMenu* menu);
 
 signals:
-    void fileFound(QFileInfo filePath);
 
-protected:
-    volatile bool cancelSignaled = false;
+private slots:
+    void collapse();
+
+private:
+    QToolButton* optionsButton;
+    QToolButton* collapseButton;
+
+    bool isExpanded = true;
+    QPropertyAnimation *collapseAnimation;
+    QPropertyAnimation *expandAnimation;
+    int expandedSize = 0;
 };
 
-#endif // FOLDERCRAWLER_H
+#endif // FILTERGROUPBOX_H

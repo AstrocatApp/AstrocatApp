@@ -22,27 +22,37 @@
     SOFTWARE.
 */
 
-#ifndef FOLDERCRAWLER_H
-#define FOLDERCRAWLER_H
+#ifndef FOLDERVIEWMODEL_H
+#define FOLDERVIEWMODEL_H
 
-#include <QFileInfo>
-#include <QObject>
+#include <QStandardItemModel>
 
-class FolderCrawler : public QObject
+class FolderNode
+{
+public:
+    QString folderName;
+    QList<FolderNode*> children;
+    bool isChecked() const { return checked; }
+    void setChecked( bool set ) { checked = set; }
+
+private:
+    bool checked;
+};
+
+class FolderViewModel : public QStandardItemModel
 {
     Q_OBJECT
 public:
-    explicit FolderCrawler(QObject *parent = nullptr);
-    void cancel();
+    FolderViewModel();
+    void addItem(QString volume, QString folderPath);
+    void removeItem(QString volume, QString folderPath);
 
-public slots:
-    virtual void crawl(QString rootFolder);
+private:
+//    QSet<QString> volumes;
+    QMap<QString, int> folders;
+    QStandardItem* rootItem;
+    FolderNode* rootFolder;
 
-signals:
-    void fileFound(QFileInfo filePath);
-
-protected:
-    volatile bool cancelSignaled = false;
 };
 
-#endif // FOLDERCRAWLER_H
+#endif // FOLDERVIEWMODEL_H

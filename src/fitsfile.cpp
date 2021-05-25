@@ -116,6 +116,17 @@ void FitsFile::extractImage()
         return;
     }
 
+    if (_tags.contains("BAYERPAT"))
+    {
+        if (_tags["BAYERPAT"] == "RGGB")
+            _bayerPattern = BayerPattern::RGGB;
+        else if (_tags["BAYERPAT"] == "BGGR")
+            _bayerPattern = BayerPattern::BGGR;
+        else _bayerPattern = BayerPattern::Unsupported;
+    }
+    else
+        _bayerPattern = BayerPattern::None;
+
     _numberOfChannels = _tags.contains("BAYERPAT") || _tags.value("NAXIS3") == "3"? 3: 1;
 
     _width = naxesLongLongArr[0];
@@ -356,9 +367,9 @@ void FitsFile::makeImage()
 }
 
 template <typename T>
-void FitsFile::deBayer()
+void FitsFile::deBayer_RGGB()
 {
-    T * data = reinterpret_cast<T*>(_data);
+    T* data = reinterpret_cast<T*>(_data);
     T* dataRed = new T[_width * _height/4];
     T* dataGreen = new T[_width * _height/4];
     T* dataBlue = new T[_width * _height/4];
@@ -371,13 +382,13 @@ void FitsFile::deBayer()
     {
         for (int j = 0; (j+1) < _width; j+=2)
         {
-            T _red    = (data[i*_width + j]);
-            T _green1 = (data[i*_width + j+1]);
-            T _green2 = (data[(i+1)*_width + j]);
-            T _blue   = (data[(i+1)*_width + j+1]);
+            T _red    = data[i*_width + j];
+            T _green1 = data[i*_width + j+1];
+            T _green2 = data[(i+1)*_width + j];
+            T _blue   = data[(i+1)*_width + j+1];
 
             *redIt   = _red;
-            *greenIt = (_green1 + _green2)/2;
+            *greenIt = (_green1 + _green2) /2;
             *blueIt = _blue;
             redIt++;
             greenIt++;
@@ -395,4 +406,166 @@ void FitsFile::deBayer()
     delete [] dataRed;
     delete [] dataGreen;
     delete [] dataBlue;
+}
+
+template <typename T>
+void FitsFile::deBayer_BGGR()
+{
+    T* data = reinterpret_cast<T*>(_data);
+    T* dataRed = new T[_width * _height/4];
+    T* dataGreen = new T[_width * _height/4];
+    T* dataBlue = new T[_width * _height/4];
+
+    T* redIt = dataRed;
+    T* greenIt = dataGreen;
+    T* blueIt = dataBlue;
+
+    for (int i = 0; (i+1) < _height; i+=2)
+    {
+        for (int j = 0; (j+1) < _width; j+=2)
+        {
+            T _blue   = data[i*_width + j];
+            T _green1 = data[i*_width + j+1];
+            T _green2 = data[(i+1)*_width + j];
+            T _red    = data[(i+1)*_width + j+1];
+
+            *redIt   = _red;
+            *greenIt = (_green1 + _green2) /2;
+            *blueIt = _blue;
+            redIt++;
+            greenIt++;
+            blueIt++;
+        }
+    }
+    _width/=2;
+    _height/=2;
+    delete [] _data;
+    _data = (unsigned char*)new T[_width * _height * 3];
+    long size = _width * _height * sizeof(T);
+    memcpy (_data + 0, dataRed, size);
+    memcpy (_data + size, dataGreen, size);
+    memcpy (_data + 2*size, dataBlue, size);
+    delete [] dataRed;
+    delete [] dataGreen;
+    delete [] dataBlue;
+}
+
+template <typename T>
+void FitsFile::deBayer_GRBG()
+{
+    T* data = reinterpret_cast<T*>(_data);
+    T* dataRed = new T[_width * _height/4];
+    T* dataGreen = new T[_width * _height/4];
+    T* dataBlue = new T[_width * _height/4];
+
+    T* redIt = dataRed;
+    T* greenIt = dataGreen;
+    T* blueIt = dataBlue;
+
+    for (int i = 0; (i+1) < _height; i+=2)
+    {
+        for (int j = 0; (j+1) < _width; j+=2)
+        {
+            T _green1 = data[i*_width + j];
+            T _red    = data[i*_width + j+1];
+            T _blue   = data[(i+1)*_width + j];
+            T _green2 = data[(i+1)*_width + j+1];
+
+            *redIt   = _red;
+            *greenIt = (_green1 + _green2) /2;
+            *blueIt = _blue;
+            redIt++;
+            greenIt++;
+            blueIt++;
+        }
+    }
+    _width/=2;
+    _height/=2;
+    delete [] _data;
+    _data = (unsigned char*)new T[_width * _height * 3];
+    long size = _width * _height * sizeof(T);
+    memcpy (_data + 0, dataRed, size);
+    memcpy (_data + size, dataGreen, size);
+    memcpy (_data + 2*size, dataBlue, size);
+    delete [] dataRed;
+    delete [] dataGreen;
+    delete [] dataBlue;
+}
+
+template <typename T>
+void FitsFile::deBayer_GBRG()
+{
+    T* data = reinterpret_cast<T*>(_data);
+    T* dataRed = new T[_width * _height/4];
+    T* dataGreen = new T[_width * _height/4];
+    T* dataBlue = new T[_width * _height/4];
+
+    T* redIt = dataRed;
+    T* greenIt = dataGreen;
+    T* blueIt = dataBlue;
+
+    for (int i = 0; (i+1) < _height; i+=2)
+    {
+        for (int j = 0; (j+1) < _width; j+=2)
+        {
+            T _green1 = data[i*_width + j];
+            T _blue   = data[i*_width + j+1];
+            T _red    = data[(i+1)*_width + j];
+            T _green2 = data[(i+1)*_width + j+1];
+
+            *redIt   = _red;
+            *greenIt = (_green1 + _green2) /2;
+            *blueIt = _blue;
+            redIt++;
+            greenIt++;
+            blueIt++;
+        }
+    }
+    _width/=2;
+    _height/=2;
+    delete [] _data;
+    _data = (unsigned char*)new T[_width * _height * 3];
+    long size = _width * _height * sizeof(T);
+    memcpy (_data + 0, dataRed, size);
+    memcpy (_data + size, dataGreen, size);
+    memcpy (_data + 2*size, dataBlue, size);
+    delete [] dataRed;
+    delete [] dataGreen;
+    delete [] dataBlue;
+}
+
+template <typename T>
+void FitsFile::deBayer()
+{
+    switch (getBayerPattern())
+    {
+        case None:
+        {
+            break;
+        }
+        case Unsupported:
+        {
+            break;
+        }
+        case BGGR:
+        {
+            deBayer_BGGR<T>();
+            break;
+        }
+        case RGGB:
+        {
+            deBayer_RGGB<T>();
+            break;
+        }
+        case GBRG:
+        {
+            deBayer_GBRG<T>();
+            break;
+        }
+        case GRBG:
+        {
+            deBayer_GRBG<T>();
+            break;
+        }
+    }
 }

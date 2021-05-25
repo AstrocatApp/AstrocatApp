@@ -4,7 +4,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
-VERSION = 0.0.1
+VERSION = 0.1
 DEFINES += CURRENT_APP_VERSION=\"\\\"$${VERSION}\\\"\"
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -18,14 +18,18 @@ SOURCES += \
     fileprocessfilter.cpp \
     filerepository.cpp \
     fileviewmodel.cpp \
+    filtergroupbox.cpp \
     filterview.cpp \
     fitsfile.cpp \
     fitsprocessor.cpp \
     foldercrawler.cpp \
+    folderviewmodel.cpp \
     imageprocessor.cpp \
     main.cpp \
     mainwindow.cpp \
+    mock_foldercrawler.cpp \
     mock_newfileprocessor.cpp \
+    modelloadingdialog.cpp \
     newfileprocessor.cpp \
     searchfolderdialog.cpp \
     sortfilterproxymodel.cpp \
@@ -41,13 +45,17 @@ HEADERS += \
     fileprocessor.h \
     filerepository.h \
     fileviewmodel.h \
+    filtergroupbox.h \
     filterview.h \
     fitsfile.h \
     fitsprocessor.h \
     foldercrawler.h \
+    folderviewmodel.h \
     imageprocessor.h \
     mainwindow.h \
+    mock_foldercrawler.h \
     mock_newfileprocessor.h \
+    modelloadingdialog.h \
     newfileprocessor.h \
     searchfolderdialog.h \
     sortfilterproxymodel.h \
@@ -57,6 +65,7 @@ HEADERS += \
 FORMS += \
     aboutwindow.ui \
     mainwindow.ui \
+    modelloadingdialog.ui \
     searchfolderdialog.ui
 
 TRANSLATIONS += \
@@ -68,13 +77,15 @@ RESOURCES += \
 LIBS += -L$$PWD/../external/build/libs/ -lpcl -llcms -llz4 -lRFC6234 -lcfitsio -lzlib
 
 win32 {
-    LIBS += -L$$PWD/../external/build/libs
+    LIBS += -L$$PWD/../external/build/libs/Release
     LIBS += -luser32 -luserenv -ladvapi32 -lpthreadVC2
     DEFINES += __PCL_WINDOWS WIN32 WIN64 __PCL_NO_WIN32_MINIMUM_VERSIONS UNICODE _UNICODE _WINDOWS _NDEBUG
-    QMAKE_CXXFLAGS = "/EHsc /MP"
+    QMAKE_CXXFLAGS = "/EHsc /MP /FS"
+    RC_ICONS = resources/Icons/win.ico/app.ico
 }
 macx {
     DEFINES += __PCL_MACOSX
+    ICON = resources/Icons/mac.icns
 }
 linux {
 DEFINES += __PCL_LINUX

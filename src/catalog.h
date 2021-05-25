@@ -30,6 +30,7 @@
 #include <QObject>
 #include <QFileInfo>
 #include <QRecursiveMutex>
+#include <QTimer>
 
 class Catalog : public QObject
 {
@@ -42,6 +43,7 @@ public:
     void addSearchFolder(const QList<QString>& folders);
     void removeSearchFolder(const QString& folder);
     void removeAllSearchFolders();
+    void cancel();
 
 
 //    void hideAstroFile(const AstroFile& astroFile);
@@ -75,6 +77,7 @@ signals:
     void AstroFilesAdded(int numberAdded);
     void AstroFileUpdated(AstroFile astroFile, int row);
     void AstroFileRemoved(AstroFile astroFile, int row);
+    void DoneAddingAstrofiles();
 
 private:
     QRecursiveMutex listMutex;
@@ -86,10 +89,11 @@ private:
 
     AstroFile* getAstroFileByPath(QString path);
     void impAddAstroFile(const AstroFile& astroFile, bool shouldEmit = true);
-    QTimer* timer;
+    QTimer timer;
     void pushProcessedQueue();
     QRecursiveMutex astroFilesQueueMutex;
     int astroFilesQueue;
+    volatile bool cancelSignaled = false;
 };
 
 #endif // CATALOG_H

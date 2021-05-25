@@ -22,27 +22,32 @@
     SOFTWARE.
 */
 
-#ifndef FOLDERCRAWLER_H
-#define FOLDERCRAWLER_H
+#ifndef MODELLOADINGDIALOG_H
+#define MODELLOADINGDIALOG_H
 
-#include <QFileInfo>
-#include <QObject>
+#include <QDialog>
 
-class FolderCrawler : public QObject
+namespace Ui {
+class ModelLoadingDialog;
+}
+
+class ModelLoadingDialog : public QDialog
 {
     Q_OBJECT
+
 public:
-    explicit FolderCrawler(QObject *parent = nullptr);
-    void cancel();
+    explicit ModelLoadingDialog(QWidget *parent = nullptr);
+    ~ModelLoadingDialog();
 
 public slots:
-    virtual void crawl(QString rootFolder);
+    void modelLoadingFromDbGotAstrofiles();
+    void modelLoadingFromDbGotTag();
+    void modelLoadingFromDbGotThumbnails();
+    void modelLoaded();
+    void closeWindow();
 
-signals:
-    void fileFound(QFileInfo filePath);
-
-protected:
-    volatile bool cancelSignaled = false;
+private:
+    Ui::ModelLoadingDialog *ui;
 };
 
-#endif // FOLDERCRAWLER_H
+#endif // MODELLOADINGDIALOG_H

@@ -39,6 +39,8 @@ enum AstroFileRoles
     FilterRole,
     DateRole,
     FullPathRole,
+    DirectoryRole,
+    VolumeNameRole,
     RaRole,
     DecRole,
     CcdTempRole,
@@ -93,6 +95,8 @@ private:
     QSize cellSize = QSize(200, 200);
 
     Catalog* catalog;
+    QString raConverter(QString ra) const;
+    QString decConverter(QString dec) const;
 };
 
 #endif // FILEVIEWMODEL_H

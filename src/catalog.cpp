@@ -33,14 +33,21 @@
 // child folders
 Catalog::Catalog(QObject *parent)
 {
-    QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
-    timer->start(500);
+//    QTimer *timer = new QTimer(this);
+    connect(&timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
+    astroFilesQueue = 0;
+    timer.start(500);
 }
 
 Catalog::~Catalog()
 {
 
+}
+
+void Catalog::cancel()
+{
+    cancelSignaled = true;
+    timer.stop();
 }
 
 void Catalog::addSearchFolder(const QString &folder)
@@ -73,6 +80,9 @@ void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
 
     // Check if this file already exists
     // We should probably check by id, but we don't have that mapping
+    // Getting the index is O(n), and it may take a long time to
+    // call it on initialization of large DBs.
+    // i.e. don't call `int index = astroFileIndex(astroFile);` here
 
     auto existing = getAstroFileByPath(astroFile.FullPath);
     if (existing == nullptr)
@@ -92,6 +102,13 @@ void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
     else
     {
         int index = astroFileIndex(astroFile);
+        if (index == -1)
+        {
+            qDebug()<<"=== BUG: Found two files with same path"<<astroFile.FullPath;
+            qDebug()<<"File1: " << existing->Id;
+            qDebug()<<"File2: " << astroFile.Id;
+            return;
+        }
         AstroFile* a = new AstroFile(astroFile);
         astroFiles[index] = a;
         filePathToIdMap.insert(astroFile.FullPath, a);
@@ -117,7 +134,6 @@ void Catalog::pushProcessedQueue()
     }
 }
 
-
 void Catalog::addAstroFile(const AstroFile& astroFile)
 {
     impAddAstroFile(astroFile, true);
@@ -127,9 +143,12 @@ void Catalog::addAstroFiles(const QList<AstroFile> &files)
 {
     for (auto& a : files)
     {
-        impAddAstroFile(a, false);
+        if (cancelSignaled)
+            return;
+        impAddAstroFile(a, true);
     }
-    emit AstroFilesAdded(files.count());
+//    emit AstroFilesAdded(files.count());
+    emit DoneAddingAstrofiles();
 }
 
 void Catalog::deleteAstroFile(const AstroFile &astroFile)

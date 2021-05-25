@@ -37,6 +37,7 @@
 #include "catalog.h"
 #include "fileprocessfilter.h"
 #include "thumbnailcache.h"
+#include "modelloadingdialog.h"
 
 #include <QFileInfo>
 #include <QMainWindow>
@@ -158,6 +159,7 @@ private:
     FileProcessFilter* fileFilter;
 
     ThumbnailCache thumbnailCache;
+    ModelLoadingDialog* loading;
 
 protected:
     void resizeEvent(QResizeEvent *event);

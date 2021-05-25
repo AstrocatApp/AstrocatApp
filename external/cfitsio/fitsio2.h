@@ -26,7 +26,19 @@ extern int Fitsio_Pthread_Status;
 #define FFUNLOCK1(lockname) (Fitsio_Pthread_Status = pthread_mutex_unlock(&lockname))
 #define FFLOCK   FFLOCK1(Fitsio_Lock)
 #define FFUNLOCK FFUNLOCK1(Fitsio_Lock)
+
+/*
+ * EDITED BY ASTROCAT:
+ * strtok_r is not defined on WIN32
+ */
+#if defined (WIN32)
+#define ffstrtok(str, tok, save) strtok_s(str, tok, save)
+#else
 #define ffstrtok(str, tok, save) strtok_r(str, tok, save)
+#endif
+/*
+ * END EDITED BY ASTROCAT:
+ */
 
 #else
 #define FFLOCK

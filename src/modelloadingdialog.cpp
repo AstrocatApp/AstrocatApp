@@ -22,27 +22,49 @@
     SOFTWARE.
 */
 
-#ifndef FOLDERCRAWLER_H
-#define FOLDERCRAWLER_H
+#include "modelloadingdialog.h"
+#include "ui_modelloadingdialog.h"
 
-#include <QFileInfo>
-#include <QObject>
-
-class FolderCrawler : public QObject
+ModelLoadingDialog::ModelLoadingDialog(QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::ModelLoadingDialog)
 {
-    Q_OBJECT
-public:
-    explicit FolderCrawler(QObject *parent = nullptr);
-    void cancel();
+    ui->setupUi(this);
+    this->ui->statusLabel->setText("Loading images");
+    this->ui->progressBar->setValue(5);
+}
 
-public slots:
-    virtual void crawl(QString rootFolder);
+ModelLoadingDialog::~ModelLoadingDialog()
+{
+    delete ui;
+}
 
-signals:
-    void fileFound(QFileInfo filePath);
+void ModelLoadingDialog::modelLoadingFromDbGotAstrofiles()
+{
+    this->ui->statusLabel->setText("Loading Tags");
+    this->ui->progressBar->setValue(20);
+}
 
-protected:
-    volatile bool cancelSignaled = false;
-};
+void ModelLoadingDialog::modelLoadingFromDbGotTag()
+{
+    this->ui->statusLabel->setText("Loading Thumbnails");
+    this->ui->progressBar->setValue(40);
+}
 
-#endif // FOLDERCRAWLER_H
+void ModelLoadingDialog::modelLoadingFromDbGotThumbnails()
+{
+    this->ui->statusLabel->setText("Loaded Thumbnails");
+    this->ui->progressBar->setValue(60);
+}
+
+void ModelLoadingDialog::modelLoaded()
+{
+    this->ui->statusLabel->setText("Drawing Thumbnails");
+    this->ui->progressBar->setValue(80);
+}
+
+void ModelLoadingDialog::closeWindow()
+{
+    this->ui->progressBar->setValue(100);
+    this->close();
+}

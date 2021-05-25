@@ -22,27 +22,24 @@
     SOFTWARE.
 */
 
-#ifndef FOLDERCRAWLER_H
-#define FOLDERCRAWLER_H
+#include "mock_foldercrawler.h"
 
-#include <QFileInfo>
-#include <QObject>
-
-class FolderCrawler : public QObject
+Mock_FolderCrawler::Mock_FolderCrawler()
 {
-    Q_OBJECT
-public:
-    explicit FolderCrawler(QObject *parent = nullptr);
-    void cancel();
 
-public slots:
-    virtual void crawl(QString rootFolder);
+}
 
-signals:
-    void fileFound(QFileInfo filePath);
+void Mock_FolderCrawler::crawl(QString rootFolder)
+{
+    qDebug()<<"In mock foldercrawler";
+    int count = 0;
 
-protected:
-    volatile bool cancelSignaled = false;
-};
-
-#endif // FOLDERCRAWLER_H
+    while (count < 100000)
+    {
+        if (cancelSignaled)
+            return;
+        QFileInfo fileInfo(rootFolder + "/some_dummy_file_" + QString::number(count) + ".fits");
+        emit fileFound(fileInfo);
+        count++;
+    }
+}
