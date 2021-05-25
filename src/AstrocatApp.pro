@@ -18,10 +18,12 @@ SOURCES += \
     fileprocessfilter.cpp \
     filerepository.cpp \
     fileviewmodel.cpp \
+    filtergroupbox.cpp \
     filterview.cpp \
     fitsfile.cpp \
     fitsprocessor.cpp \
     foldercrawler.cpp \
+    folderviewmodel.cpp \
     imageprocessor.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -43,10 +45,12 @@ HEADERS += \
     fileprocessor.h \
     filerepository.h \
     fileviewmodel.h \
+    filtergroupbox.h \
     filterview.h \
     fitsfile.h \
     fitsprocessor.h \
     foldercrawler.h \
+    folderviewmodel.h \
     imageprocessor.h \
     mainwindow.h \
     mock_foldercrawler.h \

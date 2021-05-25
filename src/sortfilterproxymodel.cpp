@@ -41,7 +41,7 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     QString dateString = astroFile->Tags["DATE-OBS"];
     QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension);
+    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension) && folderAccepted(astroFile->DirectoryPath);
 
     if (isDuplicatedFilterActive)
         shouldAccept = shouldAccept && isDuplicateOf(astroFile->FileHash);
@@ -86,6 +86,13 @@ bool SortFilterProxyModel::filterAccepted(QString filter) const
 bool SortFilterProxyModel::extensionAccepted(QString extension) const
 {
     return acceptedExtensions.empty() || acceptedExtensions.contains(extension) || (acceptedExtensions.contains("None") && extension.isEmpty());
+}
+
+bool SortFilterProxyModel::folderAccepted(QString folder) const
+{
+    if (!folder.endsWith('/'))
+        folder.append('/');
+    return acceptedFolders.isEmpty() || acceptedFolders == folder || (includeSubfolders && folder.startsWith(acceptedFolders)) || (acceptedFolders.contains("None") && folder.isEmpty());
 }
 
 bool SortFilterProxyModel::isDuplicateOf(QString hash) const
@@ -181,6 +188,30 @@ void SortFilterProxyModel::removeAcceptedExtension(QString extensionName)
 //        emit filterReset();
         invalidateFilter();
     }
+}
+
+void SortFilterProxyModel::addAcceptedFolder(QString folderName, bool includeSubfolders)
+{
+    this->includeSubfolders = includeSubfolders;
+    acceptedFolders = folderName;
+    invalidateFilter();
+
+//    acceptedFolders.clear();
+//    if (!acceptedFolders.contains(folderName))
+//    {
+//        acceptedFolders.append(folderName);
+////        emit filterReset();
+//        invalidateFilter();
+//    }
+}
+
+void SortFilterProxyModel::removeAcceptedFolder(QString folderName)
+{
+//    if (acceptedFolders.removeOne(folderName))
+//    {
+////        emit filterReset();
+//        invalidateFilter();
+//    }
 }
 
 void SortFilterProxyModel::activateDuplicatesFilter(bool shouldActivate)

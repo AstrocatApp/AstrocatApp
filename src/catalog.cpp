@@ -102,6 +102,13 @@ void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
     else
     {
         int index = astroFileIndex(astroFile);
+        if (index == -1)
+        {
+            qDebug()<<"=== BUG: Found two files with same path"<<astroFile.FullPath;
+            qDebug()<<"File1: " << existing->Id;
+            qDebug()<<"File2: " << astroFile.Id;
+            return;
+        }
         AstroFile* a = new AstroFile(astroFile);
         astroFiles[index] = a;
         filePathToIdMap.insert(astroFile.FullPath, a);

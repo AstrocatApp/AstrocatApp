@@ -51,6 +51,8 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         return;
     }
 
+    QStorageInfo storageInfo = QStorageInfo(fileInfo.canonicalFilePath());
+
     QFuture<void> future = QtConcurrent::run(&threadPool, [=]() {
         AstroFile astroFile(fileInfo);
 
@@ -89,6 +91,8 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         astroFile.ImageHash = imageHash;
         delete processor;
         astroFile.processStatus = AstroFileProcessed;
+
+        astroFile.VolumeName = storageInfo.name();
 
         emit astrofileProcessed(astroFile);
     });
