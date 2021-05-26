@@ -39,7 +39,7 @@ QStringList foo(const QString& str) {
     {
         folders.prepend(dir.dirName());
         dir.cdUp();
-    } while (!dir.isRoot());
+    } while (!dir.isRoot() && !dir.isEmpty());
 
     return folders;
 }
