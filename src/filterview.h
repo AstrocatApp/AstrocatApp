@@ -65,7 +65,7 @@ signals:
     void removeAcceptedObject(QString objectName);
     void addAcceptedExtension(QString objectName);
     void removeAcceptedExtension(QString objectName);
-    void addAcceptedFolder(QString objectName, bool includeSubfolders);
+    void addAcceptedFolder(QString volumeName, QString folderName, bool includeSubfolders);
     void removeAcceptedFolder(QString objectName);
     void astroFileAdded(int numberAdded);
     void astroFileRemoved(int numberRemoved);
@@ -115,14 +115,14 @@ private:
     void addInstruments();
     void addFilters();
     void addFileExtensions();
-    void addFolders();
+//    void addFolders();
     void resetGroups();
     void clearLayout(QLayout* layout);
     void selectedObjectsChanged(QString object, int state);
     void selectedInstrumentsChanged(QString object, int state);
     void selectedFiltersChanged(QString object, int state);
     void selectedFileExtensionsChanged(QString object, int state);
-    void selectedFoldersChanged(QString object, int state);
+    void selectedFoldersChanged(QString volume, QString folder, int state);
 
     // QAbstractItemView interface
 protected slots:

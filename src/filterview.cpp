@@ -118,7 +118,7 @@ void FilterView::treeViewClicked(const QItemSelection &selected, const QItemSele
     }
     fullPath += "/";
 
-    selectedFoldersChanged(fullPath, 2);
+    selectedFoldersChanged(volume, fullPath, 2);
 }
 
 void FilterView::resetGroups()
@@ -394,6 +394,7 @@ void FilterView::addObjects()
         QCheckBox* checkBox = findCheckBox(objectsGroup, objectsCheckBoxes, name, &FilterView::selectedObjectsChanged);
 
         checkBox->setEnabled(num != 0);
+
         if (checkedTags.contains("OBJ_"+name))
             checkBox->setChecked(true);
         checkBox->setText(tagText);
@@ -460,26 +461,26 @@ void FilterView::addFileExtensions()
     }
 }
 
-void FilterView::addFolders()
-{
-    auto& o = acceptedFolders;
-    QMapIterator setiter(o);
-    while (setiter.hasNext())
-    {
-        auto next = setiter.next();
-        QString name = next.key();
-        int num = next.value();
-        QString tagText = QString("%1 (%2)").arg(name).arg(num);
+//void FilterView::addFolders()
+//{
+//    auto& o = acceptedFolders;
+//    QMapIterator setiter(o);
+//    while (setiter.hasNext())
+//    {
+//        auto next = setiter.next();
+//        QString name = next.key();
+//        int num = next.value();
+//        QString tagText = QString("%1 (%2)").arg(name).arg(num);
 
-        QCheckBox* checkBox = findCheckBox(foldersGroup, foldersCheckBoxes, name, &FilterView::selectedFoldersChanged);
+//        QCheckBox* checkBox = findCheckBox(foldersGroup, foldersCheckBoxes, name, &FilterView::selectedFoldersChanged);
 
-        checkBox->setEnabled(num != 0);
-        if (checkedTags.contains("FOL_"+name))
-            checkBox->setChecked(true);
-        checkBox->setText(tagText);
-    }
+//        checkBox->setEnabled(num != 0);
+//        if (checkedTags.contains("FOL_"+name))
+//            checkBox->setChecked(true);
+//        checkBox->setText(tagText);
+//    }
 
-}
+//}
 
 void FilterView::selectedObjectsChanged(QString object, int state)
 {
@@ -541,17 +542,17 @@ void FilterView::selectedFileExtensionsChanged(QString object, int state)
     }
 }
 
-void FilterView::selectedFoldersChanged(QString object, int state)
+void FilterView::selectedFoldersChanged(QString volume, QString folder, int state)
 {
     switch (state)
     {
     case 0:
-        checkedTags.remove("FOL_"+object);
-        emit removeAcceptedFolder(object);
+        checkedTags.remove("FOL_"+folder);
+        emit removeAcceptedFolder(folder);
         break;
     case 2:
-        checkedTags.insert("FOL_"+object);
-        emit addAcceptedFolder(object, this->bFoldersIncludeSubfolders);
+        checkedTags.insert("FOL_"+folder);
+        emit addAcceptedFolder(volume, folder, this->bFoldersIncludeSubfolders);
         break;
     }
 }

@@ -41,7 +41,7 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     QString dateString = astroFile->Tags["DATE-OBS"];
     QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension) && folderAccepted(astroFile->DirectoryPath);
+    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension) && folderAccepted(astroFile->VolumeName, astroFile->DirectoryPath);
 
     if (isDuplicatedFilterActive)
         shouldAccept = shouldAccept && isDuplicateOf(astroFile->FileHash);
@@ -88,11 +88,11 @@ bool SortFilterProxyModel::extensionAccepted(QString extension) const
     return acceptedExtensions.empty() || acceptedExtensions.contains(extension) || (acceptedExtensions.contains("None") && extension.isEmpty());
 }
 
-bool SortFilterProxyModel::folderAccepted(QString folder) const
+bool SortFilterProxyModel::folderAccepted(QString volume, QString folder) const
 {
     if (!folder.endsWith('/'))
         folder.append('/');
-    return acceptedFolders.isEmpty() || acceptedFolders == folder || (includeSubfolders && folder.startsWith(acceptedFolders)) || (acceptedFolders.contains("None") && folder.isEmpty());
+    return acceptedVolume.isEmpty() || acceptedFolders.isEmpty() || (acceptedVolume == volume && acceptedFolders == folder) || (acceptedVolume == volume && includeSubfolders && folder.startsWith(acceptedFolders)) || (acceptedFolders.contains("None") && folder.isEmpty());
 }
 
 bool SortFilterProxyModel::isDuplicateOf(QString hash) const
@@ -190,9 +190,10 @@ void SortFilterProxyModel::removeAcceptedExtension(QString extensionName)
     }
 }
 
-void SortFilterProxyModel::addAcceptedFolder(QString folderName, bool includeSubfolders)
+void SortFilterProxyModel::addAcceptedFolder(QString volumeName, QString folderName, bool includeSubfolders)
 {
     this->includeSubfolders = includeSubfolders;
+    this->acceptedVolume = volumeName;
     acceptedFolders = folderName;
     invalidateFilter();
 
