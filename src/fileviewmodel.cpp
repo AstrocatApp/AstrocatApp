@@ -243,6 +243,10 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         {
             return a.VolumeName;
         }
+        case AstroFileRoles::VolumeRootRole:
+        {
+            return a.VolumeRoot;
+        }
         case AstroFileRoles::RaRole:
         {
             return a.Tags["OBJCTRA"];

@@ -32,19 +32,19 @@ FolderViewModel::FolderViewModel()
     rootFolder = new FolderNode();
 }
 
-QStringList foo(const QString& str) {
+QStringList splitFolders(const QString& str, const QString& volumeRoot) {
     QDir dir(str);
     QStringList folders;
     do
     {
         folders.prepend(dir.dirName());
         dir.cdUp();
-    } while (!dir.isRoot() && !dir.isEmpty());
+    } while (!dir.isRoot() && !dir.isEmpty() && dir!=volumeRoot);
 
     return folders;
 }
 
-void FolderViewModel::addItem(QString volume, QString folderPath)
+void FolderViewModel::addItem(QString volume, QString volumeRoot, QString folderPath)
 {
     QStandardItem *parentItem = rootItem;
     FolderNode* iterator = rootFolder;
@@ -61,21 +61,21 @@ void FolderViewModel::addItem(QString volume, QString folderPath)
     }
     if (iterator == rootFolder)
     {
-//        volumes.insert(volume);
         auto node = new FolderNode();
+        node->setRoot(volumeRoot);
         node->folderName = volume;
         iterator = node;
         rootFolder->children.append(node);
 
         QStandardItem *item = new QStandardItem(volume);
-        item->setData(QVariant::fromValue(node));
+        item->setData(QVariant::fromValue(node), Qt::UserRole + 2); //TODO: set a well-defined user role for this
         parentItem->appendRow(item);
         parentItem = item;
     }
 
     folders[folderPath]++;
 
-    auto paths = foo(folderPath);
+    auto paths = splitFolders(folderPath, volumeRoot);
     for (auto path : paths)
     {
         auto original = iterator;

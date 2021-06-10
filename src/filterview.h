@@ -50,6 +50,7 @@ public slots:
     void searchFilterReset();
 
     void foldersIncludeSubfolders();
+    void resetFoldersSelection();
 
     void setFoldersModel(QAbstractItemModel* model);
     void treeViewClicked(const QItemSelection &selected, const QItemSelection &deselected);
@@ -67,6 +68,7 @@ signals:
     void removeAcceptedExtension(QString objectName);
     void addAcceptedFolder(QString volumeName, QString folderName, bool includeSubfolders);
     void removeAcceptedFolder(QString objectName);
+    void resetAcceptedFolders();
     void astroFileAdded(int numberAdded);
     void astroFileRemoved(int numberRemoved);
 
@@ -123,6 +125,8 @@ private:
     void selectedFiltersChanged(QString object, int state);
     void selectedFileExtensionsChanged(QString object, int state);
     void selectedFoldersChanged(QString volume, QString folder, int state);
+
+//    void itemChanged(QStandardItem *item);
 
     // QAbstractItemView interface
 protected slots:

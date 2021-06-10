@@ -34,9 +34,12 @@ public:
     QList<FolderNode*> children;
     bool isChecked() const { return checked; }
     void setChecked( bool set ) { checked = set; }
+    void setRoot(QString root) { folderRoot = root; }
+    QString getRoot() {return folderRoot;}
 
 private:
     bool checked;
+    QString folderRoot;
 };
 
 class FolderViewModel : public QStandardItemModel
@@ -44,7 +47,7 @@ class FolderViewModel : public QStandardItemModel
     Q_OBJECT
 public:
     FolderViewModel();
-    void addItem(QString volume, QString folderPath);
+    void addItem(QString volume, QString root, QString folderPath);
     void removeItem(QString volume, QString folderPath);
 
 private:

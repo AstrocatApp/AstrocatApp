@@ -93,6 +93,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         astroFile.processStatus = AstroFileProcessed;
 
         astroFile.VolumeName = storageInfo.name();
+        astroFile.VolumeRoot = storageInfo.rootPath();
 
         emit astrofileProcessed(astroFile);
     });

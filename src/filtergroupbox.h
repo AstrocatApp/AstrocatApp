@@ -44,6 +44,8 @@ public:
 
     void addToolButtonMenu(QMenu* menu);
 
+    void resizeEvent(QResizeEvent *event) override;
+
 signals:
 
 private slots:

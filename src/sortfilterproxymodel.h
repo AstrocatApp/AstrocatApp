@@ -52,6 +52,7 @@ public slots:
     void removeAcceptedExtension(QString extensionName);
     void addAcceptedFolder(QString volumeName, QString folderName, bool includeSubfolders);
     void removeAcceptedFolder(QString folderName);
+    void clearAcceptedFolders();
     void activateDuplicatesFilter(bool shouldActivate);
     void setDuplicatesFilter(QString filter);
 

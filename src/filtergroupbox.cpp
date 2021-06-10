@@ -27,6 +27,7 @@
 #include <QToolButton>
 #include <QStyle>
 #include <QVBoxLayout>
+#include <QResizeEvent>
 
 FilterGroupBox::FilterGroupBox(QWidget *parent) : QGroupBox(parent)
 {
@@ -63,11 +64,13 @@ FilterGroupBox::FilterGroupBox(QWidget *parent) : QGroupBox(parent)
     int animationDuration = 100;
     collapseAnimation = new QPropertyAnimation(this, "maximumHeight");
     collapseAnimation->setDuration(animationDuration);
-    collapseAnimation->setEndValue(19);
+    collapseAnimation->setEndValue(20); // 20 leaves a line. 19 makes it invisible
 
     expandAnimation = new QPropertyAnimation(this, "maximumHeight");
     expandAnimation->setDuration(animationDuration);
     expandAnimation->setStartValue(20);
+
+//    this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 }
 
 FilterGroupBox::~FilterGroupBox()
@@ -77,6 +80,12 @@ FilterGroupBox::~FilterGroupBox()
 void FilterGroupBox::addToolButtonMenu(QMenu* menu)
 {
     optionsButton->setMenu(menu);
+}
+
+void FilterGroupBox::resizeEvent(QResizeEvent *event)
+{
+    auto size = event->size();
+    optionsButton->move(size.width()-optionsButton->width(), 0);
 }
 
 void FilterGroupBox::collapse()

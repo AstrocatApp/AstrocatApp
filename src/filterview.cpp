@@ -43,6 +43,7 @@ FilterView::FilterView(QWidget *parent)
     parent->layout()->addWidget(createObjectsBox());
     createDateBox();
 //    parent->layout()->addWidget(createDateBox());
+
     parent->layout()->addWidget(createInstrumentsBox());
     parent->layout()->addWidget(createFiltersBox());
     parent->layout()->addWidget(createFileExtensionsBox());
@@ -56,7 +57,9 @@ FilterView::FilterView(QWidget *parent)
     foldersTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     folderTreeSelectionModel = new QItemSelectionModel(folderModel);
     foldersTreeView->setSelectionModel(folderTreeSelectionModel);
+    foldersTreeView->setSelectionMode(SelectionMode::SingleSelection);
     connect(folderTreeSelectionModel, &QItemSelectionModel::selectionChanged, this, &FilterView::treeViewClicked);
+//    connect(folderModel, &QStandardItemModel::itemChanged, this, &FilterView::itemChanged);
 }
 
 void FilterView::setFilterMinimumDate(QDate date)
@@ -86,6 +89,13 @@ void FilterView::foldersIncludeSubfolders()
     }
 }
 
+void FilterView::resetFoldersSelection()
+{
+    this->foldersTreeView->clearSelection();
+//    emit treeViewClicked(QItemSelection(), QItemSelection());
+//    selectedFoldersChanged(QString(), QString(), 0);
+}
+
 void FilterView::setFoldersModel(QAbstractItemModel* model)
 {
     this->foldersTreeView->setModel(model);
@@ -93,12 +103,24 @@ void FilterView::setFoldersModel(QAbstractItemModel* model)
 
 void FilterView::treeViewClicked(const QItemSelection &selected, const QItemSelection &deselected)
 {
+    if (selected.isEmpty())
+    {
+        selectedFoldersChanged(QString(), QString(), 3);
+        return;
+    }
     QModelIndex index = selected[0].indexes()[0];
     QStringList paths;
+    QString volumeRoot = "";
     auto itIndex = index;
     while (itIndex != QModelIndex())
     {
         auto folder = folderModel->data(itIndex, Qt::DisplayRole).toString();
+        auto data = folderModel->data(itIndex, Qt::UserRole + 2); // TODO: set a well-defined user role for this
+        if (data.isValid())
+        {
+            auto node = data.value<FolderNode*>();
+            volumeRoot = node->getRoot();
+        }
         paths.prepend(folder);
         itIndex = itIndex.parent();
     }
@@ -114,9 +136,21 @@ void FilterView::treeViewClicked(const QItemSelection &selected, const QItemSele
             counter++;
             continue;
         }
-        fullPath = fullPath + "/" + path;
+        fullPath = fullPath + path;
+        if (!fullPath.endsWith('/'))
+        {
+            fullPath.append('/');
+        }
     }
-    fullPath += "/";
+    if (!volumeRoot.endsWith("/"))
+    {
+        volumeRoot.append("/");
+    }
+    fullPath.prepend(volumeRoot);
+    if (!fullPath.endsWith("/"))
+    {
+        fullPath.append("/");
+    }
 
     selectedFoldersChanged(volume, fullPath, 2);
 }
@@ -130,7 +164,6 @@ void FilterView::resetGroups()
     addInstruments();
     addFilters();
     addFileExtensions();
-//    addFolders();
 }
 
 QWidget* FilterView::createObjectsBox()
@@ -175,7 +208,6 @@ QWidget* FilterView::createInstrumentsBox()
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
     instrumentsGroup->setLayout(vbox);
-//    instrumentsGroup->layout()->addItem(vbox);
 
     return instrumentsGroup;
 }
@@ -187,7 +219,6 @@ QWidget *FilterView::createFiltersBox()
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
     filtersGroup->setLayout(vbox);
-//    filtersGroup->layout()->addItem(vbox);
 
     return filtersGroup;
 }
@@ -199,7 +230,6 @@ QWidget *FilterView::createFileExtensionsBox()
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
     extensionsGroup->setLayout(vbox);
-//    extensionsGroup->layout()->addItem(vbox);
 
     return extensionsGroup;
 }
@@ -210,7 +240,6 @@ QWidget *FilterView::createFoldersBox()
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addStretch(1);
     foldersGroup->setLayout(vbox);
-//    extensionsGroup->layout()->addItem(vbox);
 
     foldersTreeView = new QTreeView();
     foldersTreeView->setHeaderHidden(true);
@@ -226,12 +255,18 @@ QMenu *FilterView::createFoldersOptionsMenu()
 {
     QMenu* myMenu = new QMenu();
 
-    QAction* includeSubfoldersAction = new QAction("Include Subfolders", this);
+    QAction* includeSubfoldersAction = new QAction(tr("Include Subfolders"), this);
     includeSubfoldersAction->setCheckable(true);
     includeSubfoldersAction->setChecked(true);
     myMenu->addAction(includeSubfoldersAction);
 
     QObject::connect(includeSubfoldersAction, &QAction::triggered, this, &FilterView::foldersIncludeSubfolders);
+
+    QAction* resetSelectionAction = new QAction(tr("Clear Selection"), this);
+    myMenu->addAction(resetSelectionAction);
+
+    QObject::connect(resetSelectionAction, &QAction::triggered, this, &FilterView::resetFoldersSelection);
+
     return myMenu;
 }
 
@@ -249,6 +284,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
         auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
         auto directoryPath = model()->data(index, AstroFileRoles::DirectoryRole).toString();
         auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
+        auto volumeRoot = model()->data(index, AstroFileRoles::VolumeRootRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
 
         if (acceptedAstroFiles.contains(id))
@@ -269,7 +305,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
                 fileTags["FILEEXT"][fileExtension]++;
             acceptedFolders[directoryPath]++;
             acceptedAstroFiles.insert(id);
-            folderModel->addItem(volumeName, directoryPath);
+            folderModel->addItem(volumeName, volumeRoot, directoryPath);
         }
     }
 
@@ -462,27 +498,6 @@ void FilterView::addFileExtensions()
     }
 }
 
-//void FilterView::addFolders()
-//{
-//    auto& o = acceptedFolders;
-//    QMapIterator setiter(o);
-//    while (setiter.hasNext())
-//    {
-//        auto next = setiter.next();
-//        QString name = next.key();
-//        int num = next.value();
-//        QString tagText = QString("%1 (%2)").arg(name).arg(num);
-
-//        QCheckBox* checkBox = findCheckBox(foldersGroup, foldersCheckBoxes, name, &FilterView::selectedFoldersChanged);
-
-//        checkBox->setEnabled(num != 0);
-//        if (checkedTags.contains("FOL_"+name))
-//            checkBox->setChecked(true);
-//        checkBox->setText(tagText);
-//    }
-
-//}
-
 void FilterView::selectedObjectsChanged(QString object, int state)
 {
     switch (state)
@@ -548,12 +563,19 @@ void FilterView::selectedFoldersChanged(QString volume, QString folder, int stat
     switch (state)
     {
     case 0:
-        checkedTags.remove("FOL_"+folder);
+//        checkedTags.remove("FOL_"+folder);
         emit removeAcceptedFolder(folder);
         break;
     case 2:
-        checkedTags.insert("FOL_"+folder);
+//        checkedTags.insert("FOL_"+folder);
         emit addAcceptedFolder(volume, folder, this->bFoldersIncludeSubfolders);
         break;
+    case 3:
+        emit resetAcceptedFolders();
     }
 }
+
+//void FilterView::itemChanged(QStandardItem *item)
+//{
+//    qDebug()<<"item changed:" << item->data(Qt::UserRole + 1);
+//}

@@ -177,6 +177,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterView,             &FilterView::removeAcceptedObject,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedObject);
     connect(filterView,             &FilterView::removeAcceptedExtension,               sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedExtension);
     connect(filterView,             &FilterView::removeAcceptedFolder,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedFolder);
+    connect(filterView,             &FilterView::resetAcceptedFolders,                  sortFilterProxyModel,   &SortFilterProxyModel::clearAcceptedFolders);
     connect(filterView,             &FilterView::astroFileAdded,                        this,                   &MainWindow::itemAddedToSortFilterView);
     connect(filterView,             &FilterView::astroFileRemoved,                      this,                   &MainWindow::itemRemovedFromSortFilterView);
     connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);

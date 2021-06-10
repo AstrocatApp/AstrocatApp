@@ -215,6 +215,13 @@ void SortFilterProxyModel::removeAcceptedFolder(QString folderName)
 //    }
 }
 
+void SortFilterProxyModel::clearAcceptedFolders()
+{
+    acceptedFolders.clear();
+    acceptedVolume.clear();
+    invalidateFilter();
+}
+
 void SortFilterProxyModel::activateDuplicatesFilter(bool shouldActivate)
 {
     isDuplicatedFilterActive = shouldActivate;
