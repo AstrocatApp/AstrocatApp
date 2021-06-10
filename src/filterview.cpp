@@ -372,6 +372,7 @@ QCheckBox *FilterView::findCheckBox(QGroupBox *group, QList<QCheckBox *> &checkB
 #ifdef Q_OS_WINDOWS
     checkBox->setStyleSheet(
                     "QCheckBox::indicator:disabled{background-color:gray;}"
+                    "QWidget {color: white;}"
                     );
 #endif
     checkBoxes.append(checkBox);
