@@ -286,6 +286,23 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
         auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
         auto volumeRoot = model()->data(index, AstroFileRoles::VolumeRootRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
+        auto imageType = model()->data(index, AstroFileRoles::CalframeRole).toString();
+
+        // We should check if there is a performance improvement of getting the object
+        // instead of asking for data from the model.
+//        auto astrofile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
+
+//        auto id = astrofile->Id;
+//        auto object = astrofile->Tags["OBJECT"];
+//        auto instrument = astrofile->Tags["INSTRUME"];
+//        auto filter = astrofile->Tags["FILTER"];
+//        auto date = astrofile->Tags["DATE-OBS"];
+//        auto fullPath = astrofile->FullPath;
+//        auto directoryPath = astrofile->DirectoryPath;
+//        auto volumeName = astrofile->VolumeName;
+//        auto volumeRoot = astrofile->VolumeRoot;
+//        auto fileExtension = astrofile->FileExtension;
+//        auto imageType = astrofile->Tags["CALFRAME"];
 
         if (acceptedAstroFiles.contains(id))
         {
@@ -330,6 +347,23 @@ void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int 
         auto directoryPath = model()->data(index, AstroFileRoles::DirectoryRole).toString();
         auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
         auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
+        auto imageType = model()->data(index, AstroFileRoles::CalframeRole).toString();
+
+        // We should check if there is a performance improvement of getting the object
+        // instead of asking for data from the model.
+//        auto astrofile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
+
+//        auto id = astrofile->Id;
+//        auto object = astrofile->Tags["OBJECT"];
+//        auto instrument = astrofile->Tags["INSTRUME"];
+//        auto filter = astrofile->Tags["FILTER"];
+//        auto date = astrofile->Tags["DATE-OBS"];
+//        auto fullPath = astrofile->FullPath;
+//        auto directoryPath = astrofile->DirectoryPath;
+//        auto volumeName = astrofile->VolumeName;
+//        auto volumeRoot = astrofile->VolumeRoot;
+//        auto fileExtension = astrofile->FileExtension;
+//        auto imageType = astrofile->Tags["CALFRAME"];
 
         if (acceptedAstroFiles.contains(id))
         {

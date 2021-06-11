@@ -212,6 +212,11 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
             icon.addPixmap(pixmap, QIcon::Selected);
             return icon;
         }
+        case AstroFileRoles::ItemRole:
+        {
+            auto af = catalog->getAstroFile(index.row());
+            return QVariant::fromValue<AstroFile*>(af);
+        }
         case Qt::SizeHintRole:
         {
             return cellSize;

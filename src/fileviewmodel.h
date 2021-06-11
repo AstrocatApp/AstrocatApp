@@ -34,6 +34,7 @@
 enum AstroFileRoles
 {
     IdRole = Qt::UserRole,
+    ItemRole,
     InstrumentRole,
     ObjectRole,
     FilterRole,
