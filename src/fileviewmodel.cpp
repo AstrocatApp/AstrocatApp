@@ -293,6 +293,10 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         {
             return a.Tags["BLKLEVEL"];
         }
+        case AstroFileRoles::CalframeRole:
+        {
+            return a.Tags["CALFRAME"];
+        }
         case AstroFileRoles::FileTypeRole:
         {
             return a.FileType;
