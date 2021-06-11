@@ -175,6 +175,8 @@ QString FileViewModel::decConverter(QString dec) const
 
 QVariant FileViewModel::data(const QModelIndex &index, int role) const
 {
+    if (!index.isValid())
+        return QVariant();
     if (index.row() >= rc)
     {
         return QVariant();
