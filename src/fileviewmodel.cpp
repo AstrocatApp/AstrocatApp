@@ -181,7 +181,11 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
     {
         return QVariant();
     }
-    AstroFile a(*catalog->getAstroFile(index.row()));
+    auto astroFile = catalog->getAstroFile(index.row());
+    if (astroFile == nullptr)
+        return QVariant();
+
+    AstroFile a(*astroFile);
 
     switch (role)
     {
