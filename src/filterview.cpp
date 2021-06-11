@@ -179,33 +179,35 @@ void FilterView::resetGroups()
     addFileExtensions();
 }
 
-QWidget* FilterView::createObjectsBox()
+FilterGroupBox* FilterView::createGenericBox(QString title)
 {
-    objectsGroup = new FilterGroupBox(tr("Objects"));
+    auto groupBox = new FilterGroupBox(title);
 
     QVBoxLayout *vbox = new QVBoxLayout;
-    vbox->addStretch(20);
-    objectsGroup->setLayout(vbox);
-//    objectsGroup->layout()->addItem(vbox);
+    vbox->addStretch(1);
+    groupBox->setLayout(vbox);
 
+    return groupBox;
+}
+
+QWidget* FilterView::createObjectsBox()
+{
+    objectsGroup = createGenericBox(tr("Objects"));
     return objectsGroup;
 }
 
 QWidget* FilterView::createDateBox()
 {
-    datesGroup = new FilterGroupBox(tr("Dates"));
+    datesGroup = createGenericBox(tr("Dates"));
     minDateEdit = new QDateEdit();
     maxDateEdit = new QDateEdit();
 
     minDateEdit->setToolTip("Feature Coming Soon");
     maxDateEdit->setToolTip("Feature Coming Soon");
 
-    QVBoxLayout *vbox = new QVBoxLayout;
+    auto vbox = datesGroup->layout();
     vbox->addWidget(minDateEdit);
     vbox->addWidget(maxDateEdit);
-    vbox->addStretch(1);
-    datesGroup->setLayout(vbox);
-//    datesGroup->layout()->addItem(vbox);
     minDateEdit->setDate(QDate::currentDate());
 
     connect(minDateEdit, &QDateEdit::dateChanged, this, &FilterView::minimumDateChanged);
