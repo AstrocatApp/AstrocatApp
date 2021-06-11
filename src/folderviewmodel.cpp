@@ -34,12 +34,13 @@ FolderViewModel::FolderViewModel()
 
 QStringList splitFolders(const QString& str, const QString& volumeRoot) {
     QDir dir(str);
+    bool exists = false;
     QStringList folders;
     do
     {
         folders.prepend(dir.dirName());
-        dir.cdUp();
-    } while (!dir.isRoot() && !dir.isEmpty() && dir!=volumeRoot);
+        exists = dir.cdUp();
+    } while (exists && !dir.isRoot() && dir!=volumeRoot);
 
     return folders;
 }
