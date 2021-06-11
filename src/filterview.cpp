@@ -36,30 +36,43 @@
 FilterView::FilterView(QWidget *parent)
 {
     _parent = parent;
-    vLayout = new QVBoxLayout;
+    vLayout = new QVBoxLayout();
 
     folderModel = new FolderViewModel();
 
-    parent->layout()->addWidget(createObjectsBox());
-    createDateBox();
-//    parent->layout()->addWidget(createDateBox());
-
-    parent->layout()->addWidget(createInstrumentsBox());
-    parent->layout()->addWidget(createFiltersBox());
-    parent->layout()->addWidget(createFileExtensionsBox());
-    parent->layout()->addWidget(createFoldersBox());
-
+    createGroupBoxes();
+    addGroupBoxesToLayout();
     QSpacerItem * spacer = new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Expanding);
-    parent->layout()->addItem(spacer);
+    _parent->layout()->addItem(spacer);
 
     setFoldersModel(folderModel);
 
-    foldersTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     folderTreeSelectionModel = new QItemSelectionModel(folderModel);
     foldersTreeView->setSelectionModel(folderTreeSelectionModel);
     foldersTreeView->setSelectionMode(SelectionMode::SingleSelection);
+    foldersTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(folderTreeSelectionModel, &QItemSelectionModel::selectionChanged, this, &FilterView::treeViewClicked);
 //    connect(folderModel, &QStandardItemModel::itemChanged, this, &FilterView::itemChanged);
+}
+
+void FilterView::createGroupBoxes()
+{
+    createObjectsBox();
+    createDateBox();
+    createInstrumentsBox();
+    createFiltersBox();
+    createFileExtensionsBox();
+    createFoldersBox();
+}
+
+void FilterView::addGroupBoxesToLayout()
+{
+    _parent->layout()->addWidget(objectsGroup);
+//    _parent->layout()->addWidget(datesGroup);
+    _parent->layout()->addWidget(instrumentsGroup);
+    _parent->layout()->addWidget(filtersGroup);
+    _parent->layout()->addWidget(extensionsGroup);
+    _parent->layout()->addWidget(foldersGroup);
 }
 
 void FilterView::setFilterMinimumDate(QDate date)
@@ -203,46 +216,29 @@ QWidget* FilterView::createDateBox()
 
 QWidget* FilterView::createInstrumentsBox()
 {
-    instrumentsGroup = new FilterGroupBox(tr("Instruments"));
-
-    QVBoxLayout *vbox = new QVBoxLayout;
-    vbox->addStretch(1);
-    instrumentsGroup->setLayout(vbox);
-
+    instrumentsGroup = createGenericBox(tr("Instruments"));
     return instrumentsGroup;
 }
 
 QWidget *FilterView::createFiltersBox()
 {
-    filtersGroup = new FilterGroupBox(tr("Filters"));
-
-    QVBoxLayout *vbox = new QVBoxLayout;
-    vbox->addStretch(1);
-    filtersGroup->setLayout(vbox);
-
+    filtersGroup = createGenericBox(tr("Filters"));
     return filtersGroup;
 }
 
 QWidget *FilterView::createFileExtensionsBox()
 {
-    extensionsGroup = new FilterGroupBox(tr("Extensions"));
-
-    QVBoxLayout *vbox = new QVBoxLayout;
-    vbox->addStretch(1);
-    extensionsGroup->setLayout(vbox);
-
+    extensionsGroup = createGenericBox(tr("Extensions"));
     return extensionsGroup;
 }
 
 QWidget *FilterView::createFoldersBox()
 {
-    foldersGroup = new FilterGroupBox(tr("Folders"));
-    QVBoxLayout *vbox = new QVBoxLayout;
-    vbox->addStretch(1);
-    foldersGroup->setLayout(vbox);
+    foldersGroup = createGenericBox(tr("Folders"));
 
     foldersTreeView = new QTreeView();
     foldersTreeView->setHeaderHidden(true);
+    auto vbox = foldersGroup->layout();
     vbox->addWidget(foldersTreeView);
 
     QMenu* myMenu = createFoldersOptionsMenu();

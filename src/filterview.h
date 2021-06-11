@@ -96,6 +96,7 @@ private:
     QList<QCheckBox*> foldersCheckBoxes;
     QCheckBox* findCheckBox(QGroupBox* group, QList<QCheckBox*>& checkBoxes, QString titleProperty, void (FilterView::* func)(QString,int));
 
+    FilterGroupBox* createGenericBox(QString title);
     QWidget* createDateBox();
     QWidget* createObjectsBox();
     QWidget* createInstrumentsBox();
@@ -112,6 +113,8 @@ private:
 
     bool bFoldersIncludeSubfolders = true;
 
+    void createGroupBoxes();
+    void addGroupBoxesToLayout();
     void addObjects();
     void addDates();
     void addInstruments();
