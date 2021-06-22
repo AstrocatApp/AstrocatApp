@@ -84,8 +84,8 @@ signals:
     void catalogAddAstroFiles(const QList<AstroFile> &files);
 
 private slots:
-    void on_imageSizeSlider_valueChanged(int value);
-    void on_actionFolders_triggered();
+    void imageSizeSlider_valueChanged(int value);
+    void actionFolders_triggered();
     void handleSelectionChanged(QItemSelection selection);
     void modelLoadedFromDb(const QList<AstroFile> &files);
 
@@ -93,7 +93,7 @@ private slots:
     void processingCancelled(const QFileInfo& fileInfo);
     void processQueued(const QFileInfo &fileInfo);
 
-    void on_actionAbout_triggered();
+    void actionAbout_triggered();
     void setWatermark(bool shoudSet);
 
     void rowsAddedToModel(const QModelIndex &parent, int first, int last);
@@ -105,7 +105,7 @@ private slots:
 
     void reveal();
     void remove();
-    void on_duplicatesButton_clicked();
+    void duplicatesButton_clicked();
 
     void dbFailedToOpen(const QString message);
     void dbAstroFileUpdated(const AstroFile& astroFile);

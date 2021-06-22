@@ -40,6 +40,8 @@ AboutWindow::AboutWindow(QWidget *parent) :
 
     ui->versionLabel->setText(version);
     ui->listWidget->setCurrentRow(0);
+
+    connect(ui->listWidget, &QListWidget::currentItemChanged, this, &AboutWindow::listWidget_currentItemChanged);
 }
 
 AboutWindow::~AboutWindow()
@@ -47,7 +49,7 @@ AboutWindow::~AboutWindow()
     delete ui;
 }
 
-void AboutWindow::on_listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
+void AboutWindow::listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
 {
     Q_UNUSED(previous);
 

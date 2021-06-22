@@ -128,6 +128,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     loading = new ModelLoadingDialog(this);
 
+    connect(ui->imageSizeSlider,    &QSlider::valueChanged,                             this,                   &MainWindow::imageSizeSlider_valueChanged);
+    connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
+    connect(ui->actionFolders,      &QAction::triggered,                                this,                   &MainWindow::actionFolders_triggered);
+    connect(ui->actionAbout,        &QAction::triggered,                                this,                   &MainWindow::actionAbout_triggered);
     connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
     connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);
     connect(this,                   &MainWindow::deleteAstrofilesInFolder,              fileRepositoryWorker,   &FileRepository::deleteAstrofilesInFolder);
@@ -180,7 +184,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterView,             &FilterView::resetAcceptedFolders,                  sortFilterProxyModel,   &SortFilterProxyModel::clearAcceptedFolders);
     connect(filterView,             &FilterView::astroFileAdded,                        this,                   &MainWindow::itemAddedToSortFilterView);
     connect(filterView,             &FilterView::astroFileRemoved,                      this,                   &MainWindow::itemRemovedFromSortFilterView);
-    connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
     connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotAstrofiles,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotAstrofiles);
     connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotTags,               loading,                &ModelLoadingDialog::modelLoadingFromDbGotTag);
@@ -272,7 +275,7 @@ void MainWindow::searchFolderRemoved(const QString folder)
     emit deleteAstrofilesInFolder(folder);
 }
 
-void MainWindow::on_imageSizeSlider_valueChanged(int value)
+void MainWindow::imageSizeSlider_valueChanged(int value)
 {
     auto currentIndex = ui->astroListView->currentIndex();
 
@@ -302,12 +305,12 @@ QImage MainWindow::makeThumbnail(const QImage &image)
     return small;
 }
 
-void MainWindow::on_actionFolders_triggered()
+void MainWindow::actionFolders_triggered()
 {
     searchFolderDialog.exec();
 }
 
-void MainWindow::on_actionAbout_triggered()
+void MainWindow::actionAbout_triggered()
 {
     AboutWindow about(this);
     about.exec();
@@ -593,7 +596,7 @@ void MainWindow::createActions()
     connect(removeAct, &QAction::triggered, this, &MainWindow::remove);
 }
 
-void MainWindow::on_duplicatesButton_clicked()
+void MainWindow::duplicatesButton_clicked()
 {
     QItemSelectionModel *select = ui->astroListView->selectionModel();
     auto items = select->selectedRows();

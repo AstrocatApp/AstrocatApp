@@ -41,7 +41,7 @@ public:
     ~AboutWindow();
 
 private slots:
-    void on_listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
+    void listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
 
 private:
     Ui::AboutWindow *ui;
