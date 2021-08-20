@@ -38,6 +38,7 @@
 #include <QProcess>
 #include <QPixmapCache>
 #include <QDir>
+#include <QToolBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -122,12 +123,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->splitter->setSizes({50, 1000});
 
+    //+++ Custom Toolbar
+    QToolBar *toolbar = addToolBar("main toolbar");
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    toolbar->setStyleSheet("QToolButton{font-size: 20px;}");
+    QAction* importAction = toolbar->addAction("Import");
+    toolbar->addSeparator();
+    QAction* settingsAction = toolbar->addAction("Settings");
+    //--- Custom Toolbar
+
     ui->astroListView->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
     createActions();
     QPixmapCache::setCacheLimit(100*1024);
 
     loading = new ModelLoadingDialog(this);
 
+    connect(importAction,           &QAction::triggered,                                this,                   &MainWindow::importAction_triggered);
+    connect(settingsAction,         &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
     connect(ui->imageSizeSlider,    &QSlider::valueChanged,                             this,                   &MainWindow::imageSizeSlider_valueChanged);
     connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(ui->actionFolders,      &QAction::triggered,                                this,                   &MainWindow::actionFolders_triggered);
@@ -462,6 +474,17 @@ void MainWindow::setWatermark(bool shouldSet)
     {
         ui->astroListView->setPalette(QPalette());
     }
+}
+
+void MainWindow::importAction_triggered()
+{
+    emit actionFolders_triggered();
+}
+
+void MainWindow::settingsAction_triggered()
+{
+    qDebug()<<"Settings Action";
+    // TODO: Implement here
 }
 
 void MainWindow::rowsAddedToModel(const QModelIndex &parent, int first, int last)

@@ -95,6 +95,8 @@ private slots:
 
     void actionAbout_triggered();
     void setWatermark(bool shoudSet);
+    void importAction_triggered();
+    void settingsAction_triggered();
 
     void rowsAddedToModel(const QModelIndex &parent, int first, int last);
     void rowsRemovedFromModel(const QModelIndex &parent, int first, int last);
