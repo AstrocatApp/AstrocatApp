@@ -141,7 +141,7 @@ void FilterView::treeViewClicked(const QItemSelection &selected, const QItemSele
     int counter = 0;
     QString volume;
     QString fullPath;
-    for (auto path : paths)
+    for (auto& path : paths)
     {
         if (counter == 0)
         {

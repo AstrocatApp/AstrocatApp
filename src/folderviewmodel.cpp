@@ -77,7 +77,7 @@ void FolderViewModel::addItem(QString volume, QString volumeRoot, QString folder
     folders[folderPath]++;
 
     auto paths = splitFolders(folderPath, volumeRoot);
-    for (auto path : paths)
+    for (auto& path : paths)
     {
         auto original = iterator;
         int row = 0;

@@ -223,7 +223,7 @@ bool Catalog::shouldProcessFile(const QFileInfo &fileInfo)
 
     searchFoldersMutex.lock();
     bool isInSearchFolders = false;
-    for (auto s : searchFolders)
+    for (auto& s : searchFolders)
     {
         if (path.contains(s))
         {
