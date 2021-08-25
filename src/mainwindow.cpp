@@ -83,6 +83,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->astroListView->setUniformItemSizes(true);
     ui->astroListView->setIconSize(QSize(200,200)*0.9);
 
+//    ui->astroListView->setAcceptDrops(true);
+//    ui->astroListView->viewport()->setAcceptDrops(true);
+    ui->astroListView->setDropIndicatorShown(false);
+    ui->astroListView->setDragDropMode(QAbstractItemView::DropOnly);
+
     ui->astroListView->setStyleSheet(
                 "QListView {"
                     "background-color: #232323;"
@@ -171,6 +176,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
     connect(newFileProcessorThread, &QThread::finished,                                 newFileProcessorWorker, &QObject::deleteLater);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             this,                   &MainWindow::searchFolderAdded);
+    connect(fileViewModel,          &FileViewModel::fileDropped,                        this,                   &MainWindow::searchFoldersAdded);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderRemoved,           this,                   &MainWindow::searchFolderRemoved);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMinimumDateChanged,    filterView,             &FilterView::setFilterMinimumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterView,             &FilterView::setFilterMaximumDate);
@@ -277,6 +283,14 @@ void MainWindow::searchFolderAdded(const QString folder)
     catalog->addSearchFolder(folder);
 
     emit folderCrawlerWorker->crawl(folder);
+}
+
+void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
+{
+    for (auto& f : folders)
+    {
+        searchFolderAdded(f.path());
+    }
 }
 
 void MainWindow::searchFolderRemoved(const QString folder)

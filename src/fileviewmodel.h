@@ -30,6 +30,7 @@
 
 #include <QAbstractItemModel>
 #include <QImage>
+#include <QUrl>
 
 enum AstroFileRoles
 {
@@ -76,6 +77,11 @@ public:
     QModelIndex parent(const QModelIndex &child) const override;
     bool hasChildren(const QModelIndex &parent) const override;
     void setCatalog(Catalog* cat);
+    virtual bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+    Qt::DropActions supportedDragActions() const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    QStringList mimeTypes() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
 
 public slots:
     void setCellSize(const int newSize);
@@ -90,6 +96,7 @@ signals:
     void modelIsEmpty(bool isEmpty);
     void loadThumbnailFromDb(const AstroFile& astroFile) const;
     void astroFileDeleted(int row);
+    void fileDropped(QList<QUrl> urls);
 
 private:
     int rc;

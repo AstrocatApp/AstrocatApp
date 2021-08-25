@@ -61,6 +61,7 @@ public:
 public slots:
 //    void newFileFound(const QFileInfo fileInfo);
     void searchFolderAdded(const QString folder);
+    void searchFoldersAdded(const QList<QUrl> folders);
     void searchFolderRemoved(const QString folder);
 
 signals:

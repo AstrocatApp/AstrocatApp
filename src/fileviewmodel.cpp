@@ -25,8 +25,10 @@
 #include "fileviewmodel.h"
 
 #include <QIcon>
+#include <QMimeData>
 #include <QPixmap>
 #include <QPixmapCache>
+#include <QUrl>
 
 FileViewModel::FileViewModel(QObject* parent) : QAbstractItemModel(parent)
 {
@@ -348,3 +350,47 @@ void FileViewModel::addThumbnail(const AstroFile &astroFile)
     QPixmapCache::insert(QString::number(astroFile.Id), QPixmap::fromImage(astroFile.thumbnail.scaled( QSize(400,400), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
     emit dataChanged(index, index, {Qt::DecorationRole});
 }
+
+bool FileViewModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+{
+    qDebug()<<"FileViewModel::dropMimeData";
+    emit fileDropped(data->urls());
+    for (auto& a : data->urls())
+    {
+        qDebug()<<a;
+    }
+
+    return true;
+}
+
+Qt::DropActions FileViewModel::supportedDragActions() const
+{
+    return Qt::CopyAction | Qt::MoveAction;
+}
+
+Qt::ItemFlags FileViewModel::flags(const QModelIndex &index) const
+{
+    Qt::ItemFlags defaultFlags = QAbstractItemModel::flags(index);
+
+     if (index.isValid())
+         return Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+     else
+         return Qt::ItemIsDropEnabled | defaultFlags;
+}
+
+QStringList FileViewModel::mimeTypes() const
+{
+    QStringList types;
+    types << "text/uri-list";
+    return types;
+}
+
+QMimeData *FileViewModel::mimeData(const QModelIndexList &indexes) const
+{
+    const AstroFile* astroFile = static_cast<AstroFile*>(indexes[0].internalPointer());
+
+    QMimeData* mimeData = new QMimeData();
+    mimeData->setUrls(QList<QUrl>() << QUrl::fromLocalFile(astroFile->FullPath));
+    return mimeData;
+}
+
