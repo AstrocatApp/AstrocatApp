@@ -133,8 +133,9 @@ private:
 
     // QAbstractItemView interface
 protected slots:
-    void rowsInserted(const QModelIndex &parent, int start, int end);
-    void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
+    void rowsInserted(const QModelIndex &parent, int start, int end) override;
+    void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) override;
+
 };
 
 #endif // FILTERVIEW_H
