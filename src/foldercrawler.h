@@ -27,6 +27,7 @@
 
 #include <QFileInfo>
 #include <QObject>
+#include <QUrl>
 
 class FolderCrawler : public QObject
 {
@@ -37,6 +38,7 @@ public:
 
 public slots:
     virtual void crawl(QString rootFolder);
+    virtual void crawlUrl(QUrl rootFolder);
 
 signals:
     void fileFound(QFileInfo filePath);

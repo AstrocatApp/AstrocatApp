@@ -50,3 +50,18 @@ void FolderCrawler::crawl(QString rootFolder)
     }
     qDebug() << "Done crawling... " << rootFolder;
 }
+
+void FolderCrawler::crawlUrl(QUrl rootFolder)
+{
+    QStringList extensions = {"*.fits", "*.fit", "*.xisf", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.tif", "*.tiff", "*.bmp"};
+
+    QDirIterator it(rootFolder.path(), extensions, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        if (cancelSignaled)
+            return;
+        it.next();
+        emit fileFound(it.fileInfo());
+    }
+    qDebug() << "Done crawling... " << rootFolder;
+}
