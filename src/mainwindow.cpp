@@ -282,7 +282,7 @@ void MainWindow::searchFolderAdded(const QString folder)
 {
     catalog->addSearchFolder(folder);
 
-    emit folderCrawlerWorker->crawl(folder);
+    emit crawl(folder);
 }
 
 void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
@@ -496,7 +496,7 @@ void MainWindow::setWatermark(bool shouldSet)
 
 void MainWindow::importAction_triggered()
 {
-    emit actionFolders_triggered();
+    actionFolders_triggered();
 }
 
 void MainWindow::settingsAction_triggered()
