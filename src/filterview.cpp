@@ -116,6 +116,8 @@ void FilterView::setFoldersModel(QAbstractItemModel* model)
 
 void FilterView::treeViewClicked(const QItemSelection &selected, const QItemSelection &deselected)
 {
+    Q_UNUSED(deselected);
+
     if (selected.isEmpty())
     {
         selectedFoldersChanged(QString(), QString(), 3);

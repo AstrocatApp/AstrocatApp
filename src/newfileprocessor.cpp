@@ -64,6 +64,11 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         }
 
         FileProcessor* processor = getProcessorForFile(astroFile);
+        if (processor == nullptr)
+        {
+            emit processingCancelled(fileInfo);
+            return;
+        }
 
         if (!processor->loadFile(astroFile))
         {
@@ -151,5 +156,6 @@ FileProcessor* NewFileProcessor::getProcessorForFile(const AstroFile &astroFile)
             return new XisfProcessor();
         case AstroFileType::Image:
             return new ImageProcessor();
+        default: return nullptr;
     }
 }

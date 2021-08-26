@@ -33,6 +33,8 @@
 // child folders
 Catalog::Catalog(QObject *parent)
 {
+    Q_UNUSED(parent);
+
 //    QTimer *timer = new QTimer(this);
     connect(&timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
     astroFilesQueue = 0;

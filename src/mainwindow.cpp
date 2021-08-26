@@ -453,12 +453,16 @@ void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 
 void MainWindow::processingCancelled(const QFileInfo &fileInfo)
 {
+    Q_UNUSED(fileInfo);
+
     numberOfActiveJobs--;
     ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
 }
 
 void MainWindow::processQueued(const QFileInfo &fileInfo)
 {
+    Q_UNUSED(fileInfo);
+
     numberOfActiveJobs++;
     ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
 }
@@ -503,6 +507,8 @@ void MainWindow::settingsAction_triggered()
 
 void MainWindow::rowsAddedToModel(const QModelIndex &parent, int first, int last)
 {
+    Q_UNUSED(parent);
+
     int numberAdded = last-first+1;
     this->numberOfItems += numberAdded;
     this->numberOfItemsLabel.setText(QString("Items: %1").arg(numberOfItems));
@@ -510,6 +516,8 @@ void MainWindow::rowsAddedToModel(const QModelIndex &parent, int first, int last
 
 void MainWindow::rowsRemovedFromModel(const QModelIndex &parent, int first, int last)
 {
+    Q_UNUSED(parent);
+
     int numberRemoved = last-first+1;
     this->numberOfItems -= numberRemoved;
     this->numberOfItemsLabel.setText(QString("Items: %1").arg(numberOfItems));

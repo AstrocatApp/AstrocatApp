@@ -40,15 +40,15 @@ enum BayerPattern
     Unsupported
 };
 
-enum ImageDataType
-{
-    BYTEIMG,
-    SHORTIMG,
-    LONGIMG,
-    LONGLONGIMG,
-    FLOATIMG,
-    DOUBLEIMG
-};
+//enum ImageDataType
+//{
+//    BYTEIMG,
+//    SHORTIMG,
+//    LONGIMG,
+//    LONGLONGIMG,
+//    FLOATIMG,
+//    DOUBLEIMG
+//};
 
 class FitsFile
 {
@@ -88,7 +88,7 @@ public:
 private:
     int _numberOfChannels;
     BayerPattern _bayerPattern;
-    ImageDataType _imageDataType;
+//    ImageDataType _imageDataType;
     QImage _qImage;
     QImage::Format _qImageFormat;
     QMap<QString, QString> _tags;

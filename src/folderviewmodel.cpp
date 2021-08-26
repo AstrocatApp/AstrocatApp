@@ -114,5 +114,7 @@ void FolderViewModel::addItem(QString volume, QString volumeRoot, QString folder
 
 void FolderViewModel::removeItem(QString volume, QString folderPath)
 {
+    Q_UNUSED(volume);
+
     folders[folderPath]--;
 }

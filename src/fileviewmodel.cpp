@@ -40,12 +40,6 @@ FileViewModel::~FileViewModel()
 {
 }
 
-void FileViewModel::setInitialModel(int count)
-{
-    qDebug()<<"Setting initial model";
-    insertRows(0, count, QModelIndex());
-}
-
 int FileViewModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
@@ -63,6 +57,7 @@ int FileViewModel::columnCount(const QModelIndex &parent) const
 QModelIndex FileViewModel::parent(const QModelIndex &child) const
 {
     Q_UNUSED(child);
+
     // none of our items have valid parents, because they all are root items
     return QModelIndex();
 }
@@ -70,6 +65,7 @@ QModelIndex FileViewModel::parent(const QModelIndex &child) const
 QModelIndex FileViewModel::index(int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
+
     if (row < rc  && row >= 0 && column < cc && column >= 0)
     {
         auto a = catalog->getAstroFile(row);
@@ -104,7 +100,6 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
 
     // Do not "emit" astroFileDeleted, but instead call it directly.
     // Otherwise due to threading, the row will be wrong.
-//    emit astroFileDeleted(row);
     catalog->deleteAstroFileRow(row);
     return true;
 }
@@ -112,6 +107,7 @@ bool FileViewModel::removeRows(int row, int count, const QModelIndex &parent)
 bool FileViewModel::insertColumns(int column, int count, const QModelIndex &parent)
 {
     Q_UNUSED(count);
+
     beginInsertColumns(parent,column, column + count -1);
     cc += count;
     endInsertColumns();
@@ -200,7 +196,6 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
             QPixmap pixmap;
             if (!QPixmapCache::find(QString::number(a.Id), &pixmap))
             {
-//                qDebug()<<"Requesting thumb from db for: " << a.Id;
                 emit loadThumbnailFromDb(a);
                 pixmap = QPixmap::fromImage(a.tinyThumbnail).scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             }
@@ -323,13 +318,14 @@ void FileViewModel::AddAstroFiles(int numberAdded)
 
 void FileViewModel::UpdateAstroFile(AstroFile astroFile, int row)
 {
+    Q_UNUSED(astroFile);
+
     auto index = createIndex(row, 0);
     emit dataChanged(index, index);
 }
 
 void FileViewModel::RemoveAstroFile(const AstroFile& astroFile)
 {
-//    qDebug()<<"Removed from model: " << astroFile.FullPath;
     int row = catalog->astroFileIndex(astroFile);
     removeRow(row);
 }
@@ -346,19 +342,19 @@ void FileViewModel::addThumbnail(const AstroFile &astroFile)
 {
     int row = catalog->astroFileIndex(astroFile);
     auto index = createIndex(row, 0);
-//    qDebug()<<"Inserting into PixmapCache: " << astroFile.Id << " row: " << row;
+
     QPixmapCache::insert(QString::number(astroFile.Id), QPixmap::fromImage(astroFile.thumbnail.scaled( QSize(400,400), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
     emit dataChanged(index, index, {Qt::DecorationRole});
 }
 
 bool FileViewModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
-    qDebug()<<"FileViewModel::dropMimeData";
+    Q_UNUSED(action);
+    Q_UNUSED(row);
+    Q_UNUSED(column);
+    Q_UNUSED(parent);
+
     emit fileDropped(data->urls());
-    for (auto& a : data->urls())
-    {
-        qDebug()<<a;
-    }
 
     return true;
 }
@@ -393,4 +389,3 @@ QMimeData *FileViewModel::mimeData(const QModelIndexList &indexes) const
     mimeData->setUrls(QList<QUrl>() << QUrl::fromLocalFile(astroFile->FullPath));
     return mimeData;
 }
-

@@ -253,8 +253,8 @@ void AutoStretcher<T>::stretch()
         const float m = sp.M;
         const float s = sp.S;
         const float h = sp.H;
-        const float l = 0;
-        const float r = 1;
+//        const float l = 0;
+//        const float r = 1;
         const float A = m-1;
         const float B = 2*m-1;
         const float C = (h-s)*m;

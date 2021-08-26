@@ -85,7 +85,6 @@ public:
 
 public slots:
     void setCellSize(const int newSize);
-    void setInitialModel(int count);
     void addThumbnail(const AstroFile& astroFile);
     void AddAstroFiles(int numberAdded);
     void UpdateAstroFile(AstroFile astroFile, int row);
@@ -101,9 +100,7 @@ signals:
 private:
     int rc;
     int cc;
-
     QSize cellSize = QSize(200, 200);
-
     Catalog* catalog;
     QString raConverter(QString ra) const;
     QString decConverter(QString dec) const;

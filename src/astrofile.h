@@ -82,32 +82,7 @@ struct AstroFile
     AstroFileProcessStatus processStatus;
     bool IsHidden;
 
-    AstroFile()
-    {
-    }
-
-    AstroFile(const AstroFile& other)
-        : Id(other.Id),
-          FileName(other.FileName),
-          FullPath(other.FullPath),
-          DirectoryPath(other.DirectoryPath),
-          VolumeName(other.VolumeName),
-          VolumeRoot(other.VolumeRoot),
-          FileType(other.FileType),
-          FileExtension(other.FileExtension),
-          CreatedTime(other.CreatedTime),
-          LastModifiedTime(other.LastModifiedTime),
-          FileHash(other.FileHash),
-          ImageHash(other.ImageHash),
-          Tags(other.Tags),
-          thumbnail(other.thumbnail),
-          tinyThumbnail(other.tinyThumbnail),
-          thumbnailStatus(other.thumbnailStatus),
-          tagStatus(other.tagStatus),
-          processStatus(other.processStatus),
-          IsHidden(other.IsHidden)
-    {
-    }
+    AstroFile() = default;
 
     AstroFile(const QFileInfo& fileInfo)
     {
