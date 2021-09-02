@@ -212,7 +212,8 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         case AstroFileRoles::ItemRole:
         {
             auto af = catalog->getAstroFile(index.row());
-            return QVariant::fromValue<AstroFile*>(af);
+            AstroFile a(*af);
+            return QVariant::fromValue<AstroFile>(a);
         }
         case Qt::SizeHintRole:
         {

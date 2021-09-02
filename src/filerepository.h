@@ -38,6 +38,7 @@ public:
     void cancel();
 
 public slots:
+    void deleteAstrofile(const AstroFile& afi);
     void deleteAstrofilesInFolder(const QString& fullPath);
     void initialize();
     void loadModel();

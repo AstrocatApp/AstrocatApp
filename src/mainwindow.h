@@ -84,6 +84,8 @@ signals:
     void catalogAddAstroFile(const AstroFile &file);
     void catalogAddAstroFiles(const QList<AstroFile> &files);
 
+    void removeAstroFileFromCatalog(const AstroFile& file);
+
 private slots:
     void imageSizeSlider_valueChanged(int value);
     void actionFolders_triggered();

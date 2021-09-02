@@ -346,6 +346,20 @@ int FileRepository::insertAstrofile(const AstroFile& astroFile)
     return queryAdd.lastInsertId().toInt();
 }
 
+void FileRepository::deleteAstrofile(const AstroFile& afi)
+{
+    QSqlQuery query;
+
+    query.prepare("DELETE FROM fits WHERE FullPath LIKE :fullPathString");
+    auto queryPath = afi.FullPath;
+    query.bindValue(":fullPathString", queryPath);
+    bool ret = query.exec();
+    if (!ret)
+        qDebug() << "could not delete: " << query.lastError();
+
+    emit astroFileDeleted(afi);
+}
+
 void FileRepository::deleteAstrofilesInFolder(const QString& fullPath)
 {
     auto files = getAstrofilesInFolder(fullPath);

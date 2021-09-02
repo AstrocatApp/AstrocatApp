@@ -161,6 +161,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(catalog,                &Catalog::AstroFileUpdated,                         fileViewModel,          &FileViewModel::UpdateAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFile,                   catalog,                &Catalog::addAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFiles,                  catalog,                &Catalog::addAstroFiles);
+    connect(this,                   &MainWindow::removeAstroFileFromCatalog,            fileRepositoryWorker,   &FileRepository::deleteAstrofile);
     connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
     connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          fileFilter,             &FileProcessFilter::filterFile);
     connect(fileFilter,             &FileProcessFilter::shouldProcess,                  newFileProcessorWorker, &NewFileProcessor::processNewFile);
@@ -552,7 +553,7 @@ void MainWindow::itemContextMenuRequested(const QPoint &pos)
 
     QMenu menu(this);
     menu.addAction(revealAct);
-//    menu.addAction(removeAct);
+    menu.addAction(removeAct);
     auto menuPos = ui->astroListView->viewport()->mapToGlobal(pos);
     menu.exec(menuPos);
 }
@@ -617,8 +618,8 @@ void MainWindow::remove()
 
     for (auto item: items)
     {
-        auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::FullPathRole).toString();
-        // TODO: Remove it here
+        auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::ItemRole).value<AstroFile>();
+        emit removeAstroFileFromCatalog(fullPath);
     }
 }
 
