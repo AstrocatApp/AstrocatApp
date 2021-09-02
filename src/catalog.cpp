@@ -153,29 +153,29 @@ void Catalog::addAstroFiles(const QList<AstroFile> &files)
     emit DoneAddingAstrofiles();
 }
 
-void Catalog::deleteAstroFile(const AstroFile &astroFile)
-{
-    QMutexLocker locker(&listMutex);
+//void Catalog::deleteAstroFile(const AstroFile &astroFile)
+//{
+//    QMutexLocker locker(&listMutex);
 
-    int index = astroFileIndex(astroFile);
+//    int index = astroFileIndex(astroFile);
 
-    if (index == -1)
-        return;
+//    if (index == -1)
+//        return;
 
-    auto a = astroFiles.at(index);
-    astroFiles.removeAt(index);
-    filePathToIdMap.remove(a->FullPath);
+//    auto a = astroFiles.at(index);
+//    astroFiles.removeAt(index);
+//    filePathToIdMap.remove(a->FullPath);
 //    emit AstroFileRemoved(astroFile, index);
-    delete a;
-}
+//    delete a;
+//}
 
-void Catalog::deleteAstroFiles(const QList<AstroFile> &files)
-{
-    for (auto& a : files)
-    {
-        deleteAstroFile(a);
-    }
-}
+//void Catalog::deleteAstroFiles(const QList<AstroFile> &files)
+//{
+//    for (auto& a : files)
+//    {
+//        deleteAstroFile(a);
+//    }
+//}
 
 void Catalog::deleteAstroFileRow(int row)
 {
