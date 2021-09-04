@@ -42,6 +42,8 @@ public slots:
 
 signals:
     void fileFound(QFileInfo filePath);
+    void startedCrawlingFolder(QString folder);
+    void endededCrawlingFolder(QString folder);
 
 protected:
     volatile bool cancelSignaled = false;

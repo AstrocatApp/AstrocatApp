@@ -51,6 +51,14 @@ enum AstroFileProcessStatus
     AstroFileFailedToProcess
 };
 
+enum AstroFileCatalogStatus
+{
+    NewFile,
+    CurrentFile,
+    ModifiedFile,
+    RemovedFile
+};
+
 enum AstroFileType
 {
     UnknownType = -1,

@@ -43,6 +43,8 @@ public slots:
 
 signals:
     void shouldProcess(QFileInfo fileInfo);
+    void fileIsCurrent(QFileInfo fileInfo);
+    void fileIsRemoved(QFileInfo fileInfo);
 
 private:
     Catalog* catalog;

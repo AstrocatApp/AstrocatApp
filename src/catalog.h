@@ -57,7 +57,7 @@ public:
 //     * while there is also a large number of requests for "addAstroFile"
 //     * coming from the db.
 //     */
-    bool shouldProcessFile(const QFileInfo& fileInfo);
+    AstroFileCatalogStatus shouldProcessFile(const QFileInfo& fileInfo);
 
 
     int getNumberOfItems();

@@ -58,7 +58,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         astroFile.VolumeName = storageInfo.name();
         astroFile.VolumeRoot = storageInfo.rootPath();
 
-        if (!catalog->shouldProcessFile(fileInfo))
+        if (catalog->shouldProcessFile(fileInfo) == RemovedFile)
         {
             // This file is not in the catalog anymore.
             emit processingCancelled(fileInfo);

@@ -439,7 +439,7 @@ void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
 void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 {
     QFileInfo fileInfo(astroFile.FullPath);
-    if (!catalog->shouldProcessFile(fileInfo))
+    if (catalog->shouldProcessFile(fileInfo) == RemovedFile)
     {
         // This file is not in the catalog anymore.
         numberOfActiveJobs--;
@@ -450,6 +450,14 @@ void MainWindow::astroFileProcessed(const AstroFile &astroFile)
     // do not decrement numberOfActiveJobs yet. It will be decremented
     // after the db recorded it.
     emit dbAddOrUpdateAstroFile(astroFile);
+    if (astroFile.processStatus == AstroFileFailedToProcess)
+    {
+        emit importFileDialog.IncrementTotalFilesFailedToProcess();
+    }
+    else
+    {
+        emit newAstroFileImported();
+    }
 }
 
 void MainWindow::processingCancelled(const QFileInfo &fileInfo)

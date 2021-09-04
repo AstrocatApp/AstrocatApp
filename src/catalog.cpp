@@ -217,7 +217,7 @@ AstroFile *Catalog::getAstroFileByPath(QString path)
     return filePathToIdMap[path];
 }
 
-bool Catalog::shouldProcessFile(const QFileInfo &fileInfo)
+AstroFileCatalogStatus Catalog::shouldProcessFile(const QFileInfo &fileInfo)
 {
     QMutexLocker locker(&listMutex);
 
@@ -236,13 +236,14 @@ bool Catalog::shouldProcessFile(const QFileInfo &fileInfo)
     searchFoldersMutex.unlock();
 
     if (!isInSearchFolders)
-        return false;
+        return AstroFileCatalogStatus::RemovedFile;
 
     auto a = getAstroFileByPath(path);
     if (a == nullptr)
-        return true;
+        return AstroFileCatalogStatus::NewFile;
 
-    return (fileInfo.lastModified() > a->LastModifiedTime);
+    bool modified = fileInfo.lastModified() > a->LastModifiedTime;
+    return modified ? AstroFileCatalogStatus::ModifiedFile : AstroFileCatalogStatus::CurrentFile;
 }
 
 int Catalog::getNumberOfItems()
