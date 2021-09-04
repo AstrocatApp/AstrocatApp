@@ -25,6 +25,7 @@ SOURCES += \
     foldercrawler.cpp \
     folderviewmodel.cpp \
     imageprocessor.cpp \
+    importfiledialog.cpp \
     main.cpp \
     mainwindow.cpp \
     mock_foldercrawler.cpp \
@@ -52,6 +53,7 @@ HEADERS += \
     foldercrawler.h \
     folderviewmodel.h \
     imageprocessor.h \
+    importfiledialog.h \
     mainwindow.h \
     mock_foldercrawler.h \
     mock_newfileprocessor.h \
@@ -64,6 +66,7 @@ HEADERS += \
 
 FORMS += \
     aboutwindow.ui \
+    importfiledialog.ui \
     mainwindow.ui \
     modelloadingdialog.ui \
     searchfolderdialog.ui

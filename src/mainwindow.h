@@ -38,6 +38,7 @@
 #include "fileprocessfilter.h"
 #include "thumbnailcache.h"
 #include "modelloadingdialog.h"
+#include "importfiledialog.h"
 
 #include <QFileInfo>
 #include <QMainWindow>
@@ -76,6 +77,7 @@ signals:
     void loadModelIntoViewModel(const QList<AstroFile> &files);
     void resetModel();
     void dbGetDuplicates();
+    void newAstroFileImported();
 
     void extractTags(const AstroFile& astroFile);
     void extractThumbnail(const AstroFile& astroFile);
@@ -98,6 +100,7 @@ private slots:
 
     void actionAbout_triggered();
     void setWatermark(bool shoudSet);
+    void catalogAction_triggered();
     void importAction_triggered();
     void settingsAction_triggered();
 
@@ -135,6 +138,8 @@ private:
     SearchFolderDialog searchFolderDialog;
     FilterView* filterView;
 
+    ImportFileDialog importFileDialog;
+
     QImage makeThumbnail(const QImage& image);
     void cleanUpWorker(QThread* thread);
     void clearDetailLabels();
@@ -158,6 +163,7 @@ private:
     QAction *revealAct;
     QAction *removeAct;
     void createActions();
+    void showImportDialog();
 
     QThread* catalogThread;
     Catalog* catalog;

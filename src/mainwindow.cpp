@@ -132,9 +132,13 @@ MainWindow::MainWindow(QWidget *parent)
     QToolBar *toolbar = addToolBar("main toolbar");
     toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
     toolbar->setStyleSheet("QToolButton{font-size: 20px;}");
+    QAction* catalogAction = toolbar->addAction("Catalog");
+    toolbar->addSeparator();
     QAction* importAction = toolbar->addAction("Import");
     toolbar->addSeparator();
     QAction* settingsAction = toolbar->addAction("Settings");
+    toolbar->addSeparator();
+    QAction* lastImportAction = toolbar->addAction("Last Imported");
     //--- Custom Toolbar
 
     ui->astroListView->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
@@ -142,9 +146,12 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmapCache::setCacheLimit(100*1024);
 
     loading = new ModelLoadingDialog(this);
+    importFileDialog.setModal(true);
 
+    connect(catalogAction,          &QAction::triggered,                                this,                   &MainWindow::catalogAction_triggered);
     connect(importAction,           &QAction::triggered,                                this,                   &MainWindow::importAction_triggered);
     connect(settingsAction,         &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
+    connect(lastImportAction,       &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
     connect(ui->imageSizeSlider,    &QSlider::valueChanged,                             this,                   &MainWindow::imageSizeSlider_valueChanged);
     connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(ui->actionFolders,      &QAction::triggered,                                this,                   &MainWindow::actionFolders_triggered);
@@ -158,6 +165,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::dbGetDuplicates,                       fileRepositoryWorker,   &FileRepository::getDuplicateFiles);
     connect(catalogThread,          &QThread::finished,                                 catalog,                &QObject::deleteLater);
     connect(catalog,                &Catalog::AstroFilesAdded,                          fileViewModel,          &FileViewModel::AddAstroFiles);
+    connect(this,                   &MainWindow::newAstroFileImported,                  &importFileDialog,      &ImportFileDialog::IncrementTotalFilesImported);
+    connect(fileFilter,             &FileProcessFilter::fileIsCurrent,                  &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAlreadyInCatalog);
     connect(catalog,                &Catalog::AstroFileUpdated,                         fileViewModel,          &FileViewModel::UpdateAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFile,                   catalog,                &Catalog::addAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFiles,                  catalog,                &Catalog::addAstroFiles);
@@ -209,6 +218,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotThumbnails,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotThumbnails);
     connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       loading,                &ModelLoadingDialog::modelLoaded);
     connect(catalog,                &Catalog::DoneAddingAstrofiles,                     loading,                &ModelLoadingDialog::closeWindow);
+
+    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAttempted);
 
     // Enable the tester during development and debugging. Disble before committing
 //    tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
@@ -279,6 +290,12 @@ void MainWindow::cleanUpWorker(QThread* thread)
     delete thread;
 }
 
+void MainWindow::showImportDialog()
+{
+    importFileDialog.ResetAllValues();
+    importFileDialog.show();
+}
+
 void MainWindow::searchFolderAdded(const QString folder)
 {
     catalog->addSearchFolder(folder);
@@ -288,6 +305,8 @@ void MainWindow::searchFolderAdded(const QString folder)
 
 void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
 {
+    qDebug()<<"searchFolderAdded" << folders;
+    showImportDialog();
     for (auto& f : folders)
     {
         searchFolderAdded(f.path());
@@ -503,9 +522,15 @@ void MainWindow::setWatermark(bool shouldSet)
     }
 }
 
+void MainWindow::catalogAction_triggered()
+{
+    qDebug()<<"Catalog Action";
+}
+
 void MainWindow::importAction_triggered()
 {
-    actionFolders_triggered();
+//    actionFolders_triggered();
+    importFileDialog.exec();
 }
 
 void MainWindow::settingsAction_triggered()
