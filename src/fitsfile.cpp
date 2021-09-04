@@ -361,7 +361,9 @@ void FitsFile::makeImage()
         }
     }
     else
+    {
         Q_ASSERT(false);
+    }
     this->_qImage = out;
     return;
 }
