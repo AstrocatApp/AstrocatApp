@@ -46,7 +46,7 @@ public slots:
     void getDuplicateFiles();
     void getDuplicateFilesByFileHash();
     void getDuplicateFilesByImageHash();
-    void loadThumbnal(const AstroFile& afi);
+    void loadThumbnail(const AstroFile& afi);
 
 signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );

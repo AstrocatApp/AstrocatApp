@@ -479,7 +479,7 @@ void FileRepository::getDuplicateFilesByImageHash()
     }
 }
 
-void FileRepository::loadThumbnal(const AstroFile &afi)
+void FileRepository::loadThumbnail(const AstroFile &afi)
 {
     if (cancelSignaled)
         return;
