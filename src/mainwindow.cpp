@@ -305,11 +305,20 @@ void MainWindow::searchFolderAdded(const QString folder)
 
 void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
 {
-    qDebug()<<"searchFolderAdded" << folders;
     showImportDialog();
     for (auto& f : folders)
     {
-        searchFolderAdded(f.path());
+        auto fileName = f.toLocalFile();
+        auto fi = QFileInfo(fileName);
+        if (fi.isFile())
+        {
+            catalog->addSearchFolder(fi.absoluteDir().absolutePath());
+            emit fileFilter->filterFile(fi);
+        }
+        else
+        {
+            searchFolderAdded(f.path());
+        }
     }
 }
 
