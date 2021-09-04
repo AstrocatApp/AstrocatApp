@@ -464,7 +464,7 @@ void FilterView::addObjects()
 
         QCheckBox* checkBox = findCheckBox(objectsGroup, objectsCheckBoxes, name, &FilterView::selectedObjectsChanged);
 
-        checkBox->setEnabled(num != 0);
+        checkBox->setEnabled(num != 0 || checkBox->isChecked());
 
         if (checkedTags.contains("OBJ_"+name))
             checkBox->setChecked(true);
@@ -485,7 +485,7 @@ void FilterView::addInstruments()
 
         QCheckBox* checkBox = findCheckBox(instrumentsGroup, instrumentsCheckBoxes, name, &FilterView::selectedInstrumentsChanged);
 
-        checkBox->setEnabled(num != 0);
+        checkBox->setEnabled(num != 0 || checkBox->isChecked());
         if (checkedTags.contains("INS_"+name))
             checkBox->setChecked(true);
         checkBox->setText(tagText);
@@ -505,7 +505,7 @@ void FilterView::addFilters()
 
         QCheckBox* checkBox = findCheckBox(filtersGroup, filtersCheckBoxes, name, &FilterView::selectedFiltersChanged);
 
-        checkBox->setEnabled(num != 0);
+        checkBox->setEnabled(num != 0 || checkBox->isChecked());
         if (checkedTags.contains("FIL_"+name))
             checkBox->setChecked(true);
         checkBox->setText(tagText);
@@ -525,7 +525,7 @@ void FilterView::addFileExtensions()
 
         QCheckBox* checkBox = findCheckBox(extensionsGroup, extensionsCheckBoxes, name, &FilterView::selectedFileExtensionsChanged);
 
-        checkBox->setEnabled(num != 0);
+        checkBox->setEnabled(num != 0 || checkBox->isChecked());
         if (checkedTags.contains("EXT_"+name))
             checkBox->setChecked(true);
         checkBox->setText(tagText);
