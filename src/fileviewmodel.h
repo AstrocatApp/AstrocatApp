@@ -65,6 +65,7 @@ class FileViewModel : public QAbstractItemModel
 public:
     FileViewModel(QObject* parent = nullptr);
     ~FileViewModel();
+    void setCatalog(Catalog* cat);
 
     // QAbstractItemModel interface
     QModelIndex index(int row, int column, const QModelIndex &parent) const override;
@@ -76,7 +77,6 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex parent(const QModelIndex &child) const override;
     bool hasChildren(const QModelIndex &parent) const override;
-    void setCatalog(Catalog* cat);
     virtual bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
     Qt::DropActions supportedDragActions() const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
