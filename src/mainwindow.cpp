@@ -514,6 +514,7 @@ void MainWindow::setWatermark(bool shouldSet)
         paint.drawText(ui->astroListView->frameRect(), Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignVCenter, _watermarkMessage);
         brush.setTexture(pix);
 
+        ui->astroListView->setStyleSheet("");
         QPalette palette;
         palette.setBrush(QPalette::Base, brush);
         ui->astroListView->setPalette(palette);
