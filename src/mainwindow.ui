@@ -828,7 +828,6 @@ QMenu::item:selected{
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionFolders"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuSettings"/>
