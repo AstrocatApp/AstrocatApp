@@ -147,7 +147,7 @@ private:
     QList<QString> getSearchFolders();
 
     bool shouldShowWatermark = true;
-    const QString DEFAULT_WATERMARK_MESSAGE = "Select Settings -> Folders in the menu to add folders ...";
+    const QString DEFAULT_WATERMARK_MESSAGE = "Drop Files or Folders here to import.";
     QString _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
 
     int numberOfItems = 0;
