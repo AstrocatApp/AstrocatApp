@@ -322,7 +322,7 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
                 fileTags["FILEEXT"][fileExtension]++;
             acceptedFolders[directoryPath]++;
             acceptedAstroFiles.insert(id);
-            folderModel->addItem(volumeName, volumeRoot, directoryPath);
+            folderModel->addItem(volumeName, volumeRoot, directoryPath);    //TODO: This should not be called here.
         }
     }
 

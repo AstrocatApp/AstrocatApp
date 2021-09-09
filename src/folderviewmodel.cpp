@@ -47,6 +47,12 @@ QStringList splitFolders(const QString& str, const QString& volumeRoot) {
 
 void FolderViewModel::addItem(QString volume, QString volumeRoot, QString folderPath)
 {
+    folders[folderPath]++;
+    // TODO: We should look at the volume plus folderPath to skip existing ones.
+    // Instead of just the folderPath
+    if (folders[folderPath] > 1)
+        return;
+
     QStandardItem *parentItem = rootItem;
     FolderNode* iterator = rootFolder;
     int rootrow = 0;
@@ -73,8 +79,6 @@ void FolderViewModel::addItem(QString volume, QString volumeRoot, QString folder
         parentItem->appendRow(item);
         parentItem = item;
     }
-
-    folders[folderPath]++;
 
     auto paths = splitFolders(folderPath, volumeRoot);
     for (auto& path : paths)
