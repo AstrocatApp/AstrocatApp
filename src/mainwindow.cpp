@@ -450,8 +450,11 @@ void MainWindow::handleSelectionChanged(QItemSelection selection)
 
 void MainWindow::modelLoadedFromDb(const QList<AstroFile> &files)
 {
-    _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
-    setWatermark(true);
+    if (files.count() == 0)
+    {
+        _watermarkMessage = DEFAULT_WATERMARK_MESSAGE;
+        setWatermark(true);
+    }
     emit catalogAddAstroFiles(files);
 
     crawlAllSearchFolders();
