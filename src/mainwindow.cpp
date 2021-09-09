@@ -251,7 +251,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::cancelPendingOperations()
 {
-    catalog->removeAllSearchFolders();
     catalog->cancel();
     thumbnailCache.cancel();
     fileFilter->cancel();
@@ -266,7 +265,6 @@ void MainWindow::initialize()
         return;
 
     auto foldersFromList = getSearchFolders();
-    catalog->addSearchFolder(foldersFromList);
     folderCrawlerThread->start();
     fileRepositoryThread->start();
     newFileProcessorThread->start();
@@ -298,8 +296,6 @@ void MainWindow::showImportDialog()
 
 void MainWindow::searchFolderAdded(const QString folder)
 {
-    catalog->addSearchFolder(folder);
-
     emit crawl(folder);
 }
 
@@ -312,7 +308,6 @@ void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
         auto fi = QFileInfo(fileName);
         if (fi.isFile())
         {
-            catalog->addSearchFolder(fi.absoluteDir().absolutePath());
             emit fileFilter->filterFile(fi);
         }
         else
@@ -324,8 +319,6 @@ void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
 
 void MainWindow::searchFolderRemoved(const QString folder)
 {
-    catalog->removeSearchFolder(folder);
-
     // The source folder was removed by the user. We will need to remove all images in this source folder from the db.
     emit deleteAstrofilesInFolder(folder);
 }

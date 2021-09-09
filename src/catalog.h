@@ -81,9 +81,7 @@ signals:
 
 private:
     QRecursiveMutex listMutex;
-    QRecursiveMutex searchFoldersMutex;
 
-    QList<QString> searchFolders;
     QList<AstroFile*> astroFiles;
     QMap<QString, AstroFile*> filePathToIdMap;
 

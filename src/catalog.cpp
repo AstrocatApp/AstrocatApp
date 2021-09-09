@@ -52,30 +52,6 @@ void Catalog::cancel()
     timer.stop();
 }
 
-void Catalog::addSearchFolder(const QString &folder)
-{
-    QMutexLocker locker(&searchFoldersMutex);
-    searchFolders.append(folder);
-}
-
-void Catalog::addSearchFolder(const QList<QString> &folders)
-{
-    QMutexLocker locker(&searchFoldersMutex);
-    searchFolders.append(folders);
-}
-
-void Catalog::removeSearchFolder(const QString &folder)
-{
-    QMutexLocker locker(&searchFoldersMutex);
-    searchFolders.removeOne(folder);
-}
-
-void Catalog::removeAllSearchFolders()
-{
-    QMutexLocker locker(&searchFoldersMutex);
-    searchFolders.clear();
-}
-
 void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
 {
     QMutexLocker locker(&listMutex);
@@ -204,13 +180,13 @@ int Catalog::astroFileIndex(const AstroFile &astroFile)
 
 AstroFile* Catalog::getAstroFile(int row)
 {
-    QMutexLocker locker(&listMutex);
+//    QMutexLocker locker(&listMutex);
     return astroFiles.at(row);
 }
 
 AstroFile *Catalog::getAstroFileByPath(QString path)
 {
-    QMutexLocker locker(&listMutex);
+//    QMutexLocker locker(&listMutex);
 
     if (!filePathToIdMap.contains(path))
         return nullptr;
@@ -219,24 +195,9 @@ AstroFile *Catalog::getAstroFileByPath(QString path)
 
 AstroFileCatalogStatus Catalog::shouldProcessFile(const QFileInfo &fileInfo)
 {
-    QMutexLocker locker(&listMutex);
+//    QMutexLocker locker(&listMutex);
 
     QString path = fileInfo.absoluteFilePath();
-
-    searchFoldersMutex.lock();
-    bool isInSearchFolders = false;
-    for (auto& s : searchFolders)
-    {
-        if (path.contains(s))
-        {
-            isInSearchFolders = true;
-            break;
-        }
-    }
-    searchFoldersMutex.unlock();
-
-    if (!isInSearchFolders)
-        return AstroFileCatalogStatus::RemovedFile;
 
     auto a = getAstroFileByPath(path);
     if (a == nullptr)
@@ -248,7 +209,7 @@ AstroFileCatalogStatus Catalog::shouldProcessFile(const QFileInfo &fileInfo)
 
 int Catalog::getNumberOfItems()
 {
-    QMutexLocker locker(&listMutex);
+//    QMutexLocker locker(&listMutex);
 
     return astroFiles.count();
 }
