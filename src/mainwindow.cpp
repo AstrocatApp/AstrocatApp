@@ -129,16 +129,16 @@ MainWindow::MainWindow(QWidget *parent)
     ui->splitter->setSizes({50, 1000});
 
     //+++ Custom Toolbar
-    QToolBar *toolbar = addToolBar("main toolbar");
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    toolbar->setStyleSheet("QToolButton{font-size: 20px;}");
-    QAction* catalogAction = toolbar->addAction("Catalog");
-    toolbar->addSeparator();
-    QAction* importAction = toolbar->addAction("Import");
-    toolbar->addSeparator();
-    QAction* settingsAction = toolbar->addAction("Settings");
-    toolbar->addSeparator();
-    QAction* lastImportAction = toolbar->addAction("Last Imported");
+//    QToolBar *toolbar = addToolBar("main toolbar");
+//    toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+//    toolbar->setStyleSheet("QToolButton{font-size: 20px;}");
+//    QAction* catalogAction = toolbar->addAction("Catalog");
+//    toolbar->addSeparator();
+//    QAction* importAction = toolbar->addAction("Import");
+//    toolbar->addSeparator();
+//    QAction* settingsAction = toolbar->addAction("Settings");
+//    toolbar->addSeparator();
+//    QAction* lastImportAction = toolbar->addAction("Last Imported");
     //--- Custom Toolbar
 
     ui->astroListView->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
@@ -148,10 +148,10 @@ MainWindow::MainWindow(QWidget *parent)
     loading = new ModelLoadingDialog(this);
     importFileDialog.setModal(true);
 
-    connect(catalogAction,          &QAction::triggered,                                this,                   &MainWindow::catalogAction_triggered);
-    connect(importAction,           &QAction::triggered,                                this,                   &MainWindow::importAction_triggered);
-    connect(settingsAction,         &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
-    connect(lastImportAction,       &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
+//    connect(catalogAction,          &QAction::triggered,                                this,                   &MainWindow::catalogAction_triggered);
+//    connect(importAction,           &QAction::triggered,                                this,                   &MainWindow::importAction_triggered);
+//    connect(settingsAction,         &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
+//    connect(lastImportAction,       &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
     connect(ui->imageSizeSlider,    &QSlider::valueChanged,                             this,                   &MainWindow::imageSizeSlider_valueChanged);
     connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(ui->actionFolders,      &QAction::triggered,                                this,                   &MainWindow::actionFolders_triggered);
