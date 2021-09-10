@@ -118,6 +118,7 @@ private slots:
     void dbFailedToOpen(const QString message);
     void dbAstroFileUpdated(const AstroFile& astroFile);
 //    void dbAstroFileDeleted(const AstroFile& astroFile);
+    void importCancelled();
 
 private:
     Ui::MainWindow *ui;

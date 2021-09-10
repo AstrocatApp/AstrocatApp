@@ -46,6 +46,7 @@ public slots:
     void IncrementTotalFilesAttempted();
     void IncrementTotalFilesFailedToProcess();
     void IncrementTotalFilesAlreadyInCatalog();
+    void SetQueueSize(int value);
     void ResetActiveFoldersCrawling();
     void ResetTotalFoldersCrawled();
     void ResetTotalFilesImported();
@@ -53,6 +54,7 @@ public slots:
     void ResetTotalFilesFailedToProcess();
     void ResetTotalFilesAlreadyInCatalog();
     void ResetAllValues();
+    void ResetQueueSize();
 
 private:
     Ui::ImportFileDialog *ui;
@@ -63,6 +65,7 @@ private:
     int totalFilesAttempted;
     int totalFilesFailedToProcess;
     int totalFilesAlreadyInCatalog;
+    int queueSize;
 };
 
 #endif // IMPORTFILEDIALOG_H

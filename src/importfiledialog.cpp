@@ -78,6 +78,12 @@ void ImportFileDialog::IncrementTotalFilesAlreadyInCatalog()
     ui->filesInCatalogLabel->setText(QString::number(totalFilesAlreadyInCatalog));
 }
 
+void ImportFileDialog::SetQueueSize(int value)
+{
+    queueSize = value;
+    ui->queueSizeLabel->setText(QString::number(queueSize));
+}
+
 void ImportFileDialog::ResetActiveFoldersCrawling()
 {
     activeFoldersCrawling = 0;
@@ -120,4 +126,11 @@ void ImportFileDialog::ResetAllValues()
     ResetTotalFilesAttempted();
     ResetTotalFilesFailedToProcess();
     ResetTotalFilesAlreadyInCatalog();
+    ResetQueueSize();
+}
+
+void ImportFileDialog::ResetQueueSize()
+{
+    queueSize = 0;
+    ui->queueSizeLabel->setText(QString::number(queueSize));
 }

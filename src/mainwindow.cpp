@@ -146,12 +146,14 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmapCache::setCacheLimit(100*1024);
 
     loading = new ModelLoadingDialog(this);
-    importFileDialog.setModal(true);
+    importFileDialog.setModal(false);
+    importFileDialog.setWindowFlag(Qt::WindowStaysOnTopHint);
 
 //    connect(catalogAction,          &QAction::triggered,                                this,                   &MainWindow::catalogAction_triggered);
 //    connect(importAction,           &QAction::triggered,                                this,                   &MainWindow::importAction_triggered);
 //    connect(settingsAction,         &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
 //    connect(lastImportAction,       &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
+    connect(&importFileDialog,      &ImportFileDialog::rejected,                        this,                   &MainWindow::importCancelled);
     connect(ui->imageSizeSlider,    &QSlider::valueChanged,                             this,                   &MainWindow::imageSizeSlider_valueChanged);
     connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(ui->actionFolders,      &QAction::triggered,                                this,                   &MainWindow::actionFolders_triggered);
@@ -468,6 +470,7 @@ void MainWindow::astroFileProcessed(const AstroFile &astroFile)
         // This file is not in the catalog anymore.
         numberOfActiveJobs--;
         ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
+        importFileDialog.SetQueueSize(numberOfActiveJobs);
         return;
     }
 
@@ -490,6 +493,7 @@ void MainWindow::processingCancelled(const QFileInfo &fileInfo)
 
     numberOfActiveJobs--;
     ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
+    importFileDialog.SetQueueSize(numberOfActiveJobs);
 }
 
 void MainWindow::processQueued(const QFileInfo &fileInfo)
@@ -498,6 +502,7 @@ void MainWindow::processQueued(const QFileInfo &fileInfo)
 
     numberOfActiveJobs++;
     ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
+    importFileDialog.SetQueueSize(numberOfActiveJobs);
 }
 
 void MainWindow::setWatermark(bool shouldSet)
@@ -708,6 +713,15 @@ void MainWindow::dbAstroFileUpdated(const AstroFile &astroFile)
     emit catalogAddAstroFile(astroFile);
     numberOfActiveJobs--;
     ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
+    importFileDialog.SetQueueSize(numberOfActiveJobs);
+}
+
+void MainWindow::importCancelled()
+{
+    qDebug()<<"Cancelling";
+    fileFilter->cancel();
+    folderCrawlerWorker->cancel();
+    newFileProcessorWorker->cancel();
 }
 
 //void MainWindow::dbAstroFileDeleted(const AstroFile &astroFile)
