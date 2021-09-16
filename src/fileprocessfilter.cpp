@@ -40,10 +40,12 @@ void FileProcessFilter::cancel()
 
 void FileProcessFilter::filterFile(QFileInfo fileInfo)
 {
-    Q_ASSERT(catalog != nullptr);
-
     if (cancelSignaled)
         return;
+
+//    qDebug()<<"Filtering file: "<< fileInfo.path();
+    Q_ASSERT(catalog != nullptr);
+
 
     switch(catalog->shouldProcessFile(fileInfo))
     {
@@ -53,9 +55,13 @@ void FileProcessFilter::filterFile(QFileInfo fileInfo)
         case RemovedFile:
             emit fileIsRemoved(fileInfo);
             return;
+        case ModifiedFile:
+            emit fileIsModified(fileInfo);
+            return;
         default:
             if (cancelSignaled)
                 return;
+            qDebug()<<"FileProcessFilter emitting shouldProcess()";
             emit shouldProcess(fileInfo);
     }
 }

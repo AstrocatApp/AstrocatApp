@@ -47,30 +47,32 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    fileImporter = nullptr;
     catalogThread = new QThread(this);
+    catalogThread->setObjectName("CatalogThread");
     catalog = new Catalog;
     catalog->moveToThread(catalogThread);
 
-    folderCrawlerThread = new QThread(this);
-    folderCrawlerWorker = new FolderCrawler;
+//    folderCrawlerThread = new QThread(this);
+//    folderCrawlerWorker = new FolderCrawler;
 //    folderCrawlerWorker = new Mock_FolderCrawler;
-    folderCrawlerWorker->moveToThread(folderCrawlerThread);
+//    folderCrawlerWorker->moveToThread(folderCrawlerThread);
 
-    fileRepositoryThread = new QThread(this);
-    fileRepositoryWorker = new FileRepository;
-    fileRepositoryWorker->moveToThread(fileRepositoryThread);
+//    fileRepositoryThread = new QThread(this);
+//    fileRepositoryWorker = new FileRepository;
+//    fileRepositoryWorker->moveToThread(fileRepositoryThread);
 
-    newFileProcessorThread = new QThread(this);
+//    newFileProcessorThread = new QThread(this);
 
 //    newFileProcessorWorker = new Mock_NewFileProcessor;
-    newFileProcessorWorker = new NewFileProcessor;
-    newFileProcessorWorker->setCatalog(catalog);
+//    newFileProcessorWorker = new NewFileProcessor;
+//    newFileProcessorWorker->setCatalog(catalog);
 
-    newFileProcessorWorker->moveToThread(newFileProcessorThread);
+//    newFileProcessorWorker->moveToThread(newFileProcessorThread);
 
-    fileFilter = new FileProcessFilter;
-    fileFilter->setCatalog(catalog);
-    fileFilter->moveToThread(folderCrawlerThread);
+//    fileFilter = new FileProcessFilter;
+//    fileFilter->setCatalog(catalog);
+//    fileFilter->moveToThread(folderCrawlerThread);
 
     fileViewModel = new FileViewModel(ui->astroListView);
     fileViewModel->setCatalog(catalog);
@@ -114,7 +116,10 @@ MainWindow::MainWindow(QWidget *parent)
     filterView->setModel(sortFilterProxyModel);
 
 //    thumbnailCache = new ThumbnailCache();
-    thumbnailCache.moveToThread(fileRepositoryThread);
+//    thumbnailCacheThread = new QThread(this);
+//    thumbnailCacheThread->setObjectName("ThumbnailCacheThread");
+//    thumbnailCache.moveToThread(thumbnailCacheThread);
+//    thumbnailCacheThread->start();
     thumbnailCache.start();
 
     ui->statusbar->setStyleSheet(
@@ -124,6 +129,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusbar->addPermanentWidget(&numberOfItemsLabel);
     ui->statusbar->addPermanentWidget(&numberOfVisibleItemsLabel);
     ui->statusbar->addPermanentWidget(&numberOfSelectedItemsLabel);
+    ui->statusbar->addPermanentWidget(&dbQueueStatus);
     //    ui->statusbar->addPermanentWidget(&numberOfActiveJobsLabel);
 
     ui->splitter->setSizes({50, 1000});
@@ -149,46 +155,60 @@ MainWindow::MainWindow(QWidget *parent)
     importFileDialog.setModal(false);
     importFileDialog.setWindowFlag(Qt::WindowStaysOnTopHint);
 
+//    fileImporter.setCatalog(catalog);
+
+    dbService = new DbService();
+
 //    connect(catalogAction,          &QAction::triggered,                                this,                   &MainWindow::catalogAction_triggered);
 //    connect(importAction,           &QAction::triggered,                                this,                   &MainWindow::importAction_triggered);
 //    connect(settingsAction,         &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
 //    connect(lastImportAction,       &QAction::triggered,                                this,                   &MainWindow::settingsAction_triggered);
+//    connect(&fileImporter,          &FileImporter::AstroFileImported,              this,          &MainWindow::astroFileProcessed);
+//    connect(&fileImporter,          &FileImporter::AstroFileImporting,                  this,                   &MainWindow::processQueued);
+//    connect(&fileImporter,          &FileImporter::AstroFileIsInCatalog,                  &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAlreadyInCatalog);
+//    connect(&fileImporter,          &FileImporter::AstroFileFound,                          &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAttempted);
+//    connect(&fileImporter,          &FileImporter::AstroFileImportCancelled,             this,                   &MainWindow::processingCancelled);
+
+
     connect(&importFileDialog,      &ImportFileDialog::rejected,                        this,                   &MainWindow::importCancelled);
+    connect(&importFileDialog,      &ImportFileDialog::PauseClicked,                        this,                   &MainWindow::importPaused);
+
     connect(ui->imageSizeSlider,    &QSlider::valueChanged,                             this,                   &MainWindow::imageSizeSlider_valueChanged);
     connect(ui->astroListView,      &QWidget::customContextMenuRequested,               this,                   &MainWindow::itemContextMenuRequested);
     connect(ui->actionFolders,      &QAction::triggered,                                this,                   &MainWindow::actionFolders_triggered);
     connect(ui->actionAbout,        &QAction::triggered,                                this,                   &MainWindow::actionAbout_triggered);
-    connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
-    connect(this,                   &MainWindow::initializeFileRepository,              fileRepositoryWorker,   &FileRepository::initialize);
-    connect(this,                   &MainWindow::deleteAstrofilesInFolder,              fileRepositoryWorker,   &FileRepository::deleteAstrofilesInFolder);
-    connect(this,                   &MainWindow::loadModelFromDb,                       fileRepositoryWorker,   &FileRepository::loadModel);
-    connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,                fileRepositoryWorker,   &FileRepository::addOrUpdateAstrofile);
-    connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
-    connect(this,                   &MainWindow::dbGetDuplicates,                       fileRepositoryWorker,   &FileRepository::getDuplicateFiles);
+//    connect(this,                   &MainWindow::crawl,                                 folderCrawlerWorker,    &FolderCrawler::crawl);
+    connect(this,                   &MainWindow::initializeFileRepository,              dbService,   &DbService::initialize);
+    connect(this,                   &MainWindow::deleteAstrofilesInFolder,              dbService,   &DbService::deleteAstrofilesInFolder);
+    connect(this,                   &MainWindow::loadModelFromDb,                       dbService,   &DbService::loadModel);
+    connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,                dbService,   &DbService::addOrUpdateAstrofile);
+//    connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
+    connect(this,                   &MainWindow::dbGetDuplicates,                       dbService,   &DbService::getDuplicateFiles);
     connect(catalogThread,          &QThread::finished,                                 catalog,                &QObject::deleteLater);
     connect(catalog,                &Catalog::AstroFilesAdded,                          fileViewModel,          &FileViewModel::AddAstroFiles);
     connect(this,                   &MainWindow::newAstroFileImported,                  &importFileDialog,      &ImportFileDialog::IncrementTotalFilesImported);
-    connect(fileFilter,             &FileProcessFilter::fileIsCurrent,                  &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAlreadyInCatalog);
+//    connect(fileFilter,             &FileProcessFilter::fileIsCurrent,                  &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAlreadyInCatalog);
     connect(catalog,                &Catalog::AstroFileUpdated,                         fileViewModel,          &FileViewModel::UpdateAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFile,                   catalog,                &Catalog::addAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFiles,                  catalog,                &Catalog::addAstroFiles);
-    connect(this,                   &MainWindow::removeAstroFileFromCatalog,            fileRepositoryWorker,   &FileRepository::deleteAstrofile);
-    connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
-    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          fileFilter,             &FileProcessFilter::filterFile);
-    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  newFileProcessorWorker, &NewFileProcessor::processNewFile);
-    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this,                   &MainWindow::processQueued);
-    connect(fileRepositoryWorker,   &FileRepository::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
-    connect(fileRepositoryWorker,   &FileRepository::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
-    connect(fileRepositoryWorker,   &FileRepository::astroFilesDeleted,                 fileViewModel,          &FileViewModel::RemoveAstroFiles);
-    connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
-    connect(fileRepositoryWorker,   &FileRepository::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);
-    connect(fileRepositoryWorker,   &FileRepository::thumbnailLoaded,                   fileViewModel,          &FileViewModel::addThumbnail);
-    connect(fileRepositoryThread,   &QThread::finished,                                 fileRepositoryWorker,   &QObject::deleteLater);
-    connect(newFileProcessorWorker, &NewFileProcessor::astrofileProcessed,              this,                   &MainWindow::astroFileProcessed);
-    connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
-    connect(newFileProcessorThread, &QThread::finished,                                 newFileProcessorWorker, &QObject::deleteLater);
+    connect(this,                   &MainWindow::removeAstroFileFromCatalog,            dbService,   &DbService::deleteAstrofile);
+//    connect(folderCrawlerThread,    &QThread::finished,                                 folderCrawlerWorker,    &QObject::deleteLater);
+//    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          fileFilter,             &FileProcessFilter::filterFile);
+//    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  newFileProcessorWorker, &NewFileProcessor::processNewFile);
+//    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this,                   &MainWindow::processQueued);
+    connect(dbService,   &DbService::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
+    connect(dbService,   &DbService::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
+    connect(dbService,   &DbService::astroFilesDeleted,                 fileViewModel,          &FileViewModel::RemoveAstroFiles);
+    connect(dbService,   &DbService::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
+    connect(dbService,   &DbService::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);
+    connect(dbService,   &DbService::thumbnailLoaded,                   fileViewModel,          &FileViewModel::addThumbnail);
+//    connect(fileRepositoryThread,   &QThread::finished,                                 fileRepositoryWorker,   &QObject::deleteLater);
+//    connect(newFileProcessorWorker, &NewFileProcessor::astrofileProcessed,              this,                   &MainWindow::astroFileProcessed);
+//    connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
+//    connect(newFileProcessorThread, &QThread::finished,                                 newFileProcessorWorker, &QObject::deleteLater);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderAdded,             this,                   &MainWindow::searchFolderAdded);
-    connect(fileViewModel,          &FileViewModel::fileDropped,                        this,                   &MainWindow::searchFoldersAdded);
+//    connect(fileViewModel,          &FileViewModel::fileDropped,                        &fileImporter,          &FileImporter::ImportFiles);
+    connect(fileViewModel,          &FileViewModel::fileDropped,                        this,                   &MainWindow::filesDropped);
     connect(&searchFolderDialog,    &SearchFolderDialog::searchFolderRemoved,           this,                   &MainWindow::searchFolderRemoved);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMinimumDateChanged,    filterView,             &FilterView::setFilterMinimumDate);
     connect(sortFilterProxyModel,   &SortFilterProxyModel::filterMaximumDateChanged,    filterView,             &FilterView::setFilterMaximumDate);
@@ -198,7 +218,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(fileViewModel,          &FileViewModel::rowsRemoved,                        this,                   &MainWindow::rowsRemovedFromModel);
     connect(fileViewModel,          &FileViewModel::modelReset,                         this,                   &MainWindow::modelReset);
     connect(fileViewModel,          &FileViewModel::loadThumbnailFromDb,                &thumbnailCache,        &ThumbnailCache::enqueueLoadThumbnail);
-    connect(&thumbnailCache,        &ThumbnailCache::dbLoadThumbnail,                   fileRepositoryWorker,   &FileRepository::loadThumbnail);
+    connect(&thumbnailCache,        &ThumbnailCache::dbLoadThumbnail,                   dbService,   &DbService::loadThumbnail);
     connect(filterView,             &FilterView::minimumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterView,             &FilterView::maximumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMaximumDate);
     connect(filterView,             &FilterView::addAcceptedFilter,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFilter);
@@ -215,13 +235,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(filterView,             &FilterView::astroFileAdded,                        this,                   &MainWindow::itemAddedToSortFilterView);
     connect(filterView,             &FilterView::astroFileRemoved,                      this,                   &MainWindow::itemRemovedFromSortFilterView);
     connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
-    connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotAstrofiles,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotAstrofiles);
-    connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotTags,               loading,                &ModelLoadingDialog::modelLoadingFromDbGotTag);
-    connect(fileRepositoryWorker,   &FileRepository::modelLoadingGotThumbnails,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotThumbnails);
-    connect(fileRepositoryWorker,   &FileRepository::modelLoaded,                       loading,                &ModelLoadingDialog::modelLoaded);
+    connect(dbService,   &DbService::modelLoadingGotAstrofiles,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotAstrofiles);
+    connect(dbService,   &DbService::modelLoadingGotTags,               loading,                &ModelLoadingDialog::modelLoadingFromDbGotTag);
+    connect(dbService,   &DbService::modelLoadingGotThumbnails,         loading,                &ModelLoadingDialog::modelLoadingFromDbGotThumbnails);
+    connect(dbService,   &DbService::modelLoaded,                       loading,                &ModelLoadingDialog::modelLoaded);
     connect(catalog,                &Catalog::DoneAddingAstrofiles,                     loading,                &ModelLoadingDialog::closeWindow);
+    connect(dbService,   &DbService::DatabaseQueueLength,                       this,                &MainWindow::DatabaseQueueLength);
 
-    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAttempted);
+//    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAttempted);
 
     // Enable the tester during development and debugging. Disble before committing
 //    tester = new QAbstractItemModelTester(fileViewModel, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
@@ -231,14 +252,18 @@ MainWindow::~MainWindow()
 {
     cancelPendingOperations();
 
-    qDebug()<<"Cleaning up folderCrawlerThread";
-    cleanUpWorker(folderCrawlerThread);
+//    qDebug()<<"Cleaning up folderCrawlerThread";
+//    cleanUpWorker(folderCrawlerThread);
 
-    qDebug()<<"Cleaning up newFileProcessorThread";    
-    cleanUpWorker(newFileProcessorThread);
+//    qDebug()<<"Cleaning up newFileProcessorThread";
+//    cleanUpWorker(newFileProcessorThread);
 
-    qDebug()<<"Cleaning up fileRepositoryThread";
-    cleanUpWorker(fileRepositoryThread);
+//    qDebug()<<"Cleaning up fileRepositoryThread";
+//    cleanUpWorker(fileRepositoryThread);
+
+    qDebug()<<"Cleaning up ThumbnailCache Thread";
+//    cleanUpWorker(thumbnailCache);
+    thumbnailCache.quit();
 
     qDebug()<<"Cleaning up fileViewModel";
     delete fileViewModel;
@@ -253,12 +278,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::cancelPendingOperations()
 {
+    if (fileImporter != nullptr)
+    {
+        fileImporter->CancelImport();
+    }
     catalog->cancel();
     thumbnailCache.cancel();
-    fileFilter->cancel();
-    folderCrawlerWorker->cancel();
-    newFileProcessorWorker->cancel();
-    fileRepositoryWorker->cancel();
+//    fileFilter->cancel();
+//    folderCrawlerWorker->cancel();
+//    newFileProcessorWorker->cancel();
+//    fileRepositoryWorker->cancel();
 }
 
 void MainWindow::initialize()
@@ -267,9 +296,9 @@ void MainWindow::initialize()
         return;
 
     auto foldersFromList = getSearchFolders();
-    folderCrawlerThread->start();
-    fileRepositoryThread->start();
-    newFileProcessorThread->start();
+//    folderCrawlerThread->start();
+//    fileRepositoryThread->start();
+//    newFileProcessorThread->start();
     catalogThread->start();
 
     emit initializeFileRepository();
@@ -296,28 +325,56 @@ void MainWindow::showImportDialog()
     importFileDialog.show();
 }
 
+void MainWindow::importFiles(const QList<QUrl> folders)
+{
+
+}
+
+void MainWindow::disableDropFiles()
+{
+
+}
+
+void MainWindow::enableDropFiles()
+{
+
+}
+
+void MainWindow::createFileImporter()
+{
+    fileImporter = new FileImporter(this);
+    fileImporter->setCatalog(catalog);
+    connect(fileImporter,          &FileImporter::AstroFileImported,              this,          &MainWindow::astroFileProcessed);
+    connect(fileImporter,          &FileImporter::AstroFileImporting,                  this,                   &MainWindow::processQueued);
+    connect(fileImporter,          &FileImporter::AstroFileIsInCatalog,                  &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAlreadyInCatalog);
+    connect(fileImporter,          &FileImporter::AstroFileFound,                          &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAttempted);
+    connect(fileImporter,          &FileImporter::ImportCanceled,                          this,      &MainWindow::FileImporterFinished);
+    connect(fileImporter,          &FileImporter::ImportFinished,                          this,      &MainWindow::FileImporterFinished);
+
+}
+
 void MainWindow::searchFolderAdded(const QString folder)
 {
     emit crawl(folder);
 }
 
-void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
-{
-    showImportDialog();
-    for (auto& f : folders)
-    {
-        auto fileName = f.toLocalFile();
-        auto fi = QFileInfo(fileName);
-        if (fi.isFile())
-        {
-            emit fileFilter->filterFile(fi);
-        }
-        else
-        {
-            searchFolderAdded(f.path());
-        }
-    }
-}
+//void MainWindow::searchFoldersAdded(const QList<QUrl> folders)
+//{
+//    showImportDialog();
+//    for (auto& f : folders)
+//    {
+//        auto fileName = f.toLocalFile();
+//        auto fi = QFileInfo(fileName);
+//        if (fi.isFile())
+//        {
+//            emit fileFilter->filterFile(fi);
+//        }
+//        else
+//        {
+//            searchFolderAdded(f.path());
+//        }
+//    }
+//}
 
 void MainWindow::searchFolderRemoved(const QString folder)
 {
@@ -469,7 +526,7 @@ void MainWindow::astroFileProcessed(const AstroFile &astroFile)
     {
         // This file is not in the catalog anymore.
         numberOfActiveJobs--;
-        ui->statusbar->showMessage(QString("Jobs Queue: %1").arg(numberOfActiveJobs));
+        ui->statusbar->showMessage(QString("ueue: %1").arg(numberOfActiveJobs));
         importFileDialog.SetQueueSize(numberOfActiveJobs);
         return;
     }
@@ -719,9 +776,62 @@ void MainWindow::dbAstroFileUpdated(const AstroFile &astroFile)
 void MainWindow::importCancelled()
 {
     qDebug()<<"Cancelling";
-    fileFilter->cancel();
-    folderCrawlerWorker->cancel();
-    newFileProcessorWorker->cancel();
+    dbService->cancel();
+    emit fileImporter->CancelImport();
+//    fileFilter->cancel();
+//    folderCrawlerWorker->cancel();
+    //    newFileProcessorWorker->cancel();
+}
+
+void MainWindow::importPaused(QAbstractButton* button)
+{
+    qDebug()<<"Button Clicked";
+    QString buttonText = button->text();
+
+    if (buttonText == "Pause")
+    {
+        button->setText("Resume");
+        emit fileImporter->PauseImport();
+    }
+    else if (buttonText == "Resume")
+    {
+        button->setText("Pause");
+        emit fileImporter->ResumeImport();
+    }
+}
+
+void MainWindow::filesDropped(const QList<QUrl> &folders)
+{
+    if (fileImporter != nullptr)
+    {
+        qDebug()<<"fileImporter already Exists";
+        return;
+    }
+    showImportDialog();
+    createFileImporter();
+    fileImporter->ImportFiles(folders);
+}
+
+void MainWindow::DatabaseQueueLength(int length)
+{
+    QString labelText;
+    if (length > 0)
+        labelText = QString("Db Queue: %1").arg(length);
+    else
+        labelText = "";
+
+    this->dbQueueStatus.setText(labelText);
+//    ui->statusbar->showMessage(QString("Db Queue: %1").arg(length));
+}
+
+void MainWindow::FileImporterFinished()
+{
+    if (fileImporter != nullptr)
+    {
+        delete fileImporter;
+        fileImporter = nullptr;
+    }
+//    importFileDialog.close();
 }
 
 //void MainWindow::dbAstroFileDeleted(const AstroFile &astroFile)

@@ -39,6 +39,8 @@
 #include "thumbnailcache.h"
 #include "modelloadingdialog.h"
 #include "importfiledialog.h"
+#include "fileimporter.h"
+#include "dbservice.h"
 
 #include <QFileInfo>
 #include <QMainWindow>
@@ -62,9 +64,9 @@ public:
 public slots:
 //    void newFileFound(const QFileInfo fileInfo);
     void searchFolderAdded(const QString folder);
-    void searchFoldersAdded(const QList<QUrl> folders);
-    void searchFolderRemoved(const QString folder);
-
+//    void searchFoldersAdded(const QList<QUrl> folders);
+    void searchFolderRemoved(const QString folder);    
+    void importFiles(const QList<QUrl> folders);
 signals:
     void crawl(QString rootFolder);
     void deleteAstrofilesInFolder(const QString fullPath);
@@ -119,19 +121,25 @@ private slots:
     void dbAstroFileUpdated(const AstroFile& astroFile);
 //    void dbAstroFileDeleted(const AstroFile& astroFile);
     void importCancelled();
+    void importPaused(QAbstractButton* button);
+    void filesDropped(const QList<QUrl> &folders);
+    void DatabaseQueueLength(int length);
+
+    void FileImporterFinished();
 
 private:
     Ui::MainWindow *ui;
     bool isInitialized;
 
-    QThread* folderCrawlerThread;
-    FolderCrawler* folderCrawlerWorker;
+//    QThread* folderCrawlerThread;
+//    FolderCrawler* folderCrawlerWorker;
 
-    QThread* fileRepositoryThread;
-    FileRepository* fileRepositoryWorker;
+//    QThread* fileRepositoryThread;
+//    FileRepository* fileRepositoryWorker;
+    DbService* dbService;
 
-    QThread* newFileProcessorThread;
-    NewFileProcessor* newFileProcessorWorker;
+//    QThread* newFileProcessorThread;
+//    NewFileProcessor* newFileProcessorWorker;
 
     FileViewModel* fileViewModel;
     SortFilterProxyModel* sortFilterProxyModel;
@@ -160,6 +168,7 @@ private:
     QLabel numberOfVisibleItemsLabel;
     QLabel numberOfSelectedItemsLabel;
     QLabel numberOfActiveJobsLabel;
+    QLabel dbQueueStatus;
 
     QAction *revealAct;
     QAction *removeAct;
@@ -168,11 +177,17 @@ private:
 
     QThread* catalogThread;
     Catalog* catalog;
-    FileProcessFilter* fileFilter;
+//    FileProcessFilter* fileFilter;
 
     ThumbnailCache thumbnailCache;
+//    QThread* thumbnailCacheThread;
     ModelLoadingDialog* loading;
 
+    void disableDropFiles();
+    void enableDropFiles();
+
+    FileImporter* fileImporter;
+    void createFileImporter();
 protected:
     void resizeEvent(QResizeEvent *event);
     void showEvent(QShowEvent *event);

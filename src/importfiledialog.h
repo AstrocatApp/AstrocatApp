@@ -25,6 +25,7 @@
 #ifndef IMPORTFILEDIALOG_H
 #define IMPORTFILEDIALOG_H
 
+#include <QAbstractButton>
 #include <QDialog>
 
 namespace Ui {
@@ -55,6 +56,9 @@ public slots:
     void ResetTotalFilesAlreadyInCatalog();
     void ResetAllValues();
     void ResetQueueSize();
+
+signals:
+    void PauseClicked(QAbstractButton* button);
 
 private:
     Ui::ImportFileDialog *ui;

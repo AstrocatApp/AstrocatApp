@@ -25,6 +25,8 @@
 #include "importfiledialog.h"
 #include "ui_importfiledialog.h"
 
+#include <QPushButton>
+
 ImportFileDialog::ImportFileDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ImportFileDialog)
@@ -37,6 +39,10 @@ ImportFileDialog::ImportFileDialog(QWidget *parent) :
     totalFilesAlreadyInCatalog = 0;
 
     ui->setupUi(this);
+
+    QPushButton* pauseButton  = new QPushButton("Pause");
+    ui->buttonBox->addButton(pauseButton, QDialogButtonBox::ActionRole);
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &ImportFileDialog::PauseClicked);
 }
 
 ImportFileDialog::~ImportFileDialog()

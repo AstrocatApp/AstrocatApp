@@ -30,8 +30,10 @@
 #include "fileprocessor.h"
 
 #include <QFileInfo>
+#include <QFuture>
 #include <QObject>
 #include <QThreadPool>
+#include <QWaitCondition>
 
 class NewFileProcessor : public QObject
 {
@@ -41,6 +43,9 @@ public:
     virtual void setCatalog(Catalog* cat);
     virtual void processNewFile(const QFileInfo& fileInfo);
     virtual void cancel();
+    void pause();
+    void resume();
+    void waitForDrain();
 
 signals:
     void astrofileProcessed(const AstroFile& astroFile);
@@ -56,6 +61,13 @@ private:
 
     QByteArray getFileHash(const QFileInfo& fileInfo);
     QThreadPool threadPool;
+
+    volatile bool pauseSignaled = false;
+    QMutex pauseMutex;
+    QWaitCondition pauseCondition;
+
+    QList<QFuture<void>> futures;
+
 };
 
 #endif // NEWFILEPROCESSOR_H

@@ -34,6 +34,7 @@
 NewFileProcessor::NewFileProcessor(QObject *parent) : QObject(parent)
 {
     catalog = nullptr;
+    threadPool.setObjectName("NewFileProcessor");
 }
 
 void NewFileProcessor::setCatalog(Catalog *cat)
@@ -43,6 +44,7 @@ void NewFileProcessor::setCatalog(Catalog *cat)
 
 void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 {
+//    qDebug()<<"Processing new file: " << fileInfo.path();
     Q_ASSERT(catalog != nullptr);
 
     if (cancelSignaled)
@@ -50,10 +52,27 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
         emit processingCancelled(fileInfo);
         return;
     }
+    pauseMutex.lock();
+    if (pauseSignaled)
+    {
+        pauseCondition.wait(&pauseMutex);
+    }
+    pauseMutex.unlock();
 
     QStorageInfo storageInfo = QStorageInfo(fileInfo.canonicalFilePath());
 
     QFuture<void> future = QtConcurrent::run(&threadPool, [=]() {
+        if (cancelSignaled)
+        {
+            emit processingCancelled(fileInfo);
+            return;
+        }
+        pauseMutex.lock();
+        if (pauseSignaled)
+        {
+            pauseCondition.wait(&pauseMutex);
+        }
+        pauseMutex.unlock();
         AstroFile astroFile(fileInfo);
         astroFile.VolumeName = storageInfo.name();
         astroFile.VolumeRoot = storageInfo.rootPath();
@@ -77,23 +96,44 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
             // This is an invalid file.
             astroFile.processStatus = AstroFileFailedToProcess;
             emit astrofileProcessed(astroFile);
+            delete processor;
             return;
         }
+//        if (cancelSignaled)
+//        {
+//            delete processor;
+//            return;
+//        }
         processor->extractTags();
 
         auto tags = processor->getTags();
         astroFile.Tags.swap(tags);
         astroFile.tagStatus = TagExtracted;
 
+//        if (cancelSignaled)
+//        {
+//            delete processor;
+//            return;
+//        }
         processor->extractThumbnail();
         auto thumbnail = processor->getThumbnail();
         astroFile.thumbnail = thumbnail;
         astroFile.tinyThumbnail = processor->getTinyThumbnail();
         astroFile.thumbnailStatus = ThumbnailLoaded;
 
+//        if (cancelSignaled)
+//        {
+//            delete processor;
+//            return;
+//        }
         QString hash = getFileHash(fileInfo).toHex();
         astroFile.FileHash = hash;
 
+//        if (cancelSignaled)
+//        {
+//            delete processor;
+//            return;
+//        }
         QString imageHash = processor->getImageHash().toHex();
         astroFile.ImageHash = imageHash;
         delete processor;
@@ -101,6 +141,7 @@ void NewFileProcessor::processNewFile(const QFileInfo& fileInfo)
 
         emit astrofileProcessed(astroFile);
     });
+    futures.append(futures);
 }
 
 QByteArray fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)
@@ -158,3 +199,27 @@ FileProcessor* NewFileProcessor::getProcessorForFile(const AstroFile &astroFile)
         default: return nullptr;
     }
 }
+
+void NewFileProcessor::pause()
+{
+    pauseMutex.lock();
+    pauseSignaled = true;
+    pauseMutex.unlock();
+}
+
+void NewFileProcessor::resume()
+{
+    pauseMutex.lock();
+    pauseSignaled = false;
+    pauseMutex.unlock();
+    pauseCondition.wakeAll();
+}
+
+void NewFileProcessor::waitForDrain()
+{
+    for(auto future:futures)
+    {
+        future.waitForFinished();
+    }
+}
+

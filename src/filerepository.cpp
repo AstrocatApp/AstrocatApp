@@ -91,6 +91,7 @@ void FileRepository::createDatabase()
 
     db = QSqlDatabase::addDatabase(DRIVER);
     db.setDatabaseName(location + "/astrocat.db");
+//    db.setDatabaseName(":memory:");
     if(!db.open())
     {
         auto message = QString("db.open() failed: %1").arg(db.lastError().text());

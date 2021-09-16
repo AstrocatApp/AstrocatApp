@@ -28,17 +28,21 @@
 #include <QFileInfo>
 #include <QObject>
 #include <QUrl>
+#include <QWaitCondition>
 
 class FolderCrawler : public QObject
 {
     Q_OBJECT
 public:
     explicit FolderCrawler(QObject *parent = nullptr);
-    void cancel();
+    ~FolderCrawler();
 
 public slots:
     virtual void crawl(QString rootFolder);
     virtual void crawlUrl(QUrl rootFolder);
+    virtual void cancel();
+    virtual void pause();
+    virtual void resume();
 
 signals:
     void fileFound(QFileInfo filePath);
@@ -47,6 +51,9 @@ signals:
 
 protected:
     volatile bool cancelSignaled = false;
+    volatile bool pauseSignaled = false;
+    QMutex pauseMutex;
+    QWaitCondition pauseCondition;;
 };
 
 #endif // FOLDERCRAWLER_H

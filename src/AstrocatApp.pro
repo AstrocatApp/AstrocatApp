@@ -15,6 +15,8 @@ SOURCES += \
     aboutwindow.cpp \
     autostretcher.cpp \
     catalog.cpp \
+    dbservice.cpp \
+    fileimporter.cpp \
     fileprocessfilter.cpp \
     filerepository.cpp \
     fileviewmodel.cpp \
@@ -42,6 +44,8 @@ HEADERS += \
     astrofile.h \
     autostretcher.h \
     catalog.h \
+    dbservice.h \
+    fileimporter.h \
     fileprocessfilter.h \
     fileprocessor.h \
     filerepository.h \

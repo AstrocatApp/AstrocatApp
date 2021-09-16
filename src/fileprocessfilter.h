@@ -44,6 +44,7 @@ public slots:
 signals:
     void shouldProcess(QFileInfo fileInfo);
     void fileIsCurrent(QFileInfo fileInfo);
+    void fileIsModified(QFileInfo fileInfo);
     void fileIsRemoved(QFileInfo fileInfo);
 
 private:
