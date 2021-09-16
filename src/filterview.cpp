@@ -275,34 +275,18 @@ void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
     for (int i = start; i <= end; i++)
     {
         QModelIndex index = model()->index(i, 0, parent);
-        auto data = model()->data(index);
-        auto id = model()->data(index, AstroFileRoles::IdRole).toInt();
-        auto object = model()->data(index, AstroFileRoles::ObjectRole).toString();
-        auto instrument = model()->data(index, AstroFileRoles::InstrumentRole).toString();
-        auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
-        auto date = model()->data(index, AstroFileRoles::DateRole).toString();
-        auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
-        auto directoryPath = model()->data(index, AstroFileRoles::DirectoryRole).toString();
-        auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
-        auto volumeRoot = model()->data(index, AstroFileRoles::VolumeRootRole).toString();
-        auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
-        auto imageType = model()->data(index, AstroFileRoles::CalframeRole).toString();
-
-        // We should check if there is a performance improvement of getting the object
-        // instead of asking for data from the model.
-//        auto astrofile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
-
-//        auto id = astrofile->Id;
-//        auto object = astrofile->Tags["OBJECT"];
-//        auto instrument = astrofile->Tags["INSTRUME"];
-//        auto filter = astrofile->Tags["FILTER"];
-//        auto date = astrofile->Tags["DATE-OBS"];
-//        auto fullPath = astrofile->FullPath;
-//        auto directoryPath = astrofile->DirectoryPath;
-//        auto volumeName = astrofile->VolumeName;
-//        auto volumeRoot = astrofile->VolumeRoot;
-//        auto fileExtension = astrofile->FileExtension;
-//        auto imageType = astrofile->Tags["CALFRAME"];
+        auto astroFile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
+        auto id = astroFile->Id;
+        auto object = astroFile->Tags["OBJECT"];
+        auto instrument = astroFile->Tags["INSTRUME"];
+        auto filter = astroFile->Tags["FILTER"];
+        auto date = astroFile->Tags["DATE-OBS"];
+//        auto fullPath = astroFile->FullPath;
+        auto directoryPath = astroFile->DirectoryPath;
+        auto volumeName = astroFile->VolumeName;
+        auto volumeRoot = astroFile->VolumeRoot;
+        auto fileExtension = astroFile->FileExtension;
+//        auto imageType = astroFile->Tags["CALFRAME"];
 
         if (acceptedAstroFiles.contains(id))
         {
