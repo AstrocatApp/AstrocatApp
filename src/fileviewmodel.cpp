@@ -183,21 +183,19 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
     if (astroFile == nullptr)
         return QVariant();
 
-    AstroFile a(*astroFile);
-
     switch (role)
     {
         case Qt::DisplayRole:
         {
-            return a.FileName;
+            return astroFile->FileName;
         }
         case Qt::DecorationRole:
         {
             QPixmap pixmap;
-            if (!QPixmapCache::find(QString::number(a.Id), &pixmap))
+            if (!QPixmapCache::find(QString::number(astroFile->Id), &pixmap))
             {
-                emit loadThumbnailFromDb(a);
-                pixmap = QPixmap::fromImage(a.tinyThumbnail).scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                emit loadThumbnailFromDb(*astroFile);
+                pixmap = QPixmap::fromImage(astroFile->tinyThumbnail).scaled( cellSize*0.9, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             }
 
             QIcon icon;
@@ -212,8 +210,8 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         case AstroFileRoles::ItemRole:
         {
             auto af = catalog->getAstroFile(index.row());
-            AstroFile a(*af);
-            return QVariant::fromValue<AstroFile>(a);
+//            AstroFile a(*af);
+            return QVariant::fromValue<AstroFile*>(af);
         }
         case Qt::SizeHintRole:
         {
@@ -221,91 +219,91 @@ QVariant FileViewModel::data(const QModelIndex &index, int role) const
         }
         case AstroFileRoles::IdRole:
         {
-            return a.Id;
+            return astroFile->Id;
         }
         case AstroFileRoles::ObjectRole:
         {
-            return a.Tags["OBJECT"];
+            return astroFile->Tags["OBJECT"];
         }
         case AstroFileRoles::InstrumentRole:
         {
-            return a.Tags["INSTRUME"];
+            return astroFile->Tags["INSTRUME"];
         }
         case AstroFileRoles::FilterRole:
         {
-            return a.Tags["FILTER"];
+            return astroFile->Tags["FILTER"];
         }
         case AstroFileRoles::DateRole:
         {
-            return a.Tags["DATE-OBS"];
+            return astroFile->Tags["DATE-OBS"];
         }
         case AstroFileRoles::FullPathRole:
         {
-            return a.FullPath;
+            return astroFile->FullPath;
         }
         case AstroFileRoles::DirectoryRole:
         {
-            return a.DirectoryPath;
+            return astroFile->DirectoryPath;
         }
         case AstroFileRoles::VolumeNameRole:
         {
-            return a.VolumeName;
+            return astroFile->VolumeName;
         }
         case AstroFileRoles::VolumeRootRole:
         {
-            return a.VolumeRoot;
+            return astroFile->VolumeRoot;
         }
         case AstroFileRoles::RaRole:
         {
-            return a.Tags["OBJCTRA"];
+            return astroFile->Tags["OBJCTRA"];
         }
         case AstroFileRoles::DecRole:
         {
-            return a.Tags["OBJCTDEC"];
+            return astroFile->Tags["OBJCTDEC"];
         }
         case AstroFileRoles::CcdTempRole:
         {
-            return a.Tags["CCD-TEMP"];
+            return astroFile->Tags["CCD-TEMP"];
         }
         case AstroFileRoles::ImageXSizeRole:
         {
-            return a.Tags["NAXIS1"];
+            return astroFile->Tags["NAXIS1"];
         }
         case AstroFileRoles::ImageYSizeRole:
         {
-            return a.Tags["NAXIS2"];
+            return astroFile->Tags["NAXIS2"];
         }
         case AstroFileRoles::GainRole:
         {
-            return a.Tags["GAIN"];
+            return astroFile->Tags["GAIN"];
         }
         case AstroFileRoles::ExposureRole:
         {
-            return a.Tags["EXPTIME"];
+            return astroFile->Tags["EXPTIME"];
         }
         case AstroFileRoles::BayerModeRole:
         {
-            return a.Tags["BAYERPAT"];
+            return astroFile->Tags["BAYERPAT"];
         }
         case AstroFileRoles::OffsetRole:
         {
-            return a.Tags["BLKLEVEL"];
+            return astroFile->Tags["BLKLEVEL"];
         }
         case AstroFileRoles::CalframeRole:
         {
-            return a.Tags["CALFRAME"];
+            return astroFile->Tags["CALFRAME"];
         }
         case AstroFileRoles::FileTypeRole:
         {
-            return a.FileType;
+            return astroFile->FileType;
         }
         case AstroFileRoles::FileExtensionRole:
         {
-            return a.FileExtension;
+            return astroFile->FileExtension;
         }
         case AstroFileRoles::FileHashRole:
         {
-            return a.FileHash;
+            return astroFile->FileHash;
         }
     }
 
