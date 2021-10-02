@@ -36,9 +36,9 @@
 
 #define DB_SCHEMA_VERSION 1
 
-FileRepository::FileRepository(QObject *parent) : QObject(parent)
+FileRepository::FileRepository(QString connectionName, QObject *parent) : QObject(parent)
 {
-
+    this->connectionName = connectionName;
 }
 
 void FileRepository::cancel()
@@ -299,7 +299,7 @@ QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath)
     return files;
 }
 
-void FileRepository::addOrUpdateAstrofile(const AstroFile& astroFile)
+void FileRepository::addAstrofile(const AstroFile& astroFile)
 {
     QSqlDatabase::database().transaction();
 
@@ -312,6 +312,11 @@ void FileRepository::addOrUpdateAstrofile(const AstroFile& astroFile)
 
     QSqlDatabase::database().commit();
 
+    // Since we wrote the full thumbnail to the DB,
+    // we do not need to keep it in memory since the image
+    // may not be visible on screen. If it is needed,
+    // the view will ask for it.
+    insertedAstroFile.thumbnail = QImage();
     emit astroFileUpdated(insertedAstroFile);
 }
 
@@ -319,7 +324,8 @@ int FileRepository::insertAstrofile(const AstroFile& astroFile)
 {
     QSqlQuery queryAdd;
 
-    queryAdd.prepare("REPLACE INTO fits (FileName,FullPath,DirectoryPath,VolumeName,VolumeRoot,FileType,FileExtension,CreatedTime,LastModifiedTime,TagStatus,ThumbnailStatus,ProcessStatus,FileHash,ImageHash,IsHidden) "
+    // We changed the following from REPLACE to INSERT
+    queryAdd.prepare("INSERT INTO fits (FileName,FullPath,DirectoryPath,VolumeName,VolumeRoot,FileType,FileExtension,CreatedTime,LastModifiedTime,TagStatus,ThumbnailStatus,ProcessStatus,FileHash,ImageHash,IsHidden) "
                         "VALUES (:FileName,:FullPath,:DirectoryPath,:VolumeName,:VolumeRoot,:FileType,:FileExtension,:CreatedTime,:LastModifiedTime,:TagStatus,:ThumbnailStatus,:ProcessStatus,:FileHash,:ImageHash,:IsHidden)");
     queryAdd.bindValue(":FileName", astroFile.FileName);
     queryAdd.bindValue(":FullPath", astroFile.FullPath);
@@ -513,6 +519,292 @@ void FileRepository::loadThumbnail(const AstroFile &afi)
     emit thumbnailLoaded(astroFile);
 }
 
+void FileRepository::loadTagStats(const QString fileExtension, QList<QPair<QString, QString>>& filters)
+{
+    //.open astrocat.db
+    // select tagKey,tagValue,count(*) from tags where tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') group by tagKey,tagValue;
+
+    // select FileExtension,count(*) from fits group by FileExtension;
+
+    // select FileExtension,count(*) from fits INNER JOIN tags on tags.fits_id=fits.Id group by FileExtension;
+
+    // from fits join tags on fits.id = tags.fits_id where tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') and fits.fileextension = 'xisf' group by tagKey,tagValue;
+
+    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id where tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') group by fileextension,tagKey,tagValue;
+
+    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81' group by fileextension,tagKey,tagValue;
+
+    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id where fits.id in
+    // (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81')
+    // and tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') group by fileextension,tagKey,tagValue;
+
+
+    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id
+    // where fits.id in
+    //  ( select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'FILTER' AND tagValue = 'Ha')
+    // AND fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81')
+    // group by fileextension,tagKey,tagValue
+    // HAVING tagkey in ('OBJECT','INSTRUME','FILTER','FILEEXT');
+
+    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id
+    // where fits.id in
+    //  ( select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'FILTER' AND tagValue = 'Ha')
+    // AND fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81')
+    // group by fileextension,tagKey,tagValue
+    // HAVING tagkey in ('OBJECT','INSTRUME','FILTER','FILEEXT');
+
+    QStringList andStatements;
+    QString andStatement;
+
+    if (filters.count() > 0)
+    {
+        for (auto& a : filters)
+        {
+            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            andStatements << statement;
+        }
+        andStatement = "where " + andStatements.join(" AND ");
+    }
+    if (!fileExtension.isEmpty())
+    {
+        andStatement = andStatement + " AND fits.fileExtension = '" + fileExtension + "' ";
+    }
+
+    QString queryString = "SELECT tagKey,tagValue,count(*) CNT FROM fits join tags on fits.id = tags.fits_id " +
+                        andStatement +
+            "group by tagKey,tagValue "
+            "HAVING tagkey in ('OBJECT','INSTRUME','FILTER'); ";
+
+    qDebug() <<queryString;
+
+    QSqlQuery query(db);
+    query.prepare(queryString);
+//    query.exec();
+
+    query.exec();
+//    int idFileExtension = query.record().indexOf("fileextension");
+    int idTagKey = query.record().indexOf("tagKey");
+    int idTagValue = query.record().indexOf("tagValue");
+    int idCount = query.record().indexOf("CNT");
+
+//    qDebug()<<"=========== TAGS ==============";
+    QList<FilterViewGroupData> groupData;
+    while (query.next())
+    {
+//        QString fileExtension = query.value(idFileExtension).toString();
+        QString tagKey = query.value(idTagKey).toString();
+        QString tagValue = query.value(idTagValue).toString();
+        int count = query.value(idCount).toInt();
+
+        FilterViewGroupData data;
+        data.GroupName = tagKey;
+        data.ElementName = tagValue;
+        data.ElementCount = count;
+        groupData<<data;
+//        qDebug()<<tagKey<<"|"<<tagValue<<"|"<<count;
+    }
+//    qDebug()<<"-------------------------";
+
+    emit filterStatsLoaded(groupData);
+}
+
+void FileRepository::loadFileExtensionStats(const QString fileExtension, QList<QPair<QString, QString>>& filters)
+{
+    QStringList andStatements;
+    QString andStatement;
+    QStringList havingStatements;
+    QString havingStatement;
+    QString joinStatement;
+
+    if (!fileExtension.isEmpty())
+    {
+        andStatements<< " fits.fileextension = '" + fileExtension + "' ";
+    }
+
+    if (filters.count() > 0)
+    {
+        for (auto& a : filters)
+        {
+            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            andStatements << statement;
+            havingStatements << "'" + a.second +"'";
+        }
+        joinStatement = "join tags on fits.id = tags.fits_id ";
+        havingStatement = ",tagValue HAVING tagValue in (" + havingStatements.join(",") + ")";
+    }
+    if (!andStatements.isEmpty())
+    {
+        andStatement = " where " + andStatements.join(" AND ") ;
+    }
+
+    QString queryString = "SELECT fileextension,count(*) CNT FROM fits " +
+                        joinStatement + andStatement + " group by fileextension " + havingStatement + ";";
+
+    qDebug() <<queryString;
+
+    QSqlQuery query(db);
+    query.prepare(queryString);
+//    query.exec();
+
+    query.exec();
+    int idFileExtension = query.record().indexOf("fileextension");
+    int idCount = query.record().indexOf("CNT");
+
+//    qDebug()<<"========== FILE EXTENSIONS ===============";
+    QMap<QString, int> extensions;
+    while (query.next())
+    {
+        QString fileExtension = query.value(idFileExtension).toString();
+        int count = query.value(idCount).toInt();
+
+        extensions[fileExtension] = count;
+//        qDebug()<<fileExtension<<"|"<<count;
+    }
+//    qDebug()<<"-------------------------";
+
+    emit fileExtensionStatsLoaded(extensions);
+}
+
+void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QString, QString> > &filters)
+{
+    QStringList andStatements;
+    QString andStatement;
+    QString joinStatement;
+
+    if (filters.count() > 0)
+    {
+        for (auto& a : filters)
+        {
+            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            andStatements << statement;
+        }
+        andStatement = andStatements.join(" AND ");
+        joinStatement = " join tags on fits.id = tags.fits_id ";
+    }
+    if (!fileExtension.isEmpty())
+    {
+        if (!andStatement.isEmpty())
+            andStatement = andStatement + " AND ";
+        andStatement = andStatement + " fits.fileExtension = '" + fileExtension + "' ";
+    }
+    if (!andStatement.isEmpty())
+    {
+        andStatement = " where " + andStatement;
+    }
+
+    QString queryString = "SELECT DISTINCT fits.id FROM fits " + joinStatement + andStatement + "; ";
+
+    qDebug() <<queryString;
+
+    QSqlQuery query(db);
+    query.prepare(queryString);
+//    query.exec();
+
+    query.exec();
+//    int idFileExtension = query.record().indexOf("fileextension");
+    int idKey = query.record().indexOf("Id");
+
+//    qDebug()<<"=========== TAGS ==============";
+//    QList<int> idList;
+    QSet<int> idSet;
+    int rows = query.numRowsAffected();
+    idSet.reserve(rows);
+    while (query.next())
+    {
+        int id = query.value(idKey).toInt();
+
+        idSet<<id;
+    }
+//    qDebug()<<"-------------------------";
+
+    emit astroFilesInFilter(idSet);
+
+//    QStringList andStatements;
+//    QString andStatement;
+//    QStringList havingStatements;
+//    QString havingStatement;
+//    QString joinStatement;
+
+//    if (!fileExtension.isEmpty())
+//    {
+//        andStatements<< " fits.fileextension = '" + fileExtension + "' ";
+//    }
+
+//    if (filters.count() > 0)
+//    {
+//        for (auto& a : filters)
+//        {
+//            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+//            andStatements << statement;
+//            havingStatements << "'" + a.second +"'";
+//        }
+//        joinStatement = "join tags on fits.id = tags.fits_id join thumbnails on fits.id = thumbnails.fits_id";
+////        havingStatement = ",tagValue HAVING tagValue in (" + havingStatements.join(",") + ")";
+//    }
+//    if (!andStatements.isEmpty())
+//    {
+//        andStatement = " where " + andStatements.join(" AND ") ;
+//    }
+
+//    QString queryString = "SELECT * FROM fits " +
+//                        joinStatement + andStatement + ";";
+
+//    qDebug() <<queryString;
+
+//    QSqlQuery query(db);
+//    query.prepare(queryString);
+
+//    query.exec();
+//    int idFileExtension = query.record().indexOf("fileextension");
+//    int idCount = query.record().indexOf("CNT");
+
+//    qDebug()<<"========== FILEs ===============";
+//    QMap<QString, int> extensions;
+//    QMap<int, AstroFile> files;
+//    while (query.next())
+//    {
+//        QString fileExtension = query.value(idFileExtension).toString();
+//        int idId = query.record().indexOf("Id");
+//        int idFileName = query.record().indexOf("FileName");
+//        int idFullPath = query.record().indexOf("FullPath");
+//        int idDirectoryPath = query.record().indexOf("DirectoryPath");
+//        int idVolumeName = query.record().indexOf("VolumeName");
+//        int idVolumeRoot = query.record().indexOf("VolumeRoot");
+//        int idFileType = query.record().indexOf("FileType");
+//        int idFileExtension = query.record().indexOf("FileExtension");
+//        int idCreatedTime = query.record().indexOf("CreatedTime");
+//        int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
+//        int idFileHash = query.record().indexOf("FileHash");
+//        int idImageHash = query.record().indexOf("ImageHash");
+//        int idTagStatus = query.record().indexOf("TagStatus");
+//        int idThumbnailStatus = query.record().indexOf("ThumbnailStatus");
+//        int idProcessStatus = query.record().indexOf("ProcessStatus");
+//        int idIsHidden = query.record().indexOf("IsHidden");
+
+//        AstroFile astro;
+//        int astroFileId = query.value(idId).toInt();
+//        astro.Id = astroFileId;
+//        astro.FileName = query.value(idFileName).toString();
+//        astro.FullPath = query.value(idFullPath).toString();
+//        astro.DirectoryPath = query.value(idDirectoryPath).toString();
+//        astro.VolumeName = query.value(idVolumeName).toString();
+//        astro.VolumeRoot = query.value(idVolumeRoot).toString();
+//        astro.FileType = AstroFileType(query.value(idFileType).toInt());
+//        astro.FileExtension = query.value(idFileExtension).toString();
+//        astro.FileHash = query.value(idFileHash).toString();
+//        astro.ImageHash = query.value(idImageHash).toString();
+//        astro.CreatedTime = query.value(idCreatedTime).toDateTime();
+//        astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
+//        astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
+//        astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
+//        astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
+//        astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
+
+//        files.insert(astroFileId, astro);
+//    }
+//    qDebug()<<"-------------------------";
+}
+
 QMap<int, AstroFile> FileRepository::_getAllAstrofiles()
 {
     QSqlQuery query("SELECT * FROM fits");
@@ -613,8 +905,8 @@ void FileRepository::loadModel()
 
     auto fitsmap = _getAllAstrofiles();
     emit modelLoadingGotAstrofiles();
-    // 2. Get the entire tags table into memory
-    // select * from tags
+//    // 2. Get the entire tags table into memory
+//    // select * from tags
 
     auto tagsmap = _getAllAstrofileTags();
 
@@ -636,25 +928,24 @@ void FileRepository::loadModel()
     // 4. Get the entire thumbnails into memory
     // select * from thumbnails
 
-    auto thumbnails = _getAllThumbnails();
-    emit modelLoadingGotThumbnails();
+//    auto thumbnails = _getAllThumbnails();
+//    emit modelLoadingGotThumbnails();
 
     // 5. Add thumbnails to their fits files
     // insert all thumbnails from #4 into map by fits_id
 
-    QMapIterator<int, QImage> thumbiter(thumbnails);
-    while (thumbiter.hasNext())
-    {
-        thumbiter.next();
-        auto fitsId = thumbiter.key();
-        auto& image = thumbiter.value();
-        fitsmap[fitsId].tinyThumbnail = image;
-        fitsmap[fitsId].thumbnailStatus = ThumbnailLoaded;
-    }
+//    QMapIterator<int, QImage> thumbiter(thumbnails);
+//    while (thumbiter.hasNext())
+//    {
+//        thumbiter.next();
+//        auto fitsId = thumbiter.key();
+//        auto& image = thumbiter.value();
+//        fitsmap[fitsId].tinyThumbnail = image;
+//        fitsmap[fitsId].thumbnailStatus = ThumbnailLoaded;
+//    }
 
     // 6. convert map's `values` into a list of astroFile, and emit the list
 
     auto list = fitsmap.values();
-
     emit modelLoaded(list);
 }

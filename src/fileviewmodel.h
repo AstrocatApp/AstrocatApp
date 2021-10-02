@@ -87,7 +87,7 @@ public slots:
     void setCellSize(const int newSize);
     void addThumbnail(const AstroFile& astroFile);
     void AddAstroFiles(int numberAdded);
-    void UpdateAstroFile(AstroFile astroFile, int row);
+    void UpdateAstroFile(const AstroFile& astroFile, int row);
     void RemoveAstroFile(const AstroFile& astroFile);
     void RemoveAstroFiles(const QList<AstroFile>& astroFiles);
 

@@ -61,7 +61,7 @@ void FileProcessFilter::filterFile(QFileInfo fileInfo)
         default:
             if (cancelSignaled)
                 return;
-            qDebug()<<"FileProcessFilter emitting shouldProcess()";
+//            qDebug()<<"FileProcessFilter emitting shouldProcess()";
             emit shouldProcess(fileInfo);
     }
 }

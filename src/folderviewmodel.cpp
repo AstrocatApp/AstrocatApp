@@ -47,6 +47,14 @@ QStringList splitFolders(const QString& str, const QString& volumeRoot) {
 
 void FolderViewModel::addItem(QString volume, QString volumeRoot, QString folderPath)
 {
+    if (volume.isEmpty())
+    {
+//        qDebug()<<"BUG: volume is empty: " << folderPath;
+    }
+    if (volumeRoot.isEmpty())
+    {
+//        qDebug()<<"BUG: volumeRoot is empty: " << folderPath;
+    }
     folders[folderPath]++;
     // TODO: We should look at the volume plus folderPath to skip existing ones.
     // Instead of just the folderPath

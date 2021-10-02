@@ -26,6 +26,7 @@
 
 #include <QPainter>
 #include <QThread>
+#include <QRandomGenerator>
 
 QImage makeImage(int num, bool isTiny)
 {
@@ -53,7 +54,11 @@ void Mock_NewFileProcessor::processNewFile(const QFileInfo &fileInfo)
     // then we will consume huge amounts of memory due to piling up emits with large
     // thumbnails in them. (Ex: if we implement parallel file processing, and the
     // files are on a fast disk, but the DB is on a slow or busy disk).
-    QThread::msleep(50);
+    QThread::msleep(5);
+
+    quint32 rand1 = QRandomGenerator::global()->generate();
+    quint32 rand2 = QRandomGenerator::global()->generate();
+    quint32 rand3 = QRandomGenerator::global()->generate();
 
     static int lastId = 1;
     QImage tiny = makeImage(lastId, true);
@@ -61,7 +66,9 @@ void Mock_NewFileProcessor::processNewFile(const QFileInfo &fileInfo)
 
     AstroFile astroFile(fileInfo);
     astroFile.processStatus = AstroFileProcessed;
-    astroFile.Tags.insert({{"OBJECT", "value1"}, {"INSTRUME", "value2"}});
+    astroFile.Tags.insert({{"OBJECT", Objects[rand1%Objects.length()]},
+                           {"INSTRUME", Instruments[rand2%Instruments.length()]},
+                           {"FILTER", Filters[rand3%Filters.length()]}});
     astroFile.tagStatus = TagExtracted;
     astroFile.thumbnail = thum;
     astroFile.tinyThumbnail = tiny;

@@ -34,7 +34,7 @@ class FileRepository : public QObject
 {
     Q_OBJECT
 public:
-    FileRepository(QObject *parent = nullptr);
+    FileRepository(QString connectionName, QObject *parent = nullptr);
     void cancel();
 
 public slots:
@@ -42,11 +42,14 @@ public slots:
     void deleteAstrofilesInFolder(const QString& fullPath);
     void initialize();
     void loadModel();
-    void addOrUpdateAstrofile(const AstroFile& afi);
+    void addAstrofile(const AstroFile& afi);
     void getDuplicateFiles();
     void getDuplicateFilesByFileHash();
     void getDuplicateFilesByImageHash();
     void loadThumbnail(const AstroFile& afi);
+    void loadTagStats(const QString fileExtension, QList<QPair<QString, QString>>& filters);
+    void loadFileExtensionStats(const QString fileExtension, QList<QPair<QString, QString>>& filters);
+    void loadAstroFiles(const QString fileExtension, QList<QPair<QString, QString>>& filters);
 
 signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
@@ -60,9 +63,13 @@ signals:
     void modelLoadingGotAstrofiles();
     void modelLoadingGotTags();
     void modelLoadingGotThumbnails();
+    void filterStatsLoaded(const QList<FilterViewGroupData>& data);
+    void fileExtensionStatsLoaded(const QMap<QString, int>& tags);
+    void astroFilesInFilter(const QSet<int>& ids);
 
 private:
     QSqlDatabase db;
+    QString connectionName;
     void createTables();
     void createDatabase();
     void migrateDatabase();

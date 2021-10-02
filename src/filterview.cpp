@@ -170,6 +170,85 @@ void FilterView::treeViewClicked(const QItemSelection &selected, const QItemSele
     selectedFoldersChanged(volume, fullPath, 2);
 }
 
+void FilterView::FileExtensionStatsLoaded(const QMap<QString, int> &tags)
+{
+    qDebug()<<"FileExtensionStatsLoaded";
+
+    // Zero Out existing values
+    for (auto& a : fileTags["FILEEXT"].toStdMap())
+    {
+        fileTags["FILEEXT"][a.first] = 0;
+    }
+
+    for (auto& tag : tags.toStdMap())
+    {
+        fileTags["FILEEXT"][tag.first] = tag.second;
+    }
+//    resetGroups();
+    addFileExtensions();
+}
+
+void FilterView::FilterStatsLoaded(const QList<FilterViewGroupData> &data)
+{
+    qDebug()<<"FilterStatsLoaded";
+
+    // Zero Out all
+    for (auto& a : fileTags.toStdMap())
+    {
+        for (auto& b: a.second.toStdMap())
+        {
+            fileTags[a.first][b.first] = 0;
+        }
+    }
+
+    for (auto& tag : data)
+    {
+        fileTags[tag.GroupName][tag.ElementName] = tag.ElementCount;
+    }
+//    resetGroups();
+    addObjects();
+//    addDates();
+    addInstruments();
+    addFilters();
+}
+
+void FilterView::AstroFileImported(const AstroFile &astroFile)
+{
+    // Get the File Extension and Tags and update relevant checkbox labels
+    auto id = astroFile.Id;
+    auto object = astroFile.Tags["OBJECT"];
+    auto instrument = astroFile.Tags["INSTRUME"];
+    auto filter = astroFile.Tags["FILTER"];
+    auto date = astroFile.Tags["DATE-OBS"];
+//        auto fullPath = astroFile->FullPath;
+    auto directoryPath = astroFile.DirectoryPath;
+    auto volumeName = astroFile.VolumeName;
+    auto volumeRoot = astroFile.VolumeRoot;
+    auto fileExtension = astroFile.FileExtension;
+//        auto imageType = astroFile->Tags["CALFRAME"];
+
+    if (!acceptedAstroFiles.contains(id))
+    {
+        if (!object.isEmpty())
+            fileTags["OBJECT"][object]++;
+        if (!instrument.isEmpty())
+            fileTags["INSTRUME"][instrument]++;
+        if (!filter.isEmpty())
+            fileTags["FILTER"][filter]++;
+        if (!date.isEmpty())
+            fileTags["DATE-OBS"][date]++;
+        if (!fileExtension.isEmpty())
+            fileTags["FILEEXT"][fileExtension]++;
+        acceptedFolders[directoryPath]++;
+        acceptedAstroFiles.insert(id);
+        folderModel->addItem(volumeName, volumeRoot, directoryPath);    //TODO: This should not be called here.
+
+        // BUG: If some other checkbox is alread checked, the new checkbox
+        // shows enabled, instead of disabled.
+        resetGroups();
+    }
+}
+
 void FilterView::resetGroups()
 {
     minDateEdit->setDate(QDate());
@@ -270,106 +349,106 @@ QMenu *FilterView::createFoldersOptionsMenu()
     return myMenu;
 }
 
-void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
-{
-    for (int i = start; i <= end; i++)
-    {
-        QModelIndex index = model()->index(i, 0, parent);
-        auto astroFile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
-        auto id = astroFile->Id;
-        auto object = astroFile->Tags["OBJECT"];
-        auto instrument = astroFile->Tags["INSTRUME"];
-        auto filter = astroFile->Tags["FILTER"];
-        auto date = astroFile->Tags["DATE-OBS"];
-//        auto fullPath = astroFile->FullPath;
-        auto directoryPath = astroFile->DirectoryPath;
-        auto volumeName = astroFile->VolumeName;
-        auto volumeRoot = astroFile->VolumeRoot;
-        auto fileExtension = astroFile->FileExtension;
-//        auto imageType = astroFile->Tags["CALFRAME"];
+//void FilterView::rowsInserted(const QModelIndex &parent, int start, int end)
+//{
+//    for (int i = start; i <= end; i++)
+//    {
+//        QModelIndex index = model()->index(i, 0, parent);
+//        auto astroFile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
+//        auto id = astroFile->Id;
+//        auto object = astroFile->Tags["OBJECT"];
+//        auto instrument = astroFile->Tags["INSTRUME"];
+//        auto filter = astroFile->Tags["FILTER"];
+//        auto date = astroFile->Tags["DATE-OBS"];
+////        auto fullPath = astroFile->FullPath;
+//        auto directoryPath = astroFile->DirectoryPath;
+//        auto volumeName = astroFile->VolumeName;
+//        auto volumeRoot = astroFile->VolumeRoot;
+//        auto fileExtension = astroFile->FileExtension;
+////        auto imageType = astroFile->Tags["CALFRAME"];
 
-        if (acceptedAstroFiles.contains(id))
-        {
-            // The astrofile has already been added. Let's add it again
-        }
-        else
-        {
-            if (!object.isEmpty())
-                fileTags["OBJECT"][object]++;
-            if (!instrument.isEmpty())
-                fileTags["INSTRUME"][instrument]++;
-            if (!filter.isEmpty())
-                fileTags["FILTER"][filter]++;
-            if (!date.isEmpty())
-                fileTags["DATE-OBS"][date]++;
-            if (!fileExtension.isEmpty())
-                fileTags["FILEEXT"][fileExtension]++;
-            acceptedFolders[directoryPath]++;
-            acceptedAstroFiles.insert(id);
-            folderModel->addItem(volumeName, volumeRoot, directoryPath);    //TODO: This should not be called here.
-        }
-    }
+//        if (acceptedAstroFiles.contains(id))
+//        {
+//            // The astrofile has already been added. Let's add it again
+//        }
+//        else
+//        {
+//            if (!object.isEmpty())
+//                fileTags["OBJECT"][object]++;
+//            if (!instrument.isEmpty())
+//                fileTags["INSTRUME"][instrument]++;
+//            if (!filter.isEmpty())
+//                fileTags["FILTER"][filter]++;
+//            if (!date.isEmpty())
+//                fileTags["DATE-OBS"][date]++;
+//            if (!fileExtension.isEmpty())
+//                fileTags["FILEEXT"][fileExtension]++;
+//            acceptedFolders[directoryPath]++;
+//            acceptedAstroFiles.insert(id);
+//            folderModel->addItem(volumeName, volumeRoot, directoryPath);    //TODO: This should not be called here.
+//        }
+//    }
 
-//    foldersTreeView->expandToDepth(2);
-    emit astroFileAdded(end-start+1);
-    // We should not nuke all groups
-    resetGroups();
-}
+////    foldersTreeView->expandToDepth(2);
+//    emit astroFileAdded(end-start+1);
+//    // We should not nuke all groups
+//    resetGroups();
+//}
 
-void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
-{
-    for (int i = start; i <= end; i++)
-    {
-        QModelIndex index = model()->index(i, 0, parent);
-        auto data = model()->data(index);
-        auto id = model()->data(index, AstroFileRoles::IdRole).toInt();
-        auto object = model()->data(index, AstroFileRoles::ObjectRole).toString();
-        auto instrument = model()->data(index, AstroFileRoles::InstrumentRole).toString();
-        auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
-        auto date = model()->data(index, AstroFileRoles::DateRole).toString();
-        auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
-        auto directoryPath = model()->data(index, AstroFileRoles::DirectoryRole).toString();
-        auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
-        auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
-        auto imageType = model()->data(index, AstroFileRoles::CalframeRole).toString();
+//void FilterView::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
+//{
+//    for (int i = start; i <= end; i++)
+//    {
+//        QModelIndex index = model()->index(i, 0, parent);
+//        auto data = model()->data(index);
+//        auto id = model()->data(index, AstroFileRoles::IdRole).toInt();
+//        auto object = model()->data(index, AstroFileRoles::ObjectRole).toString();
+//        auto instrument = model()->data(index, AstroFileRoles::InstrumentRole).toString();
+//        auto filter = model()->data(index, AstroFileRoles::FilterRole).toString();
+//        auto date = model()->data(index, AstroFileRoles::DateRole).toString();
+//        auto fullPath = model()->data(index, AstroFileRoles::FullPathRole).toString();
+//        auto directoryPath = model()->data(index, AstroFileRoles::DirectoryRole).toString();
+//        auto volumeName = model()->data(index, AstroFileRoles::VolumeNameRole).toString();
+//        auto fileExtension = model()->data(index, AstroFileRoles::FileExtensionRole).toString();
+//        auto imageType = model()->data(index, AstroFileRoles::CalframeRole).toString();
 
-        // We should check if there is a performance improvement of getting the object
-        // instead of asking for data from the model.
-//        auto astrofile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
+//        // We should check if there is a performance improvement of getting the object
+//        // instead of asking for data from the model.
+////        auto astrofile = model()->data(index, AstroFileRoles::ItemRole).value<AstroFile*>();
 
-//        auto id = astrofile->Id;
-//        auto object = astrofile->Tags["OBJECT"];
-//        auto instrument = astrofile->Tags["INSTRUME"];
-//        auto filter = astrofile->Tags["FILTER"];
-//        auto date = astrofile->Tags["DATE-OBS"];
-//        auto fullPath = astrofile->FullPath;
-//        auto directoryPath = astrofile->DirectoryPath;
-//        auto volumeName = astrofile->VolumeName;
-//        auto volumeRoot = astrofile->VolumeRoot;
-//        auto fileExtension = astrofile->FileExtension;
-//        auto imageType = astrofile->Tags["CALFRAME"];
+////        auto id = astrofile->Id;
+////        auto object = astrofile->Tags["OBJECT"];
+////        auto instrument = astrofile->Tags["INSTRUME"];
+////        auto filter = astrofile->Tags["FILTER"];
+////        auto date = astrofile->Tags["DATE-OBS"];
+////        auto fullPath = astrofile->FullPath;
+////        auto directoryPath = astrofile->DirectoryPath;
+////        auto volumeName = astrofile->VolumeName;
+////        auto volumeRoot = astrofile->VolumeRoot;
+////        auto fileExtension = astrofile->FileExtension;
+////        auto imageType = astrofile->Tags["CALFRAME"];
 
-        if (acceptedAstroFiles.contains(id))
-        {
-            if (!object.isEmpty())
-                fileTags["OBJECT"][object]--;
-            if (!instrument.isEmpty())
-                fileTags["INSTRUME"][instrument]--;
-            if (!filter.isEmpty())
-                fileTags["FILTER"][filter]--;
-            if (!date.isEmpty())
-                fileTags["DATE-OBS"][date]--;
-            if (!fileExtension.isEmpty())
-                fileTags["FILEEXT"][fileExtension]--;
-            acceptedFolders[directoryPath]--;
-            acceptedAstroFiles.remove(id);
-            folderModel->removeItem(volumeName, directoryPath);
-        }
-    }
-    emit astroFileRemoved(end-start+1);
-    // We should not nuke all groups
-    resetGroups();
-}
+//        if (acceptedAstroFiles.contains(id))
+//        {
+//            if (!object.isEmpty())
+//                fileTags["OBJECT"][object]--;
+//            if (!instrument.isEmpty())
+//                fileTags["INSTRUME"][instrument]--;
+//            if (!filter.isEmpty())
+//                fileTags["FILTER"][filter]--;
+//            if (!date.isEmpty())
+//                fileTags["DATE-OBS"][date]--;
+//            if (!fileExtension.isEmpty())
+//                fileTags["FILEEXT"][fileExtension]--;
+//            acceptedFolders[directoryPath]--;
+//            acceptedAstroFiles.remove(id);
+//            folderModel->removeItem(volumeName, directoryPath);
+//        }
+//    }
+//    emit astroFileRemoved(end-start+1);
+//    // We should not nuke all groups
+//    resetGroups();
+//}
 
 void FilterView::clearLayout(QLayout* layout)
 {
@@ -523,10 +602,12 @@ void FilterView::selectedObjectsChanged(QString object, int state)
     case 0:
         checkedTags.remove("OBJ_"+object);
         emit removeAcceptedObject(object);
+        emit removeFilterQuery("OBJECT", object);
         break;
     case 2:
         checkedTags.insert("OBJ_"+object);
         emit addAcceptedObject(object);
+        emit addFilterQuery("OBJECT", object);
         break;
     }
 }
@@ -538,10 +619,12 @@ void FilterView::selectedInstrumentsChanged(QString object, int state)
     case 0:
         checkedTags.remove("INS_"+object);
         emit removeAcceptedInstrument(object);
+        emit removeFilterQuery("INSTRUME", object);
         break;
     case 2:
         checkedTags.insert("INS_"+object);
         emit addAcceptedInstrument(object);
+        emit addFilterQuery("INSTRUME", object);
         break;
     }
 }
@@ -553,10 +636,12 @@ void FilterView::selectedFiltersChanged(QString object, int state)
     case 0:
         checkedTags.remove("FIL_"+object);
         emit removeAcceptedFilter(object);
+        emit removeFilterQuery("FILTER", object);
         break;
     case 2:
         checkedTags.insert("FIL_"+object);
         emit addAcceptedFilter(object);
+        emit addFilterQuery("FILTER", object);
         break;
     }
 }
@@ -567,10 +652,14 @@ void FilterView::selectedFileExtensionsChanged(QString object, int state)
     {
     case 0:
         checkedTags.remove("EXT_"+object);
+//        emit removeAcceptedExtension(object);
+//        emit removeFilterQuery("FILEEXT", object);
         emit removeAcceptedExtension(object);
         break;
     case 2:
         checkedTags.insert("EXT_"+object);
+//        emit addAcceptedExtension(object);
+//        emit addFilterQuery("FILEEXT", object);
         emit addAcceptedExtension(object);
         break;
     }

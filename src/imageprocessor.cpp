@@ -64,6 +64,7 @@ bool ImageProcessor::loadFile(const AstroFile &astroFile)
 
 void ImageProcessor::extractTags()
 {
+    _tags.insert("AC_PROC", "IMG");
 }
 
 void ImageProcessor::extractThumbnail()

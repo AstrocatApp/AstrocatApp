@@ -38,10 +38,11 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     const AstroFile* astroFile = static_cast<AstroFile*>(index.internalPointer());
     Q_ASSERT(astroFile != NULL);
 
-    QString dateString = astroFile->Tags["DATE-OBS"];
-    QDate d = QDate::fromString(dateString, Qt::ISODate);
+//    QString dateString = astroFile->Tags["DATE-OBS"];
+//    QDate d = QDate::fromString(dateString, Qt::ISODate);
 
-    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension) && folderAccepted(astroFile->VolumeName, astroFile->DirectoryPath);
+//    bool shouldAccept = dateInRange(d) && objectAccepted(astroFile->Tags["OBJECT"]) && instrumentAccepted(astroFile->Tags["INSTRUME"]) && filterAccepted(astroFile->Tags["FILTER"]) && extensionAccepted(astroFile->FileExtension) && folderAccepted(astroFile->VolumeName, astroFile->DirectoryPath);
+    bool shouldAccept = filterIsActive ? acceptedAstroFilesId.contains(astroFile->Id) : true;
 
     if (isDuplicatedFilterActive)
         shouldAccept = shouldAccept && isDuplicateOf(astroFile->FileHash);
@@ -57,7 +58,7 @@ bool SortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModel
     return true;
 }
 
-bool SortFilterProxyModel::dateInRange(QDate date) const
+bool SortFilterProxyModel::dateInRange(const QDate& date) const
 {
     return (!minDate.isValid() || date >= minDate) &&
            (!maxDate.isValid() || date <= maxDate);
@@ -68,31 +69,32 @@ void SortFilterProxyModel::resetInternalData()
     emit filterReset();
 }
 
-bool SortFilterProxyModel::instrumentAccepted(QString instrument) const
+bool SortFilterProxyModel::instrumentAccepted(const QString& instrument) const
 {
     return acceptedInstruments.empty() || acceptedInstruments.contains(instrument) || (acceptedInstruments.contains("None") && instrument.isEmpty());
 }
 
-bool SortFilterProxyModel::objectAccepted(QString object) const
+bool SortFilterProxyModel::objectAccepted(const QString& object) const
 {
     return acceptedObjects.empty() || acceptedObjects.contains(object) || (acceptedObjects.contains("None") && object.isEmpty());
 }
 
-bool SortFilterProxyModel::filterAccepted(QString filter) const
+bool SortFilterProxyModel::filterAccepted(const QString& filter) const
 {
     return acceptedFilters.empty() || acceptedFilters.contains(filter) || (acceptedFilters.contains("None") && filter.isEmpty());
 }
 
-bool SortFilterProxyModel::extensionAccepted(QString extension) const
+bool SortFilterProxyModel::extensionAccepted(const QString& extension) const
 {
     return acceptedExtensions.empty() || acceptedExtensions.contains(extension) || (acceptedExtensions.contains("None") && extension.isEmpty());
 }
 
-bool SortFilterProxyModel::folderAccepted(QString volume, QString folder) const
+bool SortFilterProxyModel::folderAccepted(const QString& volume, const QString& folder) const
 {
-    if (!folder.endsWith('/'))
-        folder.append('/');
-    return acceptedVolume.isEmpty() || acceptedFolders.isEmpty() || (acceptedVolume == volume && acceptedFolders == folder) || (acceptedVolume == volume && includeSubfolders && folder.startsWith(acceptedFolders)) || (acceptedFolders.contains("None") && folder.isEmpty());
+    QString folder2 = folder;
+    if (!folder2.endsWith('/'))
+        folder2.append('/');
+    return acceptedVolume.isEmpty() || acceptedFolders.isEmpty() || (acceptedVolume == volume && acceptedFolders == folder2) || (acceptedVolume == volume && includeSubfolders && folder2.startsWith(acceptedFolders)) || (acceptedFolders.contains("None") && folder2.isEmpty());
 }
 
 bool SortFilterProxyModel::isDuplicateOf(QString hash) const
@@ -219,18 +221,33 @@ void SortFilterProxyModel::clearAcceptedFolders()
 {
     acceptedFolders.clear();
     acceptedVolume.clear();
-    invalidateFilter();
+    invalidate();
 }
 
 void SortFilterProxyModel::activateDuplicatesFilter(bool shouldActivate)
 {
     isDuplicatedFilterActive = shouldActivate;
-    invalidateFilter();
+    invalidate();
 }
 
 void SortFilterProxyModel::setDuplicatesFilter(QString filter)
 {
     this->duplicatesFilter = filter;
+}
+
+void SortFilterProxyModel::setAstroFilesInFilter(const QSet<int> &astroFiles)
+{
+    acceptedAstroFilesId = astroFiles;
+    filterIsActive = true;
+    invalidate();
+}
+
+void SortFilterProxyModel::resetFilters()
+{
+    filterIsActive = false;
+    qDebug()<<"Invalidating Filter";
+    invalidate();
+    qDebug()<<"Invalidated Filter";
 }
 
 

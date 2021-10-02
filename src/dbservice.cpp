@@ -31,12 +31,14 @@
 DbService::DbService(QObject *parent) : QObject(parent)
 {
     cancelSignaled = false;
-    fileRepository = new FileRepository();
+    fileRepository = new FileRepository("BackgroundThreadConnection");
     fileRepositoryThread = new QThread(this);
     fileRepository->moveToThread(fileRepositoryThread);
     fileRepositoryThread->start();
 
-    connect(this, &DbService::FileRepository_addOrUpdateAstrofile, fileRepository, &FileRepository::addOrUpdateAstrofile, Qt::BlockingQueuedConnection);
+//    fileRepositoryOnUiThread = new FileRepository("UiThreadConnection");
+
+    connect(this, &DbService::FileRepository_addAstrofile, fileRepository, &FileRepository::addAstrofile, Qt::BlockingQueuedConnection);
     connect(this, &DbService::FileRepository_deleteAstrofile, fileRepository, &FileRepository::deleteAstrofile, Qt::BlockingQueuedConnection);
     connect(this, &DbService::FileRepository_deleteAstrofilesInFolder, fileRepository, &FileRepository::deleteAstrofilesInFolder, Qt::BlockingQueuedConnection);
     connect(this, &DbService::FileRepository_initialize, fileRepository, &FileRepository::initialize, Qt::BlockingQueuedConnection);
@@ -45,6 +47,9 @@ DbService::DbService(QObject *parent) : QObject(parent)
     connect(this, &DbService::FileRepository_getDuplicateFilesByFileHash, fileRepository, &FileRepository::getDuplicateFilesByFileHash, Qt::BlockingQueuedConnection);
     connect(this, &DbService::FileRepository_getDuplicateFilesByImageHash, fileRepository, &FileRepository::getDuplicateFilesByImageHash, Qt::BlockingQueuedConnection);
     connect(this, &DbService::FileRepository_loadThumbnail, fileRepository, &FileRepository::loadThumbnail, Qt::BlockingQueuedConnection);
+    connect(this, &DbService::FileRepository_loadFilterStats, fileRepository, &FileRepository::loadTagStats);
+    connect(this, &DbService::FileRepository_loadFileExtensionStats, fileRepository, &FileRepository::loadFileExtensionStats);
+    connect(this, &DbService::FileRepository_loadAstroFiles, fileRepository, &FileRepository::loadAstroFiles);
 
     connect(fileRepository, &FileRepository::getAllAstroFilesFinished,this, &DbService::getAllAstroFilesFinished);
     connect(fileRepository, &FileRepository::getTagsFinished, this, &DbService::getTagsFinished);
@@ -57,6 +62,13 @@ DbService::DbService(QObject *parent) : QObject(parent)
     connect(fileRepository, &FileRepository::modelLoadingGotAstrofiles, this, &DbService::modelLoadingGotAstrofiles);
     connect(fileRepository, &FileRepository::modelLoadingGotTags, this, &DbService::modelLoadingGotTags);
     connect(fileRepository, &FileRepository::modelLoadingGotThumbnails, this, &DbService::modelLoadingGotThumbnails);
+    connect(fileRepository, &FileRepository::astroFilesInFilter, this, &DbService::astroFilesInFilter);
+
+//    connect(this, &DbService::FilterStatsLoaded, fileRepository, &FileRepository::filterStatsLoaded);
+//    connect(this, &DbService::FileExtensionStatsLoaded, fileRepository, &FileRepository::fileExtensionStatsLoaded);
+
+    connect(fileRepository, &FileRepository::filterStatsLoaded, this, &DbService::FilterStatsLoaded);
+    connect(fileRepository, &FileRepository::fileExtensionStatsLoaded, this, &DbService::FileExtensionStatsLoaded);
 
     QFuture<void> future = QtConcurrent::run(&threadPool, [=]()
     {
@@ -99,6 +111,9 @@ DbService::~DbService()
     fileRepository = nullptr;
     delete fileRepositoryThread;
     fileRepositoryThread = nullptr;
+
+    delete fileRepositoryOnUiThread;
+    fileRepositoryOnUiThread = nullptr;
 }
 
 void DbService::cancel()
@@ -109,12 +124,12 @@ void DbService::cancel()
     // Pass an identifier to cancel and filter out only requests
     // with that identifier.
     cancelSignaled = true;
-    opsQueue.append(OpsNode("cancel", AstroFile(), QString()));
+    opsQueue.append(OpsNode(OpsOperation::cancel, AstroFile(), QString()));
 }
 
 void DbService::deleteAstrofile(const AstroFile &afi)
 {
-    OpsNode ops = OpsNode("deleteAsrofile", afi, QString(""));
+    OpsNode ops = OpsNode(OpsOperation::deleteAsrofile, afi, QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
@@ -123,7 +138,7 @@ void DbService::deleteAstrofile(const AstroFile &afi)
 
 void DbService::deleteAstrofilesInFolder(const QString &fullPath)
 {
-    OpsNode ops = OpsNode("deleteAstrofilesInFolder", AstroFile(), fullPath);
+    OpsNode ops = OpsNode(OpsOperation::deleteAstrofilesInFolder, AstroFile(), fullPath);
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
@@ -132,7 +147,7 @@ void DbService::deleteAstrofilesInFolder(const QString &fullPath)
 
 void DbService::initialize()
 {
-    OpsNode ops = OpsNode("initialize", AstroFile(), QString(""));
+    OpsNode ops = OpsNode(OpsOperation::initialize, AstroFile(), QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
@@ -141,16 +156,16 @@ void DbService::initialize()
 
 void DbService::loadModel()
 {
-    OpsNode ops = OpsNode("loadModel", AstroFile(), QString(""));
+    OpsNode ops = OpsNode(OpsOperation::loadModel, AstroFile(), QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
     waitCondition.wakeAll();
 }
 
-void DbService::addOrUpdateAstrofile(const AstroFile &afi)
+void DbService::addAstrofile(const AstroFile &afi)
 {
-    OpsNode ops = OpsNode("addOrUpdateAstrofile", afi, QString(""));
+    OpsNode ops = OpsNode(OpsOperation::addAstrofile, afi, QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
@@ -159,7 +174,7 @@ void DbService::addOrUpdateAstrofile(const AstroFile &afi)
 
 void DbService::getDuplicateFiles()
 {
-    OpsNode ops = OpsNode("getDuplicateFiles", AstroFile(), QString(""));
+    OpsNode ops = OpsNode(OpsOperation::getDuplicateFiles, AstroFile(), QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
@@ -168,7 +183,7 @@ void DbService::getDuplicateFiles()
 
 void DbService::getDuplicateFilesByFileHash()
 {
-    OpsNode ops = OpsNode("getDuplicateFilesByFileHash", AstroFile(), QString(""));
+    OpsNode ops = OpsNode(OpsOperation::getDuplicateFilesByFileHash, AstroFile(), QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
@@ -177,7 +192,7 @@ void DbService::getDuplicateFilesByFileHash()
 
 void DbService::getDuplicateFilesByImageHash()
 {
-    OpsNode ops = OpsNode("getDuplicateFilesByImageHash", AstroFile(), QString(""));
+    OpsNode ops = OpsNode(OpsOperation::getDuplicateFilesByImageHash, AstroFile(), QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
@@ -186,56 +201,85 @@ void DbService::getDuplicateFilesByImageHash()
 
 void DbService::loadThumbnail(const AstroFile &afi)
 {
-    OpsNode ops =  OpsNode("loadThumbnail", afi, QString(""));
+    OpsNode ops =  OpsNode(OpsOperation::loadThumbnail, afi, QString(""));
     opsListMutex.lock();
     opsQueue.append(ops);
     opsListMutex.unlock();
     waitCondition.wakeAll();
 }
 
+void DbService::loadFilterStats(const QString fileExtension, QList<QPair<QString, QString>>& filters)
+{
+    emit FileRepository_loadFilterStats(fileExtension, filters);
+}
+
+void DbService::loadFileExtensionStats(const QString fileExtension, QList<QPair<QString, QString>>& filters)
+{
+    emit FileRepository_loadFileExtensionStats(fileExtension, filters);
+}
+
+void DbService::loadAstroFiles(const QString fileExtension, QList<QPair<QString, QString> > &filters)
+{
+    emit FileRepository_loadAstroFiles(fileExtension, filters);
+}
+
 void DbService::processOps(OpsNode ops)
 {
-    // TODO: Introduce an emun instead of string operations.
-    QString opsName = ops.operation;
-    if (opsName == "deleteAsrofile")
+    switch (ops.operation)
     {
-        auto& p = ops.astroFile;
-        emit FileRepository_deleteAstrofile(p);
+        case OpsOperation::deleteAsrofile:
+        {
+            auto& p = ops.astroFile;
+            emit FileRepository_deleteAstrofile(p);
+            break;
+        }
+        case OpsOperation::deleteAstrofilesInFolder:
+        {
+            auto &p = ops.path;
+            emit FileRepository_deleteAstrofilesInFolder(p);
+            break;
+        }
+        case OpsOperation::initialize:
+        {
+            emit FileRepository_initialize();
+            break;
+        }
+        case OpsOperation::loadModel:
+        {
+            emit FileRepository_loadModel();
+            break;
+        }
+        case OpsOperation::addAstrofile:
+        {
+            auto& p = ops.astroFile;
+            emit FileRepository_addAstrofile(p);
+            break;
+        }
+        case OpsOperation::getDuplicateFiles:
+        {
+            emit FileRepository_getDuplicateFiles();
+            break;
+        }
+        case OpsOperation::getDuplicateFilesByImageHash:
+        {
+            emit FileRepository_getDuplicateFilesByImageHash();
+            break;
+        }
+        case OpsOperation::getDuplicateFilesByFileHash:
+        {
+            emit FileRepository_getDuplicateFilesByFileHash();
+            break;
+        }
+        case OpsOperation::loadThumbnail:
+        {
+            auto& p = ops.astroFile;
+            emit FileRepository_loadThumbnail(p);
+            break;
+        }
+        case OpsOperation::cancel:
+        {
+            qDebug()<<"Cancel not implemented";
+            Q_ASSERT(false);
+        }
     }
-    else if (opsName == "deleteAstrofilesInFolder")
-    {
-        auto &p = ops.path;
-        emit FileRepository_deleteAstrofilesInFolder(p);
-    }
-    else if (opsName == "initialize")
-    {
-        emit FileRepository_initialize();
-    }
-    else if (opsName == "loadModel")
-    {
-        emit FileRepository_loadModel();
-    }
-    else if (opsName == "addOrUpdateAstrofile")
-    {
-        auto& p = ops.astroFile;
-        emit FileRepository_addOrUpdateAstrofile(p);
-    }
-    else if (opsName == "getDuplicateFiles")
-    {
-        emit FileRepository_getDuplicateFiles();
-    }
-    else if (opsName == "getDuplicateFilesByImageHash")
-    {
-        emit FileRepository_getDuplicateFilesByImageHash();
-    }
-    else if (opsName == "getDuplicateFilesByFileHash")
-    {
-        emit FileRepository_getDuplicateFilesByFileHash();
-    }
-    else if (opsName == "loadThumbnail")
-    {
-        auto& p = ops.astroFile;
-        emit FileRepository_loadThumbnail(p);
-    }
-
 }

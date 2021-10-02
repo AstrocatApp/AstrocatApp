@@ -42,6 +42,11 @@ public:
     // NewFileProcessor interface
 public:
     void setCatalog(Catalog *cat);
+
+private:
+    QList<QString> Objects = {"M81", "M101", "Hearth", "IC1805", "IC410", "M31", "M33"};
+    QList<QString> Filters = {"Lum", "Red", "Green", "Blue", "Ha", "SII", "OIII"};
+    QList<QString> Instruments = {"QHY294M", "QHY600M", "QHY268M", "QHY268C", "SVBONY", "Canon Ra"};
 };
 
 #endif // MOCK_NEWFILEPROCESSOR_H

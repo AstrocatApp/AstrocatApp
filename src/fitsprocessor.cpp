@@ -36,6 +36,7 @@ void FitsProcessor::extractTags()
 {
     fits.extractTags();
     _tags = fits.getTags();
+    _tags.insert("AC_PROC", "FITS");
 }
 
 void FitsProcessor::extractThumbnail()

@@ -39,6 +39,7 @@
 #include <QPixmapCache>
 #include <QDir>
 #include <QToolBar>
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -113,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     QItemSelectionModel *selectionModel = ui->astroListView->selectionModel();
     filterView = new FilterView(ui->scrollAreaWidgetContents_2);
-    filterView->setModel(sortFilterProxyModel);
+//    filterView->setModel(sortFilterProxyModel);
 
 //    thumbnailCache = new ThumbnailCache();
 //    thumbnailCacheThread = new QThread(this);
@@ -181,7 +182,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::initializeFileRepository,              dbService,   &DbService::initialize);
     connect(this,                   &MainWindow::deleteAstrofilesInFolder,              dbService,   &DbService::deleteAstrofilesInFolder);
     connect(this,                   &MainWindow::loadModelFromDb,                       dbService,   &DbService::loadModel);
-    connect(this,                   &MainWindow::dbAddOrUpdateAstroFile,                dbService,   &DbService::addOrUpdateAstrofile);
+    connect(this,                   &MainWindow::dbAddAstroFile,                dbService,   &DbService::addAstrofile);
+    connect(this,                   &MainWindow::loadFilterStats,                       dbService,   &DbService::loadFilterStats);
+    connect(this,                   &MainWindow::loadFileExtensionStats,                       dbService,   &DbService::loadFileExtensionStats);
+    connect(this,                   &MainWindow::loadAstroFilesFromDb,                       dbService,   &DbService::loadAstroFiles);
 //    connect(this,                   &MainWindow::processNewFile,                        newFileProcessorWorker, &NewFileProcessor::processNewFile);
     connect(this,                   &MainWindow::dbGetDuplicates,                       dbService,   &DbService::getDuplicateFiles);
     connect(catalogThread,          &QThread::finished,                                 catalog,                &QObject::deleteLater);
@@ -197,11 +201,13 @@ MainWindow::MainWindow(QWidget *parent)
 //    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  newFileProcessorWorker, &NewFileProcessor::processNewFile);
 //    connect(fileFilter,             &FileProcessFilter::shouldProcess,                  this,                   &MainWindow::processQueued);
     connect(dbService,   &DbService::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
+    connect(dbService,          &DbService::astroFileUpdated,             filterView,          &FilterView::AstroFileImported);
     connect(dbService,   &DbService::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
     connect(dbService,   &DbService::astroFilesDeleted,                 fileViewModel,          &FileViewModel::RemoveAstroFiles);
     connect(dbService,   &DbService::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
     connect(dbService,   &DbService::dbFailedToInitialize,              this,                   &MainWindow::dbFailedToOpen);
     connect(dbService,   &DbService::thumbnailLoaded,                   fileViewModel,          &FileViewModel::addThumbnail);
+    connect(dbService,   &DbService::astroFilesInFilter,                   sortFilterProxyModel,          &SortFilterProxyModel::setAstroFilesInFilter);
 //    connect(fileRepositoryThread,   &QThread::finished,                                 fileRepositoryWorker,   &QObject::deleteLater);
 //    connect(newFileProcessorWorker, &NewFileProcessor::astrofileProcessed,              this,                   &MainWindow::astroFileProcessed);
 //    connect(newFileProcessorWorker, &NewFileProcessor::processingCancelled,             this,                   &MainWindow::processingCancelled);
@@ -221,17 +227,24 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&thumbnailCache,        &ThumbnailCache::dbLoadThumbnail,                   dbService,   &DbService::loadThumbnail);
     connect(filterView,             &FilterView::minimumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMinimumDate);
     connect(filterView,             &FilterView::maximumDateChanged,                    sortFilterProxyModel,   &SortFilterProxyModel::setFilterMaximumDate);
-    connect(filterView,             &FilterView::addAcceptedFilter,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFilter);
-    connect(filterView,             &FilterView::addAcceptedInstrument,                 sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedInstrument);
-    connect(filterView,             &FilterView::addAcceptedObject,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedObject);
-    connect(filterView,             &FilterView::addAcceptedExtension,                  sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedExtension);
-    connect(filterView,             &FilterView::addAcceptedFolder,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFolder);
-    connect(filterView,             &FilterView::removeAcceptedFilter,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedFilter);
-    connect(filterView,             &FilterView::removeAcceptedInstrument,              sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedInstrument);
-    connect(filterView,             &FilterView::removeAcceptedObject,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedObject);
-    connect(filterView,             &FilterView::removeAcceptedExtension,               sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedExtension);
-    connect(filterView,             &FilterView::removeAcceptedFolder,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedFolder);
-    connect(filterView,             &FilterView::resetAcceptedFolders,                  sortFilterProxyModel,   &SortFilterProxyModel::clearAcceptedFolders);
+    connect(this,             &MainWindow::resetFilters,                    sortFilterProxyModel,   &SortFilterProxyModel::resetFilters);
+
+    connect(filterView,             &FilterView::addFilterQuery,                        this,   &MainWindow::addedFilterQuery);
+    connect(filterView,             &FilterView::removeFilterQuery,                     this,   &MainWindow::removedFilterQuery);
+    connect(filterView,             &FilterView::addAcceptedExtension,                  this,   &MainWindow::addedFileExtensionQuery);
+    connect(filterView,             &FilterView::removeAcceptedExtension,               this,   &MainWindow::removedFileExtensionQuery);
+
+//    connect(filterView,             &FilterView::addAcceptedFilter,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFilter);
+//    connect(filterView,             &FilterView::addAcceptedInstrument,                 sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedInstrument);
+//    connect(filterView,             &FilterView::addAcceptedObject,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedObject);
+//    connect(filterView,             &FilterView::addAcceptedExtension,                  sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedExtension);
+//    connect(filterView,             &FilterView::addAcceptedFolder,                     sortFilterProxyModel,   &SortFilterProxyModel::addAcceptedFolder);
+//    connect(filterView,             &FilterView::removeAcceptedFilter,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedFilter);
+//    connect(filterView,             &FilterView::removeAcceptedInstrument,              sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedInstrument);
+//    connect(filterView,             &FilterView::removeAcceptedObject,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedObject);
+//    connect(filterView,             &FilterView::removeAcceptedExtension,               sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedExtension);
+//    connect(filterView,             &FilterView::removeAcceptedFolder,                  sortFilterProxyModel,   &SortFilterProxyModel::removeAcceptedFolder);
+//    connect(filterView,             &FilterView::resetAcceptedFolders,                  sortFilterProxyModel,   &SortFilterProxyModel::clearAcceptedFolders);
     connect(filterView,             &FilterView::astroFileAdded,                        this,                   &MainWindow::itemAddedToSortFilterView);
     connect(filterView,             &FilterView::astroFileRemoved,                      this,                   &MainWindow::itemRemovedFromSortFilterView);
     connect(selectionModel,         &QItemSelectionModel::selectionChanged,             this,                   &MainWindow::handleSelectionChanged);
@@ -241,6 +254,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(dbService,   &DbService::modelLoaded,                       loading,                &ModelLoadingDialog::modelLoaded);
     connect(catalog,                &Catalog::DoneAddingAstrofiles,                     loading,                &ModelLoadingDialog::closeWindow);
     connect(dbService,   &DbService::DatabaseQueueLength,                       this,                &MainWindow::DatabaseQueueLength);
+    connect(dbService,   &DbService::FileExtensionStatsLoaded,                       filterView,                &FilterView::FileExtensionStatsLoaded);
+    connect(dbService,   &DbService::FilterStatsLoaded,                       filterView,                &FilterView::FilterStatsLoaded);
 
 //    connect(folderCrawlerWorker,    &FolderCrawler::fileFound,                          &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAttempted);
 
@@ -271,6 +286,7 @@ MainWindow::~MainWindow()
     qDebug()<<"Cleaning up catalogThread";
     cleanUpWorker(catalogThread);
 
+//    db.close();
     qDebug()<<"Cleaning up ui";
     delete ui;
     qDebug()<<"Done Cleaning up.";
@@ -294,8 +310,9 @@ void MainWindow::initialize()
 {
     if (isInitialized)
         return;
+//    openDatabase();
 
-    auto foldersFromList = getSearchFolders();
+//    auto foldersFromList = getSearchFolders();
 //    folderCrawlerThread->start();
 //    fileRepositoryThread->start();
 //    newFileProcessorThread->start();
@@ -310,6 +327,10 @@ void MainWindow::initialize()
 
     isInitialized = true;
     emit dbGetDuplicates();
+
+    emit loadFileExtensionStats(fileExtensionFilter, filters);
+    emit loadFilterStats(fileExtensionFilter, filters);
+    emit loadAstroFilesFromDb(fileExtensionFilter, filters);
 }
 
 void MainWindow::cleanUpWorker(QThread* thread)
@@ -350,7 +371,6 @@ void MainWindow::createFileImporter()
     connect(fileImporter,          &FileImporter::AstroFileFound,                          &importFileDialog,      &ImportFileDialog::IncrementTotalFilesAttempted);
     connect(fileImporter,          &FileImporter::ImportCanceled,                          this,      &MainWindow::FileImporterFinished);
     connect(fileImporter,          &FileImporter::ImportFinished,                          this,      &MainWindow::FileImporterFinished);
-
 }
 
 void MainWindow::searchFolderAdded(const QString folder)
@@ -533,7 +553,7 @@ void MainWindow::astroFileProcessed(const AstroFile &astroFile)
 
     // do not decrement numberOfActiveJobs yet. It will be decremented
     // after the db recorded it.
-    emit dbAddOrUpdateAstroFile(astroFile);
+    emit dbAddAstroFile(astroFile);
     if (astroFile.processStatus == AstroFileFailedToProcess)
     {
         emit importFileDialog.IncrementTotalFilesFailedToProcess();
@@ -831,7 +851,106 @@ void MainWindow::FileImporterFinished()
         delete fileImporter;
         fileImporter = nullptr;
     }
-//    importFileDialog.close();
+    //    importFileDialog.close();
+}
+
+//void MainWindow::LoadFilterStats()
+//{
+//    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id
+//    // where fits.id in
+//    //  ( select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'FILTER' AND tagValue = 'Ha')
+//    // AND fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81')
+//    // group by fileextension,tagKey,tagValue
+//    // HAVING tagkey in ('OBJECT','INSTRUME','FILTER','FILEEXT');
+
+//    QStringList andStatements;
+//    QString andStatement;
+
+//    if (filters.count() > 0)
+//    {
+//        for (auto& a : filters)
+//        {
+//            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+//            andStatements << statement;
+//        }
+//        andStatement = "where " + andStatements.join(" AND ");
+//    }
+
+//    QString queryString = "SELECT fileextension,tagKey,tagValue,count(*) CNT FROM fits join tags on fits.id = tags.fits_id " +
+//                        andStatement +
+//            "group by fileextension,tagKey,tagValue "
+//            "HAVING tagkey in ('OBJECT','INSTRUME','FILTER','FILEEXT'); ";
+
+////    qDebug() <<queryString;
+
+//    QSqlQuery query(db);
+//    query.prepare(queryString);
+////    query.exec();
+
+//    query.exec();
+//    int idFileExtension = query.record().indexOf("fileextension");
+//    int idTagKey = query.record().indexOf("tagKey");
+//    int idTagValue = query.record().indexOf("tagValue");
+//    int idCount = query.record().indexOf("CNT");
+
+//    qDebug()<<"=========================";
+//    while (query.next())
+//    {
+//        QString fileExtension = query.value(idFileExtension).toString();
+//        QString tagKey = query.value(idTagKey).toString();
+//        QString tagValue = query.value(idTagValue).toString();
+//        int count = query.value(idCount).toInt();
+
+//        qDebug()<<fileExtension<<"|"<<tagKey<<"|"<<tagValue<<"|"<<count;
+//    }
+//    qDebug()<<"-------------------------";
+
+//}
+
+void MainWindow::addedFilterQuery(QString filterKey, QString filterValue)
+{
+    filters << QPair<QString,QString>(filterKey, filterValue);
+    emit loadAstroFilesFromDb(fileExtensionFilter, filters);
+    emit loadFileExtensionStats(fileExtensionFilter, filters);
+    emit loadFilterStats(fileExtensionFilter, filters);
+}
+
+void MainWindow::removedFilterQuery(QString filterKey, QString filterValue)
+{
+    filters.removeOne(QPair<QString,QString>(filterKey, filterValue));
+    if (fileExtensionFilter.isEmpty() && filters.isEmpty())
+    {
+        emit resetFilters();
+    }
+    else
+    {
+        emit loadAstroFilesFromDb(fileExtensionFilter, filters);
+    }
+    emit loadFileExtensionStats(fileExtensionFilter, filters);
+    emit loadFilterStats(fileExtensionFilter, filters);
+}
+
+void MainWindow::addedFileExtensionQuery(QString fileExtension)
+{
+    fileExtensionFilter = fileExtension;
+    emit loadAstroFilesFromDb(fileExtensionFilter, filters);
+    emit loadFileExtensionStats(fileExtensionFilter, filters);
+    emit loadFilterStats(fileExtensionFilter, filters);
+}
+
+void MainWindow::removedFileExtensionQuery(QString fileExtension)
+{
+    fileExtensionFilter.clear();
+    if (fileExtensionFilter.isEmpty() && filters.isEmpty())
+    {
+        emit resetFilters();
+    }
+    else
+    {
+        emit loadAstroFilesFromDb(fileExtensionFilter, filters);
+    }
+    emit loadFileExtensionStats(fileExtensionFilter, filters);
+    emit loadFilterStats(fileExtensionFilter, filters);
 }
 
 //void MainWindow::dbAstroFileDeleted(const AstroFile &astroFile)

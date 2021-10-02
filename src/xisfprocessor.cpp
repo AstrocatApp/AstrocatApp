@@ -89,6 +89,7 @@ QImage makeImage(int _width, int _height, float* _data, QImage::Format _qImageFo
 void XisfProcessor::extractTags()
 {    
     auto fitsTags = xisf.ReadFITSKeywords();
+    _tags.insert("AC_PROC", "XSIF");
     for (auto& f : fitsTags)
     {
         _tags.insert(QString(f.name.c_str()).remove("'").trimmed(), QString(f.value.c_str()).remove("'").trimmed());

@@ -29,17 +29,32 @@
 #include "filerepository.h"
 
 #include <QList>
+#include <QMutex>
 #include <QObject>
 #include <QThreadPool>
 #include <QTimer>
 #include <QWaitCondition>
 
+enum OpsOperation
+{
+    deleteAsrofile,
+    deleteAstrofilesInFolder,
+    initialize,
+    loadModel,
+    addAstrofile,
+    getDuplicateFiles,
+    getDuplicateFilesByImageHash,
+    getDuplicateFilesByFileHash,
+    loadThumbnail,
+    cancel
+};
+
 struct OpsNode
 {
-    QString operation;
+    OpsOperation operation;
     AstroFile astroFile;
     QString path;
-    OpsNode(QString o, const AstroFile a, const QString p) : operation(o), astroFile(a), path(p)
+    OpsNode(OpsOperation o, const AstroFile a, const QString p) : operation(o), astroFile(a), path(p)
     {
     }
 };
@@ -57,12 +72,14 @@ public slots:
     void deleteAstrofilesInFolder(const QString& fullPath);
     void initialize();
     void loadModel();
-    void addOrUpdateAstrofile(const AstroFile& afi);
+    void addAstrofile(const AstroFile& afi);
     void getDuplicateFiles();
     void getDuplicateFilesByFileHash();
     void getDuplicateFilesByImageHash();
     void loadThumbnail(const AstroFile& afi);
-
+    void loadFilterStats(const QString, QList<QPair<QString, QString>>& filters);
+    void loadFileExtensionStats(const QString, QList<QPair<QString, QString>>& filters);
+    void loadAstroFiles(const QString, QList<QPair<QString, QString>>& filters);
 
 signals:
     void getAllAstroFilesFinished(const QList<AstroFile>& astroFiles );
@@ -76,22 +93,30 @@ signals:
     void modelLoadingGotAstrofiles();
     void modelLoadingGotTags();
     void modelLoadingGotThumbnails();
+    void astroFilesInFilter(const QSet<int>& ids);
 
     void FileRepository_deleteAstrofile(const AstroFile& afi);
     void FileRepository_deleteAstrofilesInFolder(const QString& fullPath);
     void FileRepository_initialize();
     void FileRepository_loadModel();
-    void FileRepository_addOrUpdateAstrofile(const AstroFile& afi);
+    void FileRepository_addAstrofile(const AstroFile& afi);
     void FileRepository_getDuplicateFiles();
     void FileRepository_getDuplicateFilesByFileHash();
     void FileRepository_getDuplicateFilesByImageHash();
     void FileRepository_loadThumbnail(const AstroFile& afi);
+    void FileRepository_loadFilterStats(const QString, QList<QPair<QString, QString>>& filters);
+    void FileRepository_loadFileExtensionStats(const QString fileExtension, QList<QPair<QString, QString>>& filters);
+    void FileRepository_loadAstroFiles(const QString fileExtension, QList<QPair<QString, QString>>& filters);
+
+    void FilterStatsLoaded(const QList<FilterViewGroupData>& data);
+    void FileExtensionStatsLoaded(const QMap<QString, int>& tags);
 
     void DatabaseQueueLength(int length);
 
 private:
     QThread* fileRepositoryThread;
     FileRepository* fileRepository;
+    FileRepository* fileRepositoryOnUiThread;
     QMutex waitMutex;
     QWaitCondition waitCondition;
     QMutex opsListMutex;

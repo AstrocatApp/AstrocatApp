@@ -24,6 +24,7 @@
 
 #include "fileimporter.h"
 #include "mock_foldercrawler.h"
+#include "mock_newfileprocessor.h"
 #include <QDebug>
 
 FileImporter::FileImporter(QObject *parent) : QObject(parent)
@@ -97,6 +98,7 @@ void FileImporter::StartFilter()
 void FileImporter::StartFileProcessor()
 {
     newFileProcessor = new NewFileProcessor();
+//    newFileProcessor = new Mock_NewFileProcessor();
     processorThread = new QThread(this);
     newFileProcessor->setCatalog(catalog);
     newFileProcessor->moveToThread(processorThread);
@@ -240,7 +242,7 @@ void FileImporter::CancelImport()
 
 void FileImporter::FilterSaysProcessNewFile(const QFileInfo fileInfo)
 {
-    qDebug()<<"FileImporter::FilterSaysProcessNewFile";
+//    qDebug()<<"FileImporter::FilterSaysProcessNewFile";
     if (isCanceled)
         return;
     newFileProcessorInProgress = true;
@@ -284,7 +286,7 @@ void FileImporter::CrawlerFoundFile(QFileInfo filePath)
         return;
     fileFilterInProgress = true;
     numberFilesFiltered++;
-    qDebug()<<"fileFilter:numberProcessing: " << numberFilesFiltered;
+//    qDebug()<<"fileFilter:numberProcessing: " << numberFilesFiltered;
     emit AstroFileFound(filePath);
 //    emit fileFilter->filterFile(filePath);
     emit FilterFile(filePath);
@@ -317,7 +319,7 @@ void FileImporter::FileFilterReportsFinished()
     if (isCanceled)
         return;
     numberFilesFiltered--;
-    qDebug()<<"fileFilter:numberProcessing: " << numberFilesFiltered;
+//    qDebug()<<"fileFilter:numberProcessing: " << numberFilesFiltered;
     if (numberFilesFiltered == 0)
     {
         fileFilterInProgress = false;
@@ -333,7 +335,7 @@ void FileImporter::NewFileProcessorReportsFinished(const AstroFile& astroFile)
     emit AstroFileImported(astroFile);
 
     numberFilesProcessed--;
-    qDebug()<<"newFileProcessor:numberProcessing: " << numberFilesProcessed;
+//    qDebug()<<"newFileProcessor:numberProcessing: " << numberFilesProcessed;
     if (numberFilesProcessed == 0)
     {
         newFileProcessorInProgress = false;

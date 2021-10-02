@@ -315,7 +315,7 @@ void FileViewModel::AddAstroFiles(int numberAdded)
     insertRows(rc, numberAdded, QModelIndex());
 }
 
-void FileViewModel::UpdateAstroFile(AstroFile astroFile, int row)
+void FileViewModel::UpdateAstroFile(const AstroFile& astroFile, int row)
 {
     Q_UNUSED(astroFile);
 

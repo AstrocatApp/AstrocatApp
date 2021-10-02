@@ -67,6 +67,13 @@ enum AstroFileType
     Image
 };
 
+struct FilterViewGroupData
+{
+    QString GroupName;
+    QString ElementName;
+    int ElementCount;
+};
+
 struct AstroFile
 {
     int Id; // Id should be created only by the Database

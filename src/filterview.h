@@ -54,8 +54,13 @@ public slots:
 
     void setFoldersModel(QAbstractItemModel* model);
     void treeViewClicked(const QItemSelection &selected, const QItemSelection &deselected);
+    void FileExtensionStatsLoaded(const QMap<QString, int>& tags);
+    void FilterStatsLoaded(const QList<FilterViewGroupData>& data);
+    void AstroFileImported(const AstroFile& astroFile);
 
 signals:
+    void addFilterQuery(QString filterKey, QString filterValue);
+    void removeFilterQuery(QString filterKey, QString filterValue);
     void minimumDateChanged(QDate date);
     void maximumDateChanged(QDate date);
     void addAcceptedFilter(QString filterName);
@@ -132,9 +137,9 @@ private:
 //    void itemChanged(QStandardItem *item);
 
     // QAbstractItemView interface
-protected slots:
-    void rowsInserted(const QModelIndex &parent, int start, int end) override;
-    void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) override;
+//protected slots:
+//    void rowsInserted(const QModelIndex &parent, int start, int end) override;
+//    void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) override;
 
 };
 

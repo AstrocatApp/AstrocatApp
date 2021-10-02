@@ -47,6 +47,7 @@
 #include <QThread>
 #include <QItemSelection>
 #include <QLabel>
+#include <QPair>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -70,7 +71,7 @@ public slots:
 signals:
     void crawl(QString rootFolder);
     void deleteAstrofilesInFolder(const QString fullPath);
-    void dbAddOrUpdateAstroFile(const AstroFile& astroFile);
+    void dbAddAstroFile(const AstroFile& astroFile);
     void dbAddTags(const AstroFile& astroFile);
     void dbAddThumbnail(const AstroFile& astroFile, const QImage& image);
     void dbUpdateProcessStatus(const AstroFile& astroFile);
@@ -89,6 +90,11 @@ signals:
     void catalogAddAstroFiles(const QList<AstroFile> &files);
 
     void removeAstroFileFromCatalog(const AstroFile& file);
+
+    void loadFilterStats(const QString, QList<QPair<QString, QString>>& filters);
+    void loadFileExtensionStats(const QString fileExtension, QList<QPair<QString, QString>>& filters);
+    void loadAstroFilesFromDb(const QString fileExtension, QList<QPair<QString, QString>>& filters);
+    void resetFilters();
 
 private slots:
     void imageSizeSlider_valueChanged(int value);
@@ -126,6 +132,11 @@ private slots:
     void DatabaseQueueLength(int length);
 
     void FileImporterFinished();
+
+    void addedFilterQuery(QString filterKey, QString filterValue);
+    void removedFilterQuery(QString filterKey, QString filterValue);
+    void addedFileExtensionQuery(QString fileExtension);
+    void removedFileExtensionQuery(QString fileExtension);
 
 private:
     Ui::MainWindow *ui;
@@ -188,6 +199,12 @@ private:
 
     FileImporter* fileImporter;
     void createFileImporter();
+
+//    QSqlDatabase db;
+//    void openDatabase();
+    QList<QPair<QString, QString>> filters;
+    QString fileExtensionFilter;
+//    void LoadFilterStats();
 protected:
     void resizeEvent(QResizeEvent *event);
     void showEvent(QShowEvent *event);

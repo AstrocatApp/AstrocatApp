@@ -26,6 +26,7 @@
 #define FOLDERCRAWLER_H
 
 #include <QFileInfo>
+#include <QMutex>
 #include <QObject>
 #include <QUrl>
 #include <QWaitCondition>

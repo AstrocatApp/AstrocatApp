@@ -79,6 +79,8 @@ void Catalog::impAddAstroFile(const AstroFile &astroFile, bool shouldEmit)
     }
     else
     {
+        Q_ASSERT(false);    // This codepath is dead
+
         int index = astroFileIndex(astroFile);
         if (index == -1)
         {

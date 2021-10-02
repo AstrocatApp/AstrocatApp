@@ -55,6 +55,8 @@ public slots:
     void clearAcceptedFolders();
     void activateDuplicatesFilter(bool shouldActivate);
     void setDuplicatesFilter(QString filter);
+    void setAstroFilesInFilter(const QSet<int>& astroFiles);
+    void resetFilters();
 
 signals:
     void filterMinimumDateChanged(QDate date);
@@ -76,16 +78,18 @@ private:
 //    QList<QString> acceptedFolders;
     QString acceptedFolders;
     QString acceptedVolume;
-    bool dateInRange(QDate date) const;
-    bool instrumentAccepted(QString instrument) const;
-    bool objectAccepted(QString object) const;
-    bool filterAccepted(QString filter) const;
-    bool extensionAccepted(QString filter) const;
-    bool folderAccepted(QString volume, QString folder) const;
+    bool dateInRange(const QDate& date) const;
+    bool instrumentAccepted(const QString& instrument) const;
+    bool objectAccepted(const QString& object) const;
+    bool filterAccepted(const QString& filter) const;
+    bool extensionAccepted(const QString& filter) const;
+    bool folderAccepted(const QString& volume, const QString& folder) const;
     bool isDuplicatedFilterActive;
     QString duplicatesFilter;
     bool isDuplicateOf(QString hash) const;
     bool includeSubfolders = true;
+    QSet<int> acceptedAstroFilesId;
+    bool filterIsActive = false;
 
 protected slots:
     virtual void resetInternalData();

@@ -75,8 +75,8 @@ public slots:
 signals:
 //    void AstroFileAdded(AstroFile astroFile, int row);
     void AstroFilesAdded(int numberAdded);
-    void AstroFileUpdated(AstroFile astroFile, int row);
-    void AstroFileRemoved(AstroFile astroFile, int row);
+    void AstroFileUpdated(const AstroFile& astroFile, int row);
+    void AstroFileRemoved(const AstroFile& astroFile, int row);
     void DoneAddingAstrofiles();
 
 private:
