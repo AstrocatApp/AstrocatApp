@@ -223,7 +223,7 @@ void DbService::loadAstroFiles(const QString fileExtension, QList<QPair<QString,
     emit FileRepository_loadAstroFiles(fileExtension, filters);
 }
 
-void DbService::processOps(OpsNode ops)
+void DbService::processOps(const OpsNode& ops)
 {
     switch (ops.operation)
     {

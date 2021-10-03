@@ -63,11 +63,10 @@ public:
     void cancelPendingOperations();
 
 public slots:
-//    void newFileFound(const QFileInfo fileInfo);
     void searchFolderAdded(const QString folder);
-//    void searchFoldersAdded(const QList<QUrl> folders);
     void searchFolderRemoved(const QString folder);    
     void importFiles(const QList<QUrl> folders);
+
 signals:
     void crawl(QString rootFolder);
     void deleteAstrofilesInFolder(const QString fullPath);
@@ -142,29 +141,19 @@ private:
     Ui::MainWindow *ui;
     bool isInitialized;
 
-//    QThread* folderCrawlerThread;
-//    FolderCrawler* folderCrawlerWorker;
-
-//    QThread* fileRepositoryThread;
-//    FileRepository* fileRepositoryWorker;
     DbService* dbService;
-
-//    QThread* newFileProcessorThread;
-//    NewFileProcessor* newFileProcessorWorker;
 
     FileViewModel* fileViewModel;
     SortFilterProxyModel* sortFilterProxyModel;
 
-    SearchFolderDialog searchFolderDialog;
+//    SearchFolderDialog searchFolderDialog;
     FilterView* filterView;
 
     ImportFileDialog importFileDialog;
 
-    QImage makeThumbnail(const QImage& image);
+//    QImage makeThumbnail(const QImage& image);
     void cleanUpWorker(QThread* thread);
     void clearDetailLabels();
-    void crawlAllSearchFolders();
-    QList<QString> getSearchFolders();
 
     bool shouldShowWatermark = true;
     const QString DEFAULT_WATERMARK_MESSAGE = "Drop Files or Folders here to import.";
@@ -188,10 +177,8 @@ private:
 
     QThread* catalogThread;
     Catalog* catalog;
-//    FileProcessFilter* fileFilter;
 
     ThumbnailCache thumbnailCache;
-//    QThread* thumbnailCacheThread;
     ModelLoadingDialog* loading;
 
     void disableDropFiles();
@@ -200,11 +187,8 @@ private:
     FileImporter* fileImporter;
     void createFileImporter();
 
-//    QSqlDatabase db;
-//    void openDatabase();
     QList<QPair<QString, QString>> filters;
     QString fileExtensionFilter;
-//    void LoadFilterStats();
 protected:
     void resizeEvent(QResizeEvent *event);
     void showEvent(QShowEvent *event);

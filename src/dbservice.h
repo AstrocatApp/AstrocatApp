@@ -124,7 +124,7 @@ private:
     void processLoop();
     QThreadPool threadPool;
     volatile bool cancelSignaled;
-    void processOps(OpsNode ops);
+    void processOps(const OpsNode& ops);
 };
 
 #endif // DBSERVICE_H

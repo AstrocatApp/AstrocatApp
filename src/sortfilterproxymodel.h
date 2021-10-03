@@ -36,32 +36,12 @@ class SortFilterProxyModel : public  QSortFilterProxyModel
     Q_OBJECT
 public:
     explicit SortFilterProxyModel(QObject *parent = nullptr);
-    QDate filterMinimumDate() const { return minDate; }
-    QDate filterMaximumDate() const { return maxDate; }
 
 public slots:
-    void setFilterMinimumDate(QDate date);
-    void setFilterMaximumDate(QDate date);
-    void addAcceptedFilter(QString filterName);
-    void removeAcceptedFilter(QString filterName);
-    void addAcceptedInstrument(QString instrumentName);
-    void removeAcceptedInstrument(QString instrumentName);
-    void addAcceptedObject(QString objectName);
-    void removeAcceptedObject(QString objectName);
-    void addAcceptedExtension(QString extensionName);
-    void removeAcceptedExtension(QString extensionName);
-    void addAcceptedFolder(QString volumeName, QString folderName, bool includeSubfolders);
-    void removeAcceptedFolder(QString folderName);
-    void clearAcceptedFolders();
-    void activateDuplicatesFilter(bool shouldActivate);
-    void setDuplicatesFilter(QString filter);
     void setAstroFilesInFilter(const QSet<int>& astroFiles);
     void resetFilters();
 
 signals:
-    void filterMinimumDateChanged(QDate date);
-    void filterMaximumDateChanged(QDate date);
-    void filterReset();
 
 protected:
     // QSortFilterProxyModel interface
@@ -69,30 +49,8 @@ protected:
     bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
 
 private:
-    QDate minDate;
-    QDate maxDate;
-    QList<QString> acceptedFilters;
-    QList<QString> acceptedObjects;
-    QList<QString> acceptedInstruments;
-    QList<QString> acceptedExtensions;
-//    QList<QString> acceptedFolders;
-    QString acceptedFolders;
-    QString acceptedVolume;
-    bool dateInRange(const QDate& date) const;
-    bool instrumentAccepted(const QString& instrument) const;
-    bool objectAccepted(const QString& object) const;
-    bool filterAccepted(const QString& filter) const;
-    bool extensionAccepted(const QString& filter) const;
-    bool folderAccepted(const QString& volume, const QString& folder) const;
-    bool isDuplicatedFilterActive;
-    QString duplicatesFilter;
-    bool isDuplicateOf(QString hash) const;
-    bool includeSubfolders = true;
     QSet<int> acceptedAstroFilesId;
     bool filterIsActive = false;
-
-protected slots:
-    virtual void resetInternalData();
 };
 
 #endif // SORTFILTERPROXYMODEL_H
