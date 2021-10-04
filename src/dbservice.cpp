@@ -57,7 +57,7 @@ DbService::DbService(QObject *parent) : QObject(parent)
     connect(fileRepository, &FileRepository::astroFilesDeleted, this, &DbService::astroFilesDeleted);
     connect(fileRepository, &FileRepository::modelLoaded, this, &DbService::modelLoaded);
     connect(fileRepository, &FileRepository::dbFailedToInitialize, this, &DbService::dbFailedToInitialize);
-    connect(fileRepository, &FileRepository::astroFileUpdated, this, &DbService::astroFileUpdated);
+    connect(fileRepository, &FileRepository::astroFileAdded, this, &DbService::astroFileAdded);
     connect(fileRepository, &FileRepository::thumbnailLoaded, this, &DbService::thumbnailLoaded);
     connect(fileRepository, &FileRepository::modelLoadingGotAstrofiles, this, &DbService::modelLoadingGotAstrofiles);
     connect(fileRepository, &FileRepository::modelLoadingGotTags, this, &DbService::modelLoadingGotTags);

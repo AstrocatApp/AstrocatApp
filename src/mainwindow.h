@@ -123,7 +123,7 @@ private slots:
     void duplicatesButton_clicked();
 
     void dbFailedToOpen(const QString message);
-    void dbAstroFileUpdated(const AstroFile& astroFile);
+    void dbAstroFileAdded(const AstroFile& astroFile);
 //    void dbAstroFileDeleted(const AstroFile& astroFile);
     void importCancelled();
     void importPaused(QAbstractButton* button);

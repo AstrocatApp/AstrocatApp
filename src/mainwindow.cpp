@@ -158,8 +158,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this,                   &MainWindow::catalogAddAstroFile,                   catalog,                &Catalog::addAstroFile);
     connect(this,                   &MainWindow::catalogAddAstroFiles,                  catalog,                &Catalog::addAstroFiles);
     connect(this,                   &MainWindow::removeAstroFileFromCatalog,            dbService,   &DbService::deleteAstrofile);
-    connect(dbService,   &DbService::astroFileUpdated,                  this,                   &MainWindow::dbAstroFileUpdated);
-    connect(dbService,          &DbService::astroFileUpdated,             filterView,          &FilterView::AstroFileImported);
+    connect(dbService,   &DbService::astroFileAdded,                  this,                   &MainWindow::dbAstroFileAdded);
+    connect(dbService,          &DbService::astroFileAdded,             filterView,          &FilterView::AstroFileImported);
     connect(dbService,   &DbService::astroFileDeleted,                  fileViewModel,          &FileViewModel::RemoveAstroFile);
     connect(dbService,   &DbService::astroFilesDeleted,                 fileViewModel,          &FileViewModel::RemoveAstroFiles);
     connect(dbService,   &DbService::modelLoaded,                       this,                   &MainWindow::modelLoadedFromDb);
@@ -259,7 +259,7 @@ void MainWindow::initialize()
 
     emit loadFileExtensionStats(fileExtensionFilter, filters);
     emit loadFilterStats(fileExtensionFilter, filters);
-    emit loadAstroFilesFromDb(fileExtensionFilter, filters);
+//    emit loadAstroFilesFromDb(fileExtensionFilter, filters);
 }
 
 void MainWindow::cleanUpWorker(QThread* thread)
@@ -675,7 +675,7 @@ void MainWindow::dbFailedToOpen(const QString message)
     QApplication::quit();
 }
 
-void MainWindow::dbAstroFileUpdated(const AstroFile &astroFile)
+void MainWindow::dbAstroFileAdded(const AstroFile &astroFile)
 {
     emit catalogAddAstroFile(astroFile);
     numberOfActiveJobs--;

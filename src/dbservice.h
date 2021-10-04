@@ -88,7 +88,7 @@ signals:
     void astroFilesDeleted(const QList<AstroFile>& astroFiles);
     void modelLoaded(const QList<AstroFile>& astroFile);
     void dbFailedToInitialize(const QString& message);
-    void astroFileUpdated(const AstroFile& astroFile);
+    void astroFileAdded(const AstroFile& astroFile);
     void thumbnailLoaded(const AstroFile& astrofile);
     void modelLoadingGotAstrofiles();
     void modelLoadingGotTags();

@@ -26,16 +26,10 @@
 
 #include <QTimer>
 
-
-// We should check if the folder is a child folder of an
-// existing search folder.
-// Or if we add a parent folder, we might want to remove
-// child folders
 Catalog::Catalog(QObject *parent)
 {
     Q_UNUSED(parent);
 
-//    QTimer *timer = new QTimer(this);
     connect(&timer, &QTimer::timeout, this, QOverload<>::of(&Catalog::pushProcessedQueue));
     astroFilesQueue = 0;
     timer.start(500);
@@ -127,7 +121,6 @@ void Catalog::addAstroFiles(const QList<AstroFile> &files)
             return;
         impAddAstroFile(a, true);
     }
-//    emit AstroFilesAdded(files.count());
     emit DoneAddingAstrofiles();
 }
 

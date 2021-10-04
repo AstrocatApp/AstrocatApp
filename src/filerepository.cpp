@@ -317,7 +317,7 @@ void FileRepository::addAstrofile(const AstroFile& astroFile)
     // may not be visible on screen. If it is needed,
     // the view will ask for it.
     insertedAstroFile.thumbnail = QImage();
-    emit astroFileUpdated(insertedAstroFile);
+    emit astroFileAdded(insertedAstroFile);
 }
 
 int FileRepository::insertAstrofile(const AstroFile& astroFile)
@@ -718,92 +718,6 @@ void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QSt
     }
 //    qDebug()<<"-------------------------";
 
-    emit astroFilesInFilter(idSet);
-
-//    QStringList andStatements;
-//    QString andStatement;
-//    QStringList havingStatements;
-//    QString havingStatement;
-//    QString joinStatement;
-
-//    if (!fileExtension.isEmpty())
-//    {
-//        andStatements<< " fits.fileextension = '" + fileExtension + "' ";
-//    }
-
-//    if (filters.count() > 0)
-//    {
-//        for (auto& a : filters)
-//        {
-//            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
-//            andStatements << statement;
-//            havingStatements << "'" + a.second +"'";
-//        }
-//        joinStatement = "join tags on fits.id = tags.fits_id join thumbnails on fits.id = thumbnails.fits_id";
-////        havingStatement = ",tagValue HAVING tagValue in (" + havingStatements.join(",") + ")";
-//    }
-//    if (!andStatements.isEmpty())
-//    {
-//        andStatement = " where " + andStatements.join(" AND ") ;
-//    }
-
-//    QString queryString = "SELECT * FROM fits " +
-//                        joinStatement + andStatement + ";";
-
-//    qDebug() <<queryString;
-
-//    QSqlQuery query(db);
-//    query.prepare(queryString);
-
-//    query.exec();
-//    int idFileExtension = query.record().indexOf("fileextension");
-//    int idCount = query.record().indexOf("CNT");
-
-//    qDebug()<<"========== FILEs ===============";
-//    QMap<QString, int> extensions;
-//    QMap<int, AstroFile> files;
-//    while (query.next())
-//    {
-//        QString fileExtension = query.value(idFileExtension).toString();
-//        int idId = query.record().indexOf("Id");
-//        int idFileName = query.record().indexOf("FileName");
-//        int idFullPath = query.record().indexOf("FullPath");
-//        int idDirectoryPath = query.record().indexOf("DirectoryPath");
-//        int idVolumeName = query.record().indexOf("VolumeName");
-//        int idVolumeRoot = query.record().indexOf("VolumeRoot");
-//        int idFileType = query.record().indexOf("FileType");
-//        int idFileExtension = query.record().indexOf("FileExtension");
-//        int idCreatedTime = query.record().indexOf("CreatedTime");
-//        int idLastModifiedTime = query.record().indexOf("LastModifiedTime");
-//        int idFileHash = query.record().indexOf("FileHash");
-//        int idImageHash = query.record().indexOf("ImageHash");
-//        int idTagStatus = query.record().indexOf("TagStatus");
-//        int idThumbnailStatus = query.record().indexOf("ThumbnailStatus");
-//        int idProcessStatus = query.record().indexOf("ProcessStatus");
-//        int idIsHidden = query.record().indexOf("IsHidden");
-
-//        AstroFile astro;
-//        int astroFileId = query.value(idId).toInt();
-//        astro.Id = astroFileId;
-//        astro.FileName = query.value(idFileName).toString();
-//        astro.FullPath = query.value(idFullPath).toString();
-//        astro.DirectoryPath = query.value(idDirectoryPath).toString();
-//        astro.VolumeName = query.value(idVolumeName).toString();
-//        astro.VolumeRoot = query.value(idVolumeRoot).toString();
-//        astro.FileType = AstroFileType(query.value(idFileType).toInt());
-//        astro.FileExtension = query.value(idFileExtension).toString();
-//        astro.FileHash = query.value(idFileHash).toString();
-//        astro.ImageHash = query.value(idImageHash).toString();
-//        astro.CreatedTime = query.value(idCreatedTime).toDateTime();
-//        astro.LastModifiedTime = query.value(idLastModifiedTime).toDateTime();
-//        astro.thumbnailStatus = ThumbnailLoadStatus(query.value(idThumbnailStatus).toInt());
-//        astro.tagStatus = TagExtractStatus(query.value(idTagStatus).toInt());
-//        astro.processStatus = AstroFileProcessStatus(query.value(idProcessStatus).toInt());
-//        astro.IsHidden = AstroFileProcessStatus(query.value(idIsHidden).toInt());
-
-//        files.insert(astroFileId, astro);
-//    }
-//    qDebug()<<"-------------------------";
     emit astroFilesInFilter(idSet, isFilterActive);
 }
 
