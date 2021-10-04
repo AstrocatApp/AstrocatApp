@@ -670,6 +670,7 @@ void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QSt
     QStringList andStatements;
     QString andStatement;
     QString joinStatement;
+    bool isFilterActive = !fileExtension.isEmpty() || !filters.isEmpty();
 
     if (filters.count() > 0)
     {
@@ -803,6 +804,7 @@ void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QSt
 //        files.insert(astroFileId, astro);
 //    }
 //    qDebug()<<"-------------------------";
+    emit astroFilesInFilter(idSet, isFilterActive);
 }
 
 QMap<int, AstroFile> FileRepository::_getAllAstrofiles()

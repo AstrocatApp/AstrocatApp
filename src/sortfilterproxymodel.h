@@ -38,7 +38,7 @@ public:
     explicit SortFilterProxyModel(QObject *parent = nullptr);
 
 public slots:
-    void setAstroFilesInFilter(const QSet<int>& astroFiles);
+    void setAstroFilesInFilter(const QSet<int>& astroFiles, bool isFilterActive);
     void resetFilters();
 
 signals:

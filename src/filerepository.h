@@ -65,7 +65,7 @@ signals:
     void modelLoadingGotThumbnails();
     void filterStatsLoaded(const QList<FilterViewGroupData>& data);
     void fileExtensionStatsLoaded(const QMap<QString, int>& tags);
-    void astroFilesInFilter(const QSet<int>& ids);
+    void astroFilesInFilter(const QSet<int>& ids, bool isFilterActive);
 
 private:
     QSqlDatabase db;

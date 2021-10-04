@@ -50,10 +50,10 @@ bool SortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModel
     return true;
 }
 
-void SortFilterProxyModel::setAstroFilesInFilter(const QSet<int> &astroFiles)
+void SortFilterProxyModel::setAstroFilesInFilter(const QSet<int> &astroFiles, bool isFilterActive)
 {
     acceptedAstroFilesId = astroFiles;
-    filterIsActive = true;
+    filterIsActive = isFilterActive;
     invalidate();
 }
 

@@ -93,7 +93,7 @@ signals:
     void modelLoadingGotAstrofiles();
     void modelLoadingGotTags();
     void modelLoadingGotThumbnails();
-    void astroFilesInFilter(const QSet<int>& ids);
+    void astroFilesInFilter(const QSet<int>& ids, bool isFilterActive);
 
     void FileRepository_deleteAstrofile(const AstroFile& afi);
     void FileRepository_deleteAstrofilesInFolder(const QString& fullPath);
