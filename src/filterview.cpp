@@ -195,6 +195,8 @@ void FilterView::FilterStatsLoaded(const QList<FilterViewGroupData> &data)
     // Zero Out all
     for (auto& a : fileTags.toStdMap())
     {
+        if (a.first=="FILEEXT") // Skip File Extensions since they will be handled separately
+            continue;
         for (auto& b: a.second.toStdMap())
         {
             fileTags[a.first][b.first] = 0;
