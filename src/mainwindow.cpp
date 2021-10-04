@@ -629,8 +629,8 @@ void MainWindow::remove()
 
     for (auto item: items)
     {
-        auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::ItemRole).value<AstroFile>();
-        emit removeAstroFileFromCatalog(fullPath);
+        auto fullPath = sortFilterProxyModel->data(item, AstroFileRoles::ItemRole).value<AstroFile*>();
+        emit removeAstroFileFromCatalog(*fullPath);
     }
 }
 
