@@ -238,6 +238,20 @@ void FileRepository::createTables()
         emit dbFailedToInitialize(thumbnailsFitsIdIndexQuery.lastError().text());
         return;
     }
+
+    QSqlQuery tagsKeysIndexQuery("CREATE INDEX idx_tags_tagkey ON tags(tagKey);");
+    if(!tagsKeysIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(tagsKeysIndexQuery.lastError().text());
+        return;
+    }
+
+    QSqlQuery tagsValuesIndexQuery("CREATE INDEX idx_tags_tagvalue ON tags(tagValue);");
+    if(!tagsValuesIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(tagsValuesIndexQuery.lastError().text());
+        return;
+    }
 }
 
 QList<AstroFile> FileRepository::getAstrofilesInFolder(const QString& fullPath)
@@ -560,7 +574,7 @@ void FileRepository::loadTagStats(const QString fileExtension, QList<QPair<QStri
     {
         for (auto& a : filters)
         {
-            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            QString statement = "fits.id in (select distinct tags.fits_id from tags where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
             andStatements << statement;
         }
         andStatement = "where " + andStatements.join(" AND ");
@@ -570,7 +584,7 @@ void FileRepository::loadTagStats(const QString fileExtension, QList<QPair<QStri
         andStatement = andStatement + " AND fits.fileExtension = '" + fileExtension + "' ";
     }
 
-    QString queryString = "SELECT tagKey,tagValue,count(*) CNT FROM fits join tags on fits.id = tags.fits_id " +
+    QString queryString = "SELECT tagKey,tagValue,count(*) CNT FROM fits left outer join tags on fits.id = tags.fits_id " +
                         andStatement +
             "group by tagKey,tagValue "
             "HAVING tagkey in ('OBJECT','INSTRUME','FILTER'); ";
@@ -625,11 +639,11 @@ void FileRepository::loadFileExtensionStats(const QString fileExtension, QList<Q
     {
         for (auto& a : filters)
         {
-            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            QString statement = "fits.id in (select distinct tags.fits_id from tags where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
             andStatements << statement;
             havingStatements << "'" + a.second +"'";
         }
-        joinStatement = "join tags on fits.id = tags.fits_id ";
+        joinStatement = "left outer join tags on fits.id = tags.fits_id ";
         havingStatement = ",tagValue HAVING tagValue in (" + havingStatements.join(",") + ")";
     }
     if (!andStatements.isEmpty())
@@ -676,11 +690,11 @@ void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QSt
     {
         for (auto& a : filters)
         {
-            QString statement = "fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            QString statement = "fits.id in (select fits.id from fits left outer join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
             andStatements << statement;
         }
         andStatement = andStatements.join(" AND ");
-        joinStatement = " join tags on fits.id = tags.fits_id ";
+        joinStatement = " left outer join tags on fits.id = tags.fits_id ";
     }
     if (!fileExtension.isEmpty())
     {
