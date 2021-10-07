@@ -26,6 +26,7 @@
 
 #include <QBuffer>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QPixmap>
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -203,6 +204,7 @@ void FileRepository::createTables()
             "fits_id INTEGER, "
             "tagKey TEXT, "
             "tagValue TEXT, "
+            "fileExtension TEXT, "
             "FOREIGN KEY(fits_id) REFERENCES fits(id) ON DELETE CASCADE)");
 
     if(!tagsquery.isActive())
@@ -250,6 +252,27 @@ void FileRepository::createTables()
     if(!tagsValuesIndexQuery.isActive())
     {
         emit dbFailedToInitialize(tagsValuesIndexQuery.lastError().text());
+        return;
+    }
+
+    QSqlQuery fileExtensionsIndexQuery("CREATE INDEX idx_fits_fileextension ON fits(FileExtension);");
+    if(!fileExtensionsIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(fileExtensionsIndexQuery.lastError().text());
+        return;
+    }
+
+    QSqlQuery tagsKeyValueIndexQuery("CREATE INDEX idx_tags_tagKey_tagValue ON tags(tagKey,tagValue);");
+    if(!tagsKeyValueIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(tagsKeyValueIndexQuery.lastError().text());
+        return;
+    }
+
+    QSqlQuery tagsKeyValueExtensionIndexQuery("CREATE INDEX idx_tags_tagKey_tagValue_fileExtension ON tags(tagKey,tagValue,fileExtension);");
+    if(!tagsKeyValueExtensionIndexQuery.isActive())
+    {
+        emit dbFailedToInitialize(tagsKeyValueExtensionIndexQuery.lastError().text());
         return;
     }
 }
@@ -411,6 +434,7 @@ void FileRepository::addTags(const AstroFile& astroFile)
 {
     int id = astroFile.Id;
     Q_ASSERT(id != 0);
+    auto& fileExtension = astroFile.FileExtension;
 
     for (auto iter = astroFile.Tags.constBegin(); iter != astroFile.Tags.constEnd(); ++iter)
     {
@@ -418,10 +442,11 @@ void FileRepository::addTags(const AstroFile& astroFile)
         auto& value = iter.value();
 
         QSqlQuery tagAddQuery;
-        tagAddQuery.prepare("INSERT INTO tags (fits_id,tagKey,tagValue) VALUES (:fits_id,:tagKey,:tagValue)");
+        tagAddQuery.prepare("INSERT INTO tags (fits_id,tagKey,tagValue,fileExtension) VALUES (:fits_id,:tagKey,:tagValue,:fileExtension)");
         tagAddQuery.bindValue(":fits_id", id);
         tagAddQuery.bindValue(":tagKey", key);
         tagAddQuery.bindValue(":tagValue", value);
+        tagAddQuery.bindValue(":fileExtension", fileExtension);
         if (!tagAddQuery.exec())
             qDebug() << "FAILED to execute INSERT TAG query: " << tagAddQuery.lastError();
     }
@@ -535,38 +560,9 @@ void FileRepository::loadThumbnail(const AstroFile &afi)
 
 void FileRepository::loadTagStats(const QString fileExtension, QList<QPair<QString, QString>>& filters)
 {
-    //.open astrocat.db
-    // select tagKey,tagValue,count(*) from tags where tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') group by tagKey,tagValue;
 
-    // select FileExtension,count(*) from fits group by FileExtension;
-
-    // select FileExtension,count(*) from fits INNER JOIN tags on tags.fits_id=fits.Id group by FileExtension;
-
-    // from fits join tags on fits.id = tags.fits_id where tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') and fits.fileextension = 'xisf' group by tagKey,tagValue;
-
-    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id where tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') group by fileextension,tagKey,tagValue;
-
-    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81' group by fileextension,tagKey,tagValue;
-
-    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id where fits.id in
-    // (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81')
-    // and tagKey IN ('OBJECT','INSTRUME','FILTER','FILEEXT') group by fileextension,tagKey,tagValue;
-
-
-    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id
-    // where fits.id in
-    //  ( select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'FILTER' AND tagValue = 'Ha')
-    // AND fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81')
-    // group by fileextension,tagKey,tagValue
-    // HAVING tagkey in ('OBJECT','INSTRUME','FILTER','FILEEXT');
-
-    // select fileextension,tagKey,tagValue,count(*) from fits join tags on fits.id = tags.fits_id
-    // where fits.id in
-    //  ( select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'FILTER' AND tagValue = 'Ha')
-    // AND fits.id in (select fits.id from fits join tags on fits.id = tags.fits_id where tagKey = 'OBJECT' AND tagValue = 'M81')
-    // group by fileextension,tagKey,tagValue
-    // HAVING tagkey in ('OBJECT','INSTRUME','FILTER','FILEEXT');
-
+    QElapsedTimer timer;
+    timer.start();
     QStringList andStatements;
     QString andStatement;
 
@@ -574,38 +570,38 @@ void FileRepository::loadTagStats(const QString fileExtension, QList<QPair<QStri
     {
         for (auto& a : filters)
         {
-            QString statement = "fits.id in (select distinct tags.fits_id from tags where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            QString statement = "fits_id in (select distinct fits_id from tags where tagKey = '" + a.first + "' AND tagValue = '" + a.second  + "') ";
             andStatements << statement;
         }
-        andStatement = "where " + andStatements.join(" AND ");
+        andStatement = andStatements.join(" AND ");
+
     }
     if (!fileExtension.isEmpty())
     {
-        andStatement = andStatement + " AND fits.fileExtension = '" + fileExtension + "' ";
+        if (!andStatement.isEmpty())
+            andStatement = andStatement + " AND ";
+        andStatement = andStatement + " fileExtension = '" + fileExtension + "' ";
+    }
+    if (!andStatement.isEmpty())
+    {
+        andStatement = " where " + andStatement;
     }
 
-    QString queryString = "SELECT tagKey,tagValue,count(*) CNT FROM fits left outer join tags on fits.id = tags.fits_id " +
-                        andStatement +
-            "group by tagKey,tagValue "
-            "HAVING tagkey in ('OBJECT','INSTRUME','FILTER'); ";
+    QString queryString = "SELECT tagKey,tagValue,count(*) CNT FROM tags " + andStatement + " group by tagKey,tagValue; ";
 
     qDebug() <<queryString;
 
     QSqlQuery query(db);
     query.prepare(queryString);
-//    query.exec();
 
     query.exec();
-//    int idFileExtension = query.record().indexOf("fileextension");
     int idTagKey = query.record().indexOf("tagKey");
     int idTagValue = query.record().indexOf("tagValue");
     int idCount = query.record().indexOf("CNT");
 
-//    qDebug()<<"=========== TAGS ==============";
     QList<FilterViewGroupData> groupData;
     while (query.next())
     {
-//        QString fileExtension = query.value(idFileExtension).toString();
         QString tagKey = query.value(idTagKey).toString();
         QString tagValue = query.value(idTagValue).toString();
         int count = query.value(idCount).toInt();
@@ -615,56 +611,55 @@ void FileRepository::loadTagStats(const QString fileExtension, QList<QPair<QStri
         data.ElementName = tagValue;
         data.ElementCount = count;
         groupData<<data;
-//        qDebug()<<tagKey<<"|"<<tagValue<<"|"<<count;
     }
-//    qDebug()<<"-------------------------";
 
+    qDebug()<< "loadTagStats: " << timer.elapsed() << "ms.";
     emit filterStatsLoaded(groupData);
 }
 
 void FileRepository::loadFileExtensionStats(const QString fileExtension, QList<QPair<QString, QString>>& filters)
 {
+    QElapsedTimer timer;
+    timer.start();
+
     QStringList andStatements;
     QString andStatement;
+    QString intersectStatement;
     QStringList havingStatements;
     QString havingStatement;
     QString joinStatement;
+    QString whereClause;
+    QString andClause;
 
     if (!fileExtension.isEmpty())
     {
-        andStatements<< " fits.fileextension = '" + fileExtension + "' ";
+        andStatement = " fits.fileextension = '" + fileExtension + "' ";
     }
 
     if (filters.count() > 0)
     {
         for (auto& a : filters)
         {
-            QString statement = "fits.id in (select distinct tags.fits_id from tags where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            QString statement = "select distinct fits_id from tags where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "' ";
             andStatements << statement;
-            havingStatements << "'" + a.second +"'";
         }
-        joinStatement = "left outer join tags on fits.id = tags.fits_id ";
-        havingStatement = ",tagValue HAVING tagValue in (" + havingStatements.join(",") + ")";
+        intersectStatement = " id in (" + andStatements.join(" INTERSECT ") + " ) ";
     }
-    if (!andStatements.isEmpty())
-    {
-        andStatement = " where " + andStatements.join(" AND ") ;
-    }
+    whereClause = (!andStatement.isEmpty() || !intersectStatement.isEmpty()) ? " WHERE " : "";
+    andClause = (!andStatement.isEmpty() && !intersectStatement.isEmpty()) ? " AND " : "";
 
     QString queryString = "SELECT fileextension,count(*) CNT FROM fits " +
-                        joinStatement + andStatement + " group by fileextension " + havingStatement + ";";
+                         whereClause + intersectStatement + andClause + andStatement + " group by fileextension ;";
 
     qDebug() <<queryString;
 
     QSqlQuery query(db);
     query.prepare(queryString);
-//    query.exec();
 
     query.exec();
     int idFileExtension = query.record().indexOf("fileextension");
     int idCount = query.record().indexOf("CNT");
 
-//    qDebug()<<"========== FILE EXTENSIONS ===============";
     QMap<QString, int> extensions;
     while (query.next())
     {
@@ -672,29 +667,29 @@ void FileRepository::loadFileExtensionStats(const QString fileExtension, QList<Q
         int count = query.value(idCount).toInt();
 
         extensions[fileExtension] = count;
-//        qDebug()<<fileExtension<<"|"<<count;
     }
-//    qDebug()<<"-------------------------";
 
+    qDebug()<< "loadFileExtensionStats: "<< timer.elapsed() << "ms.";
     emit fileExtensionStatsLoaded(extensions);
 }
 
 void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QString, QString> > &filters)
 {
+    QElapsedTimer timer;
+    timer.start();
+
     QStringList andStatements;
     QString andStatement;
-    QString joinStatement;
     bool isFilterActive = !fileExtension.isEmpty() || !filters.isEmpty();
 
     if (filters.count() > 0)
     {
         for (auto& a : filters)
         {
-            QString statement = "fits.id in (select fits.id from fits left outer join tags on fits.id = tags.fits_id where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
+            QString statement = "fits.id in (select fits_id from tags where tagKey = '" + a.first + "' AND tagValue = '" + a.second + "') ";
             andStatements << statement;
         }
         andStatement = andStatements.join(" AND ");
-        joinStatement = " left outer join tags on fits.id = tags.fits_id ";
     }
     if (!fileExtension.isEmpty())
     {
@@ -707,20 +702,16 @@ void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QSt
         andStatement = " where " + andStatement;
     }
 
-    QString queryString = "SELECT DISTINCT fits.id FROM fits " + joinStatement + andStatement + "; ";
+    QString queryString = "SELECT DISTINCT fits.id FROM fits " + andStatement + "; ";
 
     qDebug() <<queryString;
 
     QSqlQuery query(db);
     query.prepare(queryString);
-//    query.exec();
 
     query.exec();
-//    int idFileExtension = query.record().indexOf("fileextension");
     int idKey = query.record().indexOf("Id");
 
-//    qDebug()<<"=========== TAGS ==============";
-//    QList<int> idList;
     QSet<int> idSet;
     int rows = query.numRowsAffected();
     idSet.reserve(rows);
@@ -730,8 +721,8 @@ void FileRepository::loadAstroFiles(const QString fileExtension, QList<QPair<QSt
 
         idSet<<id;
     }
-//    qDebug()<<"-------------------------";
 
+    qDebug()<< "loadAstroFile: s" << timer.elapsed() << "ms.";
     emit astroFilesInFilter(idSet, isFilterActive);
 }
 
@@ -822,7 +813,6 @@ QMap<int, QImage> FileRepository::_getAllThumbnails()
 
         images[fitsId].loadFromData(inByteArrayTiny, "PNG");
     }
-
     return images;
 }
 
@@ -858,21 +848,21 @@ void FileRepository::loadModel()
     // 4. Get the entire thumbnails into memory
     // select * from thumbnails
 
-//    auto thumbnails = _getAllThumbnails();
-//    emit modelLoadingGotThumbnails();
+    auto thumbnails = _getAllThumbnails();
+    emit modelLoadingGotThumbnails();
 
     // 5. Add thumbnails to their fits files
     // insert all thumbnails from #4 into map by fits_id
 
-//    QMapIterator<int, QImage> thumbiter(thumbnails);
-//    while (thumbiter.hasNext())
-//    {
-//        thumbiter.next();
-//        auto fitsId = thumbiter.key();
-//        auto& image = thumbiter.value();
-//        fitsmap[fitsId].tinyThumbnail = image;
-//        fitsmap[fitsId].thumbnailStatus = ThumbnailLoaded;
-//    }
+    QMapIterator<int, QImage> thumbiter(thumbnails);
+    while (thumbiter.hasNext())
+    {
+        thumbiter.next();
+        auto fitsId = thumbiter.key();
+        auto& image = thumbiter.value();
+        fitsmap[fitsId].tinyThumbnail = image;
+        fitsmap[fitsId].thumbnailStatus = ThumbnailLoaded;
+    }
 
     // 6. convert map's `values` into a list of astroFile, and emit the list
 
